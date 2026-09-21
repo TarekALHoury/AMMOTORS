@@ -1,27 +1,20 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs/promises');
+const { createCarsRepository } = require('./carsRepository');
 
 const defaultCarsFile = path.join(__dirname, '..', 'data', 'cars.json');
 
-function createApp({ carsFile = defaultCarsFile, logger = console } = {}) {
+function createApp({
+  carsFile = defaultCarsFile,
+  carsRepository = createCarsRepository({ carsFile }),
+  logger = console,
+} = {}) {
   const app = express();
 
   app.disable('x-powered-by');
   app.use(cors());
   app.use(express.json({ limit: '100kb' }));
-
-  async function getCars() {
-    const data = await fs.readFile(carsFile, 'utf8');
-    const cars = JSON.parse(data);
-
-    if (!Array.isArray(cars)) {
-      throw new TypeError('Cars data must be an array.');
-    }
-
-    return cars;
-  }
 
   app.get('/api/health', (_request, response) => {
     response.json({ status: 'ok' });
@@ -29,7 +22,7 @@ function createApp({ carsFile = defaultCarsFile, logger = console } = {}) {
 
   app.get('/api/cars', async (_request, response, next) => {
     try {
-      const cars = await getCars();
+      const cars = await carsRepository.getAll();
       response.json(cars);
     } catch (error) {
       next(error);
@@ -38,8 +31,7 @@ function createApp({ carsFile = defaultCarsFile, logger = console } = {}) {
 
   app.get('/api/cars/:id', async (request, response, next) => {
     try {
-      const cars = await getCars();
-      const car = cars.find((item) => item.id === request.params.id);
+      const car = await carsRepository.getById(request.params.id);
 
       if (!car) {
         return response.status(404).json({ message: 'Car not found.' });
