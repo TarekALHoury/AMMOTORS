@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage.jsx';
 import CarsPage from './pages/CarsPage.jsx';
 import CarDetailsPage from './pages/CarDetailsPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
+import AdminPage from './admin/AdminPage.jsx';
 
 function ScrollManager() {
   const location = useLocation();
@@ -25,6 +26,12 @@ function ScrollManager() {
 }
 
 function App() {
+  const location = useLocation();
+
+  if (location.pathname.startsWith('/admin')) {
+    return <><ScrollManager /><Routes><Route path="/admin/*" element={<AdminPage />} /></Routes></>;
+  }
+
   return (
     <div className="site-shell">
       <ScrollManager />

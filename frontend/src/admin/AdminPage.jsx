@@ -1,0 +1,251 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { getCars } from '../services/carsApi.js';
+import VehicleImage from '../components/VehicleImage.jsx';
+import logo from '../assets/am-motors-logo.png';
+import './admin.css';
+
+const emptyCar = {
+  make: '', model: '', year: '', price: '', description: '', status: 'available',
+  mileage: '', engine: '', horsepower: '', transmission: '', drivetrain: '', fuel: '',
+  exteriorColor: '', interiorColor: '', images: [],
+};
+
+const demoCars = [
+  { id: 'demo-001', make: 'BMW', model: 'M4 Competition', year: 2024, price: 80000, mileage: 12000, engine: '3.0L Twin-Turbo', horsepower: 503, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Petrol', exteriorColor: 'Black', interiorColor: 'Black', description: 'Clean, low-mileage performance coupe.', status: 'available', images: [] },
+  { id: 'demo-002', make: 'Mercedes-Benz', model: 'C300', year: 2023, price: 54000, mileage: 18500, engine: '2.0L Turbo', horsepower: 255, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Petrol', exteriorColor: 'White', interiorColor: 'Beige', description: 'Comfortable and well maintained.', status: 'reserved', images: [] },
+  { id: 'demo-003', make: 'Audi', model: 'Q5 Premium Plus', year: 2024, price: 63000, mileage: 7200, engine: '2.0L Turbo', horsepower: 261, transmission: 'Automatic', drivetrain: 'AWD', fuel: 'Petrol', exteriorColor: 'Gray', interiorColor: 'Black', description: 'A refined, practical luxury SUV.', status: 'sold', images: [] },
+];
+
+function money(value) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value || 0);
+}
+
+function AdminIcon({ name }) {
+  const paths = {
+    dashboard: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
+    cars: <><path d="m5 17-2-1v-4l2-1 2-4h10l2 4 2 1v4l-2 1" /><path d="M5 11h14M7 17v2M17 17v2" /></>,
+    plus: <path d="M12 5v14M5 12h14" />,
+    search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
+    edit: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" /></>,
+    trash: <><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15" /></>,
+    eye: <><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="2.5" /></>,
+    logout: <><path d="M10 17l5-5-5-5M15 12H3" /><path d="M14 4h6v16h-6" /></>,
+    menu: <path d="M4 7h16M4 12h16M4 17h16" />,
+    close: <path d="m6 6 12 12M18 6 6 18" />,
+    upload: <><path d="M12 16V4m-4 4 4-4 4 4" /><path d="M4 15v5h16v-5" /></>,
+    arrow: <path d="m9 18 6-6-6-6" />,
+  };
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
+}
+
+function SignIn({ onSuccess }) {
+  const [values, setValues] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+
+  function submit(event) {
+    event.preventDefault();
+    const nextErrors = {};
+    if (!/^\S+@\S+\.\S+$/.test(values.email)) nextErrors.email = 'Enter a valid email address.';
+    if (values.password.length < 6) nextErrors.password = 'Password must contain at least 6 characters.';
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+    setSubmitting(true);
+    window.setTimeout(() => onSuccess(values.email), 350);
+  }
+
+  return (
+    <main className="admin-signin-shell">
+      <section className="admin-signin-card" aria-labelledby="signin-title">
+        <img className="admin-signin-logo" src={logo} alt="AM MOTORS" />
+        <p className="admin-kicker">Management portal</p>
+        <h1 id="signin-title">Welcome back</h1>
+        <p>Sign in to manage vehicle listings, availability, details, and images.</p>
+        <div className="admin-demo-note" role="note">UI preview only — authentication will be connected to Firebase later.</div>
+        <form onSubmit={submit} noValidate>
+          <label className="admin-field">
+            <span>Email address</span>
+            <input type="email" aria-label="Email address" autoComplete="username" value={values.email} aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'signin-email-error' : undefined} onChange={(event) => setValues({ ...values, email: event.target.value })} />
+            {errors.email && <small id="signin-email-error" className="admin-field-error">{errors.email}</small>}
+          </label>
+          <label className="admin-field">
+            <span>Password</span>
+            <input type="password" aria-label="Password" autoComplete="current-password" value={values.password} aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? 'signin-password-error' : undefined} onChange={(event) => setValues({ ...values, password: event.target.value })} />
+            {errors.password && <small id="signin-password-error" className="admin-field-error">{errors.password}</small>}
+          </label>
+          <button className="button button-primary admin-submit" type="submit" disabled={submitting}>{submitting ? 'Signing in…' : 'Sign in'}</button>
+        </form>
+        <a className="admin-back-link" href="/">← Return to website</a>
+      </section>
+    </main>
+  );
+}
+
+function Summary({ cars, onNavigate }) {
+  const available = cars.filter((car) => car.status === 'available').length;
+  const reserved = cars.filter((car) => car.status === 'reserved').length;
+  const sold = cars.filter((car) => car.status === 'sold').length;
+  const totalValue = cars.filter((car) => car.status !== 'sold').reduce((sum, car) => sum + Number(car.price || 0), 0);
+  const cards = [
+    ['Total inventory', cars.length, 'cars'], ['Available', available, 'ready to sell'],
+    ['Reserved', reserved, 'awaiting completion'], ['Active value', money(totalValue), 'available + reserved'],
+  ];
+  return (
+    <div className="admin-view">
+      <div className="admin-page-heading"><div><p className="admin-kicker">Overview</p><h1>Dashboard</h1><p>Monitor inventory status and keep listings current.</p></div><button className="button button-primary" onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
+      <section className="admin-summary-grid" aria-label="Inventory summary">
+        {cards.map(([label, value, note]) => <article className="admin-summary-card" key={label}><span>{label}</span><strong>{value}</strong><small>{note}</small></article>)}
+      </section>
+      <section className="admin-panel">
+        <div className="admin-panel-heading"><div><p className="admin-kicker">Recent inventory</p><h2>Latest vehicles</h2></div><button className="admin-text-button" onClick={() => onNavigate('inventory')}>View all <AdminIcon name="arrow" /></button></div>
+        <div className="admin-recent-list">
+          {cars.slice(0, 4).map((car) => <button key={car.id} className="admin-recent-row" onClick={() => onNavigate('details', car)}><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.year} · {money(car.price)}</small></span><span className={`admin-status status-${car.status}`}>{car.status}</span><AdminIcon name="arrow" /></button>)}
+          {!cars.length && <EmptyState onAction={() => onNavigate('add')} />}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function EmptyState({ onAction }) {
+  return <div className="admin-empty"><div className="admin-empty-icon"><AdminIcon name="cars" /></div><h3>No vehicles found</h3><p>Add a vehicle or adjust your search and filters.</p>{onAction && <button className="button button-outline" onClick={onAction}>Add first vehicle</button>}</div>;
+}
+
+function Inventory({ cars, onNavigate, onDelete }) {
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('all');
+  const [sort, setSort] = useState('newest');
+  const [view, setView] = useState('table');
+  const filtered = useMemo(() => cars.filter((car) => {
+    const matchesText = `${car.make} ${car.model} ${car.year}`.toLowerCase().includes(search.trim().toLowerCase());
+    return matchesText && (status === 'all' || car.status === status);
+  }).sort((left, right) => {
+    if (sort === 'price-high') return right.price - left.price;
+    if (sort === 'price-low') return left.price - right.price;
+    if (sort === 'make') return `${left.make} ${left.model}`.localeCompare(`${right.make} ${right.model}`);
+    return right.year - left.year;
+  }), [cars, search, status, sort]);
+
+  return (
+    <div className="admin-view">
+      <div className="admin-page-heading"><div><p className="admin-kicker">Vehicle management</p><h1>Inventory</h1><p>{filtered.length} of {cars.length} vehicles shown.</p></div><button className="button button-primary" onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
+      <section className="admin-toolbar" aria-label="Inventory controls">
+        <label className="admin-search"><span className="sr-only">Search inventory</span><AdminIcon name="search" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search make, model, or year" /></label>
+        <label><span className="sr-only">Filter by status</span><select value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">All statuses</option><option value="available">Available</option><option value="reserved">Reserved</option><option value="sold">Sold</option></select></label>
+        <label><span className="sr-only">Sort inventory</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="newest">Newest year</option><option value="price-high">Price: high to low</option><option value="price-low">Price: low to high</option><option value="make">Make and model</option></select></label>
+        <div className="admin-view-toggle" aria-label="View style"><button className={view === 'table' ? 'active' : ''} onClick={() => setView('table')} aria-pressed={view === 'table'}>Table</button><button className={view === 'grid' ? 'active' : ''} onClick={() => setView('grid')} aria-pressed={view === 'grid'}>Grid</button></div>
+      </section>
+      {!filtered.length ? <EmptyState onAction={cars.length ? null : () => onNavigate('add')} /> : view === 'table' ? (
+        <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Vehicle</th><th>Status</th><th>Year</th><th>Mileage</th><th>Price</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{filtered.map((car) => <tr key={car.id}><td><div className="admin-vehicle-cell"><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.engine}</small></span></div></td><td><span className={`admin-status status-${car.status}`}>{car.status}</span></td><td>{car.year}</td><td>{Number(car.mileage || 0).toLocaleString()} km</td><td><strong>{money(car.price)}</strong></td><td><div className="admin-row-actions"><button aria-label={`View ${car.make} ${car.model}`} onClick={() => onNavigate('details', car)}><AdminIcon name="eye" /></button><button aria-label={`Edit ${car.make} ${car.model}`} onClick={() => onNavigate('edit', car)}><AdminIcon name="edit" /></button><button className="danger" aria-label={`Delete ${car.make} ${car.model}`} onClick={() => onDelete(car)}><AdminIcon name="trash" /></button></div></td></tr>)}</tbody></table></div>
+      ) : <div className="admin-inventory-grid">{filtered.map((car) => <article className="admin-inventory-card" key={car.id}><VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model}`} /><div><span className={`admin-status status-${car.status}`}>{car.status}</span><h2>{car.make} {car.model}</h2><p>{car.year} · {Number(car.mileage || 0).toLocaleString()} km</p><strong>{money(car.price)}</strong><div className="admin-card-actions"><button onClick={() => onNavigate('details', car)}>View</button><button onClick={() => onNavigate('edit', car)}>Edit</button><button className="danger" onClick={() => onDelete(car)}>Delete</button></div></div></article>)}</div>}
+    </div>
+  );
+}
+
+function validateCar(car) {
+  const errors = {};
+  ['make', 'model', 'engine', 'transmission', 'drivetrain', 'fuel', 'exteriorColor', 'interiorColor'].forEach((field) => { if (!String(car[field] ?? '').trim()) errors[field] = 'Required.'; });
+  const currentYear = new Date().getFullYear();
+  if (!Number.isInteger(Number(car.year)) || Number(car.year) < 1886 || Number(car.year) > currentYear + 1) errors.year = `Enter a year from 1886 to ${currentYear + 1}.`;
+  ['price', 'mileage', 'horsepower'].forEach((field) => { if (car[field] === '' || Number(car[field]) < 0 || !Number.isFinite(Number(car[field]))) errors[field] = 'Enter a valid non-negative number.'; });
+  if (String(car.description).length > 5000) errors.description = 'Description must be 5,000 characters or fewer.';
+  return errors;
+}
+
+function Field({ label, name, value, error, onChange, type = 'text', ...props }) {
+  const errorId = `${name}-error`;
+  return <label className={`admin-field ${error ? 'has-error' : ''}`}><span>{label}</span><input name={name} type={type} value={value} onChange={onChange} aria-label={label} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} {...props} />{error && <small id={errorId} className="admin-field-error">{error}</small>}</label>;
+}
+
+function CarForm({ mode, initialCar, onCancel, onSave }) {
+  const [car, setCar] = useState(() => ({ ...emptyCar, ...initialCar, images: [...(initialCar?.images || [])] }));
+  const [errors, setErrors] = useState({});
+  const [imageUrl, setImageUrl] = useState('');
+  const [saving, setSaving] = useState(false);
+  const firstErrorRef = useRef(null);
+
+  function change(event) { setCar({ ...car, [event.target.name]: event.target.value }); }
+  function addImageUrl() {
+    try {
+      const url = new URL(imageUrl);
+      if (url.protocol !== 'https:') throw new Error();
+      setCar({ ...car, images: [...car.images, url.toString()].slice(0, 20) });
+      setImageUrl('');
+      setErrors({ ...errors, images: undefined });
+    } catch { setErrors({ ...errors, images: 'Enter a valid HTTPS image URL.' }); }
+  }
+  function selectFiles(event) {
+    const previews = [...event.target.files].filter((file) => /^image\/(jpeg|png|webp)$/.test(file.type) && file.size < 10 * 1024 * 1024).map((file) => URL.createObjectURL(file));
+    setCar({ ...car, images: [...car.images, ...previews].slice(0, 20) });
+    if (previews.length !== event.target.files.length) setErrors({ ...errors, images: 'Only JPEG, PNG, or WebP files under 10 MB are previewed.' });
+  }
+  function submit(event) {
+    event.preventDefault();
+    const nextErrors = validateCar(car);
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) {
+      window.requestAnimationFrame(() => document.querySelector('.admin-field [aria-invalid="true"]')?.focus());
+      return;
+    }
+    setSaving(true);
+    window.setTimeout(() => onSave({ ...car, year: Number(car.year), price: Number(car.price), mileage: Number(car.mileage), horsepower: Number(car.horsepower) }), 300);
+  }
+
+  return <div className="admin-view"><div className="admin-page-heading"><div><button className="admin-back-button" onClick={onCancel}>← Back to inventory</button><p className="admin-kicker">{mode === 'add' ? 'New listing' : 'Update listing'}</p><h1>{mode === 'add' ? 'Add vehicle' : `Edit ${initialCar.make} ${initialCar.model}`}</h1><p>Fields marked required are needed before this listing can be saved.</p></div></div><form className="admin-car-form" onSubmit={submit} noValidate ref={firstErrorRef}>
+    <section className="admin-form-section"><div className="admin-form-section-heading"><span>01</span><div><h2>Vehicle details</h2><p>Core listing and availability information.</p></div></div><div className="admin-form-grid"><Field label="Make *" name="make" value={car.make} error={errors.make} onChange={change} /><Field label="Model *" name="model" value={car.model} error={errors.model} onChange={change} /><Field label="Year *" name="year" type="number" value={car.year} error={errors.year} onChange={change} /><Field label="Price (USD) *" name="price" type="number" value={car.price} error={errors.price} onChange={change} /><label className="admin-field"><span>Status *</span><select name="status" value={car.status} onChange={change}><option value="available">Available</option><option value="reserved">Reserved</option><option value="sold">Sold</option></select></label><label className="admin-field admin-field-wide"><span>Description</span><textarea name="description" rows="5" value={car.description} onChange={change} aria-invalid={Boolean(errors.description)} /><small>{car.description.length}/5000</small>{errors.description && <small className="admin-field-error">{errors.description}</small>}</label></div></section>
+    <section className="admin-form-section"><div className="admin-form-section-heading"><span>02</span><div><h2>Specifications</h2><p>Technical and appearance information.</p></div></div><div className="admin-form-grid"><Field label="Mileage (km) *" name="mileage" type="number" value={car.mileage} error={errors.mileage} onChange={change} /><Field label="Engine *" name="engine" value={car.engine} error={errors.engine} onChange={change} /><Field label="Horsepower *" name="horsepower" type="number" value={car.horsepower} error={errors.horsepower} onChange={change} /><Field label="Transmission *" name="transmission" value={car.transmission} error={errors.transmission} onChange={change} /><Field label="Drivetrain *" name="drivetrain" value={car.drivetrain} error={errors.drivetrain} onChange={change} /><Field label="Fuel type *" name="fuel" value={car.fuel} error={errors.fuel} onChange={change} /><Field label="Exterior color *" name="exteriorColor" value={car.exteriorColor} error={errors.exteriorColor} onChange={change} /><Field label="Interior color *" name="interiorColor" value={car.interiorColor} error={errors.interiorColor} onChange={change} /></div></section>
+    <section className="admin-form-section"><div className="admin-form-section-heading"><span>03</span><div><h2>Vehicle images</h2><p>Select local images for preview or add hosted URLs. Uploading will be connected later.</p></div></div><div className="admin-image-controls"><label className="admin-upload-zone"><AdminIcon name="upload" /><strong>Select images</strong><span>JPEG, PNG, or WebP · max 10 MB each</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={selectFiles} /></label><div className="admin-url-input"><label htmlFor="image-url">Hosted image URL</label><div><input id="image-url" type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://…" /><button type="button" onClick={addImageUrl}>Add URL</button></div>{errors.images && <small className="admin-field-error">{errors.images}</small>}</div></div>{car.images.length > 0 && <div className="admin-image-previews" aria-label="Selected image previews">{car.images.map((image, index) => <div key={`${image}-${index}`}><VehicleImage src={image} alt={`Vehicle preview ${index + 1}`} /><button type="button" aria-label={`Remove image ${index + 1}`} onClick={() => setCar({ ...car, images: car.images.filter((_, imageIndex) => imageIndex !== index) })}>×</button>{index === 0 && <span>Cover</span>}</div>)}</div>}</section>
+    <div className="admin-form-actions"><button className="button button-outline" type="button" onClick={onCancel}>Cancel</button><button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : mode === 'add' ? 'Add vehicle' : 'Save changes'}</button></div>
+  </form></div>;
+}
+
+function Details({ car, onBack, onEdit, onDelete }) {
+  const specs = [['Mileage', `${Number(car.mileage || 0).toLocaleString()} km`], ['Engine', car.engine], ['Horsepower', `${car.horsepower} hp`], ['Transmission', car.transmission], ['Drivetrain', car.drivetrain], ['Fuel', car.fuel], ['Exterior', car.exteriorColor], ['Interior', car.interiorColor]];
+  return <div className="admin-view"><button className="admin-back-button" onClick={onBack}>← Back to inventory</button><div className="admin-details-heading"><div><span className={`admin-status status-${car.status}`}>{car.status}</span><p>{car.year}</p><h1>{car.make} {car.model}</h1><strong>{money(car.price)}</strong></div><div><button className="button button-outline" onClick={onEdit}><AdminIcon name="edit" /> Edit</button><button className="button admin-danger-button" onClick={onDelete}><AdminIcon name="trash" /> Delete</button></div></div><div className="admin-details-layout"><section className="admin-detail-gallery"><VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model}`} />{car.images?.length > 1 && <div>{car.images.slice(1, 5).map((image, index) => <VehicleImage key={image} src={image} alt={`${car.make} ${car.model} view ${index + 2}`} />)}</div>}</section><aside className="admin-preview-card"><p className="admin-kicker">Customer preview</p><span className={`admin-status status-${car.status}`}>{car.status}</span><h2>{car.make} {car.model}</h2><p>{car.year} · {Number(car.mileage || 0).toLocaleString()} km</p><strong>{money(car.price)}</strong><span>This mirrors the information customers receive through the public API.</span></aside></div><section className="admin-panel admin-detail-section"><div className="admin-panel-heading"><div><p className="admin-kicker">Vehicle overview</p><h2>Specifications</h2></div></div><dl className="admin-spec-grid">{specs.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || '—'}</dd></div>)}</dl></section><section className="admin-panel admin-detail-section"><p className="admin-kicker">Listing copy</p><h2>Description</h2><p>{car.description || 'No description provided.'}</p></section></div>;
+}
+
+function DeleteDialog({ car, onCancel, onConfirm }) {
+  const dialogRef = useRef(null);
+  const supportsModal = typeof HTMLDialogElement !== 'undefined' && Boolean(HTMLDialogElement.prototype.showModal);
+  useEffect(() => { dialogRef.current?.showModal?.(); }, []);
+  return <dialog className="admin-dialog" ref={dialogRef} open={!supportsModal} onCancel={onCancel} aria-labelledby="delete-title"><div className="admin-dialog-icon"><AdminIcon name="trash" /></div><h2 id="delete-title">Delete this vehicle?</h2><p><strong>{car.make} {car.model}</strong> will be removed from the inventory. This action cannot be undone after backend integration.</p><div><button className="button button-outline" onClick={onCancel}>Cancel</button><button className="button admin-danger-button" onClick={onConfirm}>Delete vehicle</button></div></dialog>;
+}
+
+function LoadingState() { return <div className="admin-loading" role="status"><span /><h2>Loading inventory</h2><p>Preparing the management workspace…</p></div>; }
+
+function AdminWorkspace({ email, onSignOut }) {
+  const [cars, setCars] = useState([]);
+  const [view, setView] = useState('dashboard');
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [deleteCar, setDeleteCar] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [notice, setNotice] = useState('');
+
+  function loadInventory() {
+    setLoading(true); setLoadError(false);
+    getCars().then(setCars).catch(() => setLoadError(true)).finally(() => setLoading(false));
+  }
+  useEffect(loadInventory, []);
+  function navigate(nextView, car = null) { setView(nextView); setSelectedCar(car); setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'auto' }); }
+  function saveCar(car) {
+    if (view === 'add') {
+      setCars([{ ...car, id: `local-${Date.now()}` }, ...cars]); setNotice('Vehicle added to this UI preview.');
+    } else {
+      setCars(cars.map((item) => item.id === selectedCar.id ? { ...car, id: item.id } : item)); setNotice('Vehicle changes saved in this UI preview.');
+    }
+    navigate('inventory'); window.setTimeout(() => setNotice(''), 3500);
+  }
+  function confirmDelete() { setCars(cars.filter((car) => car.id !== deleteCar.id)); setDeleteCar(null); setNotice('Vehicle removed from this UI preview.'); navigate('inventory'); window.setTimeout(() => setNotice(''), 3500); }
+
+  return <div className="admin-app"><aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}><a className="admin-sidebar-logo" href="/"><img src={logo} alt="AM MOTORS" /></a><nav aria-label="Admin navigation"><button className={view === 'dashboard' ? 'active' : ''} onClick={() => navigate('dashboard')}><AdminIcon name="dashboard" /> Dashboard</button><button className={['inventory', 'details', 'edit'].includes(view) ? 'active' : ''} onClick={() => navigate('inventory')}><AdminIcon name="cars" /> Inventory <span>{cars.length}</span></button><button className={view === 'add' ? 'active' : ''} onClick={() => navigate('add')}><AdminIcon name="plus" /> Add vehicle</button></nav><div className="admin-sidebar-user"><span>{email.charAt(0).toUpperCase()}</span><div><strong>Administrator</strong><small>{email}</small></div><button aria-label="Sign out" onClick={onSignOut}><AdminIcon name="logout" /></button></div></aside><div className="admin-main"><header className="admin-mobile-header"><button aria-label="Toggle admin navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><AdminIcon name={menuOpen ? 'close' : 'menu'} /></button><img src={logo} alt="AM MOTORS" /><span>Admin</span></header>{menuOpen && <button className="admin-menu-scrim" aria-label="Close admin navigation" onClick={() => setMenuOpen(false)} />}{notice && <div className="admin-toast" role="status"><span>✓</span>{notice}</div>}{loading ? <LoadingState /> : loadError ? <div className="admin-error-state" role="alert"><h1>Unable to load inventory</h1><p>Start the existing backend and try again, or continue with demo data to review the interface.</p><div><button className="button button-outline" onClick={loadInventory}>Try again</button><button className="button button-primary" onClick={() => { setCars(demoCars); setLoadError(false); }}>Use demo inventory</button></div></div> : <>{view === 'dashboard' && <Summary cars={cars} onNavigate={navigate} />}{view === 'inventory' && <Inventory cars={cars} onNavigate={navigate} onDelete={setDeleteCar} />}{view === 'add' && <CarForm mode="add" onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'edit' && selectedCar && <CarForm mode="edit" initialCar={selectedCar} onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'details' && selectedCar && <Details car={cars.find((car) => car.id === selectedCar.id) || selectedCar} onBack={() => navigate('inventory')} onEdit={() => navigate('edit', selectedCar)} onDelete={() => setDeleteCar(selectedCar)} />}</>}</div>{deleteCar && <DeleteDialog car={deleteCar} onCancel={() => setDeleteCar(null)} onConfirm={confirmDelete} />}</div>;
+}
+
+function AdminPage() {
+  const [adminEmail, setAdminEmail] = useState(null);
+  return adminEmail ? <AdminWorkspace email={adminEmail} onSignOut={() => setAdminEmail(null)} /> : <SignIn onSuccess={setAdminEmail} />;
+}
+
+export default AdminPage;
+export { demoCars, validateCar };
