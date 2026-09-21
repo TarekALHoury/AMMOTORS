@@ -42,6 +42,7 @@ function createApp({
       const cars = await carsRepository.getAll();
       response.json(cars);
     } catch (error) {
+      error.publicMessage = 'Could not load cars.';
       next(error);
     }
   });
@@ -56,6 +57,7 @@ function createApp({
 
       return response.json(car);
     } catch (error) {
+      error.publicMessage = 'Could not load car.';
       return next(error);
     }
   });
@@ -66,7 +68,9 @@ function createApp({
 
   app.use((error, request, response, _next) => {
     logger.error(`Request failed: ${request.method} ${request.originalUrl}`, error);
-    response.status(500).json({ message: 'Could not load vehicle data.' });
+    response.status(500).json({
+      message: error.publicMessage || 'Internal server error.',
+    });
   });
 
   return app;

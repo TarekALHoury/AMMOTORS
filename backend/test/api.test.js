@@ -101,3 +101,30 @@ test('CORS allowlisting only exposes configured origins', async (context) => {
   );
   assert.equal(blockedResponse.headers.get('access-control-allow-origin'), null);
 });
+
+test('inventory failures preserve safe route-specific error contracts', async (context) => {
+  const dataError = new Error('sensitive filesystem details');
+  const failingRepository = {
+    getAll: async () => { throw dataError; },
+    getById: async () => { throw dataError; },
+  };
+  const loggedErrors = [];
+  const failureServer = createApp({
+    carsRepository: failingRepository,
+    logger: { error: (...args) => loggedErrors.push(args) },
+  }).listen(0);
+  await new Promise((resolve) => failureServer.once('listening', resolve));
+  context.after(() => new Promise((resolve, reject) => {
+    failureServer.close((error) => (error ? reject(error) : resolve()));
+  }));
+  const failureBaseUrl = `http://127.0.0.1:${failureServer.address().port}`;
+
+  const listResponse = await fetch(`${failureBaseUrl}/api/cars`);
+  const detailResponse = await fetch(`${failureBaseUrl}/api/cars/car-001`);
+
+  assert.equal(listResponse.status, 500);
+  assert.deepEqual(await listResponse.json(), { message: 'Could not load cars.' });
+  assert.equal(detailResponse.status, 500);
+  assert.deepEqual(await detailResponse.json(), { message: 'Could not load car.' });
+  assert.equal(loggedErrors.length, 2);
+});
