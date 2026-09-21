@@ -1,0 +1,63 @@
+[
+  {
+    "id": "car-001",
+    "make": "BMW",
+    "model": "M4 Competition",
+    "year": 2022,
+    "price": 78000,
+    "mileage": 12000,
+    "engine": "3.0L Twin-Turbo",
+    "horsepower": 503,
+    "transmission": "Automatic",
+    "drivetrain": "RWD",
+    "fuel": "Petrol",
+    "exteriorColor": "Black",
+    "interiorColor": "Black",
+    "description": "Clean BMW M4 Competition in excellent condition.",
+    "status": "available",
+    "images": [
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&w=1200&q=80"
+    ]
+  },
+  {
+    "id": "car-002",
+    "make": "Mercedes-Benz",
+    "model": "C-Class C300",
+    "year": 2021,
+    "price": 46500,
+    "mileage": 24500,
+    "engine": "2.0L Turbo",
+    "horsepower": 255,
+    "transmission": "Automatic",
+    "drivetrain": "RWD",
+    "fuel": "Petrol",
+    "exteriorColor": "White",
+    "interiorColor": "Beige",
+    "description": "Comfortable and well-maintained Mercedes-Benz C300.",
+    "status": "available",
+    "images": [
+      "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1200&q=80"
+    ]
+  },
+  {
+    "id": "car-003",
+    "make": "Audi",
+    "model": "Q5 Premium Plus",
+    "year": 2023,
+    "price": 59500,
+    "mileage": 8300,
+    "engine": "2.0L Turbo",
+    "horsepower": 261,
+    "transmission": "Automatic",
+    "drivetrain": "AWD",
+    "fuel": "Petrol",
+    "exteriorColor": "Gray",
+    "interiorColor": "Black",
+    "description": "Low-mileage Audi Q5 with a spacious and refined interior.",
+    "status": "available",
+    "images": [
+      "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1200&q=80"
+    ]
+  }
+]
+
