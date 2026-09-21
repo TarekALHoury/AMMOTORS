@@ -8,12 +8,29 @@ const defaultCarsFile = path.join(__dirname, '..', 'data', 'cars.json');
 function createApp({
   carsFile = defaultCarsFile,
   carsRepository = createCarsRepository({ carsFile }),
+  allowedOrigins = '*',
   logger = console,
 } = {}) {
   const app = express();
 
   app.disable('x-powered-by');
-  app.use(cors());
+  app.use(cors({
+    origin(origin, callback) {
+      const origins = Array.isArray(allowedOrigins) ? allowedOrigins : [allowedOrigins];
+      const isAllowed = !origin || origins.includes('*') || origins.includes(origin);
+      callback(null, isAllowed);
+    },
+  }));
+  app.use((_request, response, next) => {
+    response.set({
+      'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+      'Referrer-Policy': 'no-referrer',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+    });
+    next();
+  });
   app.use(express.json({ limit: '100kb' }));
 
   app.get('/api/health', (_request, response) => {
