@@ -1,19 +1,40 @@
 import Icon from './Icon.jsx';
+import calendarIcon from '../assets/icons/calendar.svg';
+import exteriorIcon from '../assets/icons/car-exterior.svg';
+import interiorIcon from '../assets/icons/car-interior.svg';
+import drivetrainIcon from '../assets/icons/drivetrain.png';
+import engineIcon from '../assets/icons/engine.svg';
+import fuelIcon from '../assets/icons/fuel.svg';
+import gearshiftIcon from '../assets/icons/gearshifter.png';
+import roadIcon from '../assets/icons/road.svg';
+import speedIcon from '../assets/icons/speed.svg';
+
+const iconAssets = {
+  calendar: calendarIcon,
+  exterior: exteriorIcon,
+  interior: interiorIcon,
+  drivetrain: drivetrainIcon,
+  engine: engineIcon,
+  fuel: fuelIcon,
+  gearshift: gearshiftIcon,
+  road: roadIcon,
+  speed: speedIcon,
+};
 
 function CarSpecs({ car }) {
   const specs = [
+    ['calendar', 'Year', car.year],
     ['engine', 'Engine', car.engine],
-    ['gauge', 'Horsepower', car.horsepower ? `${car.horsepower} hp` : null],
-    ['car', 'Transmission', car.transmission],
-    ['car', 'Drivetrain', car.drivetrain],
+    ['speed', 'Horsepower', car.horsepower ? `${car.horsepower} hp` : null],
+    ['gearshift', 'Transmission', car.transmission],
+    ['drivetrain', 'Drivetrain', car.drivetrain],
     ['fuel', 'Fuel type', car.fuel],
-    ['palette', 'Exterior color', car.exteriorColor],
-    ['palette', 'Interior color', car.interiorColor],
-    ['check', 'Condition', car.condition],
+    ['exterior', 'Exterior color', car.exteriorColor],
+    ['interior', 'Interior color', car.interiorColor],
+    ['road', 'Mileage', car.mileage ? `${car.mileage.toLocaleString()} km` : null],
   ].filter(([, , value]) => value !== undefined && value !== null && value !== '');
 
-  return <div className="spec-grid">{specs.map(([icon, label, value]) => <div className="spec" key={label}><Icon name={icon} size={21} /><div><span>{label}</span><strong>{value}</strong></div></div>)}</div>;
+  return <div className="spec-grid">{specs.map(([icon, label, value]) => <div className="spec" key={label}><img className="spec-icon" src={iconAssets[icon]} alt="" aria-hidden="true" /><div><span>{label}</span><strong>{value}</strong></div></div>)}</div>;
 }
 
 export default CarSpecs;
-
