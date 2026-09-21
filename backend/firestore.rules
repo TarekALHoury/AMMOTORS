@@ -1,0 +1,76 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.keys().hasAll(['admin'])
+        && request.auth.token.admin == true;
+    }
+
+    function validString(value, maximum) {
+      return value is string && value.size() > 0 && value.size() <= maximum;
+    }
+
+    function validSpecifications(specifications) {
+      return specifications is map
+        && specifications.keys().hasOnly([
+          'mileage', 'engine', 'horsepower', 'transmission', 'drivetrain',
+          'fuel', 'exteriorColor', 'interiorColor'
+        ])
+        && specifications.keys().hasAll([
+          'mileage', 'engine', 'horsepower', 'transmission', 'drivetrain',
+          'fuel', 'exteriorColor', 'interiorColor'
+        ])
+        && specifications.mileage is number && specifications.mileage >= 0
+        && specifications.horsepower is number && specifications.horsepower >= 0
+        && validString(specifications.engine, 120)
+        && validString(specifications.transmission, 120)
+        && validString(specifications.drivetrain, 120)
+        && validString(specifications.fuel, 120)
+        && validString(specifications.exteriorColor, 120)
+        && validString(specifications.interiorColor, 120);
+    }
+
+    function validCar(data) {
+      return data.keys().hasOnly([
+          'make', 'model', 'year', 'price', 'description', 'status',
+          'specifications', 'images', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
+        ])
+        && data.keys().hasAll([
+          'make', 'model', 'year', 'price', 'description', 'status',
+          'specifications', 'images', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
+        ])
+        && validString(data.make, 120)
+        && validString(data.model, 120)
+        && data.year is int && data.year >= 1886 && data.year <= 2200
+        && data.price is number && data.price >= 0
+        && data.description is string && data.description.size() <= 5000
+        && data.status in ['available', 'reserved', 'sold']
+        && validSpecifications(data.specifications)
+        && data.images is list && data.images.size() <= 20
+        && data.createdBy is string && data.updatedBy is string;
+    }
+
+    match /cars/{carId} {
+      allow read: if true;
+      allow create: if isAdmin()
+        && validCar(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isAdmin()
+        && validCar(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -78,6 +78,32 @@ test('unknown API routes return JSON', async () => {
   assert.deepEqual(await response.json(), { message: 'API route not found.' });
 });
 
+test('admin routes fail closed when Firebase is not configured', async () => {
+  const response = await fetch(`${baseUrl}/api/admin/cars`, { method: 'POST' });
+  assert.equal(response.status, 503);
+  assert.deepEqual(await response.json(), { message: 'Admin service is not configured.' });
+});
+
+test('malformed JSON receives a safe client error', async () => {
+  const response = await fetch(`${baseUrl}/api/admin/cars`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{',
+  });
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { message: 'Invalid JSON body.' });
+});
+
+test('oversized JSON is rejected before authentication or processing', async () => {
+  const response = await fetch(`${baseUrl}/api/admin/cars`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ description: 'x'.repeat(101 * 1024) }),
+  });
+  assert.equal(response.status, 413);
+  assert.deepEqual(await response.json(), { message: 'Request body is too large.' });
+});
+
 test('CORS allowlisting only exposes configured origins', async (context) => {
   const restrictedServer = createApp({
     allowedOrigins: ['https://ammotors.example'],
