@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title description">
+  <title id="title">AM MOTORS vehicle image placeholder</title>
+  <desc id="description">A minimal dark automotive silhouette used while vehicle photography loads.</desc>
+  <defs>
+    <radialGradient id="glow" cx="68%" cy="30%" r="75%">
+      <stop offset="0" stop-color="#35414a"/>
+      <stop offset="0.48" stop-color="#171d21"/>
+      <stop offset="1" stop-color="#0b0f12"/>
+    </radialGradient>
+    <linearGradient id="car" x1="0" x2="1">
+      <stop stop-color="#606b72"/>
+      <stop offset="0.55" stop-color="#2c353b"/>
+      <stop offset="1" stop-color="#59636a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#glow)"/>
+  <path d="M0 810h1600" stroke="#414a50" stroke-opacity=".45" stroke-width="3"/>
+  <ellipse cx="823" cy="794" rx="520" ry="58" fill="#000" opacity=".45"/>
+  <path d="M360 690c33-91 92-139 176-151l139-20 115-122c35-37 79-56 131-56h212c50 0 91 16 126 49l128 123c54 16 91 45 111 86l35 72c13 27-7 58-37 58h-58c-13-101-83-158-169-158-89 0-153 59-169 158H634c-15-99-80-158-169-158-86 0-154 57-168 158h-3c-26 0-45-25-37-50l16-49c12-37 41-66 87-89Z" fill="url(#car)" stroke="#7a858b" stroke-width="5"/>
+  <path d="m716 511 108-111c28-29 57-40 101-40h172c42 0 72 10 103 39l112 106-596 6Z" fill="#0a0e10" stroke="#5c676d" stroke-width="4"/>
+  <path d="M948 366v141M820 515l22 54M1215 511l-25 55" stroke="#6a757c" stroke-width="4"/>
+  <circle cx="470" cy="733" r="104" fill="#090c0e" stroke="#68747a" stroke-width="9"/>
+  <circle cx="470" cy="733" r="54" fill="#252d32" stroke="#89939a" stroke-width="5"/>
+  <circle cx="1265" cy="733" r="104" fill="#090c0e" stroke="#68747a" stroke-width="9"/>
+  <circle cx="1265" cy="733" r="54" fill="#252d32" stroke="#89939a" stroke-width="5"/>
+  <path d="M323 621h100M1372 612h92" stroke="#d5dadc" stroke-width="10" stroke-linecap="round"/>
+  <text x="80" y="115" fill="#f1f3f4" font-family="Arial, sans-serif" font-size="42" font-weight="700" letter-spacing="8">AM MOTORS</text>
+  <text x="82" y="157" fill="#8d979d" font-family="Arial, sans-serif" font-size="18" letter-spacing="5">VEHICLE IMAGE</text>
+</svg>
+
