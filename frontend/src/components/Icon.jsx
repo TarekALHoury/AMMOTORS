@@ -1,3 +1,5 @@
+import whatsappAsset from '../assets/icons/whatsapp.png';
+
 const paths = {
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   close: <path d="m6 6 12 12M18 6 6 18" />,
@@ -18,6 +20,10 @@ const paths = {
 };
 
 function Icon({ name, size = 20, className = '' }) {
+  if (name === 'whatsapp') {
+    return <img className={`icon-image ${className}`} src={whatsappAsset} width={size} height={size} alt="" aria-hidden="true" />;
+  }
+
   return (
     <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {paths[name]}
