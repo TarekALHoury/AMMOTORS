@@ -3,6 +3,7 @@ import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 import VehicleImage from '../components/VehicleImage.jsx';
 import logo from '../assets/am-motors-logo.png';
+import { drivetrainOptions, transmissionOptions, vehicleMakes, vehicleModels } from './vehicleCatalog.js';
 import './admin.css';
 
 const emptyCar = {
@@ -10,28 +11,6 @@ const emptyCar = {
   mileage: '', engine: '', horsepower: '', transmission: '', drivetrain: '', fuel: '',
   exteriorColor: '', interiorColor: '', images: [],
 };
-
-const vehicleModels = {
-  Audi: ['A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'Q3', 'Q5', 'Q5 Premium Plus', 'Q7', 'Q8', 'e-tron'],
-  BMW: ['2 Series', '3 Series', '4 Series', '5 Series', '7 Series', 'M2', 'M3', 'M4 Competition', 'M5', 'X1', 'X3', 'X5', 'X6', 'X7', 'i4', 'i5', 'i7', 'iX'],
-  Chevrolet: ['Blazer', 'Camaro', 'Corvette', 'Equinox', 'Silverado', 'Suburban', 'Tahoe', 'Traverse'],
-  Ford: ['Bronco', 'Edge', 'Escape', 'Expedition', 'Explorer', 'F-150', 'Mustang', 'Ranger'],
-  GMC: ['Acadia', 'Canyon', 'Sierra', 'Terrain', 'Yukon'],
-  Honda: ['Accord', 'Civic', 'CR-V', 'HR-V', 'Pilot'],
-  Hyundai: ['Accent', 'Elantra', 'Kona', 'Palisade', 'Santa Fe', 'Sonata', 'Tucson'],
-  Kia: ['K5', 'Rio', 'Seltos', 'Sorento', 'Sportage', 'Telluride'],
-  Lexus: ['ES', 'GX', 'IS', 'LX', 'NX', 'RX'],
-  'Mercedes-Benz': ['A-Class', 'C-Class', 'C300', 'CLA', 'E-Class', 'G-Class', 'GLA', 'GLC', 'GLE', 'GLS', 'S-Class', 'AMG GT'],
-  Nissan: ['Altima', 'Armada', 'Kicks', 'Patrol', 'Pathfinder', 'Rogue', 'Sentra', 'X-Trail'],
-  Porsche: ['718', '911', 'Cayenne', 'Macan', 'Panamera', 'Taycan'],
-  'Land Rover': ['Defender', 'Discovery', 'Range Rover', 'Range Rover Evoque', 'Range Rover Sport', 'Range Rover Velar'],
-  Tesla: ['Model 3', 'Model S', 'Model X', 'Model Y'],
-  Toyota: ['Camry', 'Corolla', 'Fortuner', 'Highlander', 'Land Cruiser', 'Prado', 'RAV4', 'Supra', 'Yaris'],
-  Volkswagen: ['Golf', 'Jetta', 'Passat', 'Taos', 'Tiguan', 'Touareg'],
-};
-
-const drivetrainOptions = ['FWD', 'RWD', 'AWD', '4WD'];
-const transmissionOptions = ['Automatic', 'Manual', 'CVT', 'Dual-clutch', 'Automated manual'];
 
 const demoCars = [
   { id: 'demo-001', make: 'BMW', model: 'M4 Competition', year: 2024, price: 80000, mileage: 12000, engine: '3.0L Twin-Turbo', horsepower: 503, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Petrol', exteriorColor: 'Black', interiorColor: 'Black', description: 'Clean, low-mileage performance coupe.', status: 'available', images: [] },
@@ -245,7 +224,7 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
   }
 
   return <div className="admin-view"><div className="admin-page-heading"><div><button className="admin-back-button" onClick={onCancel}>← Back to inventory</button><p className="admin-kicker">{mode === 'add' ? 'New listing' : 'Update listing'}</p><h1>{mode === 'add' ? 'Add vehicle' : `Edit ${initialCar.make} ${initialCar.model}`}</h1><p>Fields marked required are needed before this listing can be saved.</p></div></div><form className="admin-car-form" onSubmit={submit} noValidate ref={firstErrorRef}>
-    <section className="admin-form-section"><div className="admin-form-section-heading"><span>01</span><div><h2>Vehicle details</h2><p>Core listing and availability information.</p></div></div><div className="admin-form-grid"><SelectField label="Make *" name="make" value={car.make} error={errors.make} onChange={changeMake} options={Object.keys(vehicleModels)} placeholder="Select a make" /><SelectField label="Model *" name="model" value={car.model} error={errors.model} onChange={change} options={modelOptions} placeholder={car.make ? 'Select a model' : 'Select a make first'} disabled={!car.make} /><Field label="Year *" name="year" type="number" value={car.year} error={errors.year} onChange={change} /><Field label="Price (USD) *" name="price" type="number" value={car.price} error={errors.price} onChange={change} /><SelectField label="Status *" name="status" value={car.status} onChange={change} options={['available', 'reserved', 'sold']} /><label className="admin-field admin-field-wide"><span>Description</span><textarea name="description" rows="5" value={car.description} onChange={change} aria-invalid={Boolean(errors.description)} /><small>{car.description.length}/5000</small>{errors.description && <small className="admin-field-error">{errors.description}</small>}</label></div></section>
+    <section className="admin-form-section"><div className="admin-form-section-heading"><span>01</span><div><h2>Vehicle details</h2><p>Core listing and availability information.</p></div></div><div className="admin-form-grid"><SelectField label="Make *" name="make" value={car.make} error={errors.make} onChange={changeMake} options={vehicleMakes} placeholder="Select a make" /><SelectField label="Model *" name="model" value={car.model} error={errors.model} onChange={change} options={modelOptions} placeholder={car.make ? 'Select a model' : 'Select a make first'} disabled={!car.make} /><Field label="Year *" name="year" type="number" value={car.year} error={errors.year} onChange={change} /><Field label="Price (USD) *" name="price" type="number" value={car.price} error={errors.price} onChange={change} /><SelectField label="Status *" name="status" value={car.status} onChange={change} options={['available', 'reserved', 'sold']} /><label className="admin-field admin-field-wide"><span>Description</span><textarea name="description" rows="5" value={car.description} onChange={change} aria-invalid={Boolean(errors.description)} /><small>{car.description.length}/5000</small>{errors.description && <small className="admin-field-error">{errors.description}</small>}</label></div></section>
     <section className="admin-form-section"><div className="admin-form-section-heading"><span>02</span><div><h2>Specifications</h2><p>Technical and appearance information.</p></div></div><div className="admin-form-grid"><Field label="Mileage (km) *" name="mileage" type="number" inputMode="numeric" min="0" step="1" value={car.mileage} error={errors.mileage} onChange={changeMileage} onKeyDown={preventInvalidMileageKey} onPaste={preventInvalidMileagePaste} /><Field label="Engine *" name="engine" value={car.engine} error={errors.engine} onChange={change} /><Field label="Horsepower *" name="horsepower" type="number" value={car.horsepower} error={errors.horsepower} onChange={change} /><SelectField label="Transmission *" name="transmission" value={car.transmission} error={errors.transmission} onChange={change} options={transmissionOptions} /><SelectField label="Drivetrain *" name="drivetrain" value={car.drivetrain} error={errors.drivetrain} onChange={change} options={drivetrainOptions} /><Field label="Fuel type *" name="fuel" value={car.fuel} error={errors.fuel} onChange={change} /><Field label="Exterior color *" name="exteriorColor" value={car.exteriorColor} error={errors.exteriorColor} onChange={change} /><Field label="Interior color *" name="interiorColor" value={car.interiorColor} error={errors.interiorColor} onChange={change} /></div></section>
     <section className="admin-form-section"><div className="admin-form-section-heading"><span>03</span><div><h2>Vehicle images</h2><p>Select local images for preview or add hosted URLs. Uploading will be connected later.</p></div></div><div className="admin-image-controls"><label className="admin-upload-zone"><AdminIcon name="upload" /><strong>Select images</strong><span>JPEG, PNG, or WebP · max 10 MB each</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={selectFiles} /></label><div className="admin-url-input"><label htmlFor="image-url">Hosted image URL</label><div><input id="image-url" type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://…" /><button type="button" onClick={addImageUrl}>Add URL</button></div>{errors.images && <small className="admin-field-error">{errors.images}</small>}</div></div>{car.images.length > 0 && <div className="admin-image-previews" aria-label="Selected image previews">{car.images.map((image, index) => <div key={`${image}-${index}`}><VehicleImage src={image} alt={`Vehicle preview ${index + 1}`} /><button type="button" aria-label={`Remove image ${index + 1}`} onClick={() => setCar({ ...car, images: car.images.filter((_, imageIndex) => imageIndex !== index) })}>×</button>{index === 0 && <span>Cover</span>}</div>)}</div>}</section>
     <div className="admin-form-actions"><button className="button button-outline" type="button" onClick={onCancel}>Cancel</button><button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : mode === 'add' ? 'Add vehicle' : 'Save changes'}</button></div>

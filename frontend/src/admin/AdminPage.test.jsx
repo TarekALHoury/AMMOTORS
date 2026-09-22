@@ -84,6 +84,9 @@ describe('admin dashboard UI', () => {
     const make = screen.getByLabelText('Make *');
     const model = screen.getByLabelText('Model *');
     expect(make).toHaveRole('combobox');
+    expect(within(make).getAllByRole('option').length).toBeGreaterThan(70);
+    expect(within(make).getByRole('option', { name: 'Ferrari' })).toBeInTheDocument();
+    expect(within(make).getByRole('option', { name: 'VinFast' })).toBeInTheDocument();
     expect(model).toBeDisabled();
     expect(screen.queryByRole('option', { name: /Other/ })).not.toBeInTheDocument();
     await user.selectOptions(make, 'BMW');
