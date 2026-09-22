@@ -23,6 +23,11 @@ async function signIn(user) {
   await screen.findByRole('heading', { name: 'Dashboard' });
 }
 
+async function chooseFormOption(user, label, option) {
+  await user.click(screen.getByRole('combobox', { name: label }));
+  await user.click(screen.getByRole('option', { name: option }));
+}
+
 describe('admin dashboard UI', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -98,20 +103,23 @@ describe('admin dashboard UI', () => {
     const make = screen.getByLabelText('Make *');
     const model = screen.getByLabelText('Model *');
     expect(make).toHaveRole('combobox');
-    expect(within(make).getAllByRole('option').length).toBeGreaterThan(70);
-    expect(within(make).getByRole('option', { name: 'Ferrari' })).toBeInTheDocument();
-    expect(within(make).getByRole('option', { name: 'VinFast' })).toBeInTheDocument();
     expect(model).toBeDisabled();
     expect(screen.queryByRole('option', { name: /Other/ })).not.toBeInTheDocument();
-    await user.selectOptions(make, 'BMW');
+    await user.click(make);
+    expect(screen.getAllByRole('option').length).toBeGreaterThan(70);
+    expect(screen.getByRole('option', { name: 'Ferrari' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'VinFast' })).toBeInTheDocument();
+    await user.click(screen.getByRole('option', { name: 'BMW' }));
     expect(model).toBeEnabled();
-    expect(within(model).getByRole('option', { name: 'M4 Competition' })).toBeInTheDocument();
-    expect(within(model).queryByRole('option', { name: 'C300' })).not.toBeInTheDocument();
-    await user.selectOptions(model, 'M4 Competition');
+    await user.click(model);
+    expect(screen.getByRole('option', { name: 'M4 Competition' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'C300' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('option', { name: 'M4 Competition' }));
     expect(screen.getByLabelText('Engine *')).toBeEnabled();
-    expect(within(screen.getByLabelText('Engine *')).getByRole('option', { name: '3.0L Twin-Turbo' })).toBeInTheDocument();
-    await user.selectOptions(make, 'Audi');
-    expect(model).toHaveValue('');
+    await chooseFormOption(user, 'Engine *', '3.0L Twin-Turbo');
+    expect(screen.getByRole('combobox', { name: 'Engine *' })).toHaveTextContent('3.0L Twin-Turbo');
+    await chooseFormOption(user, 'Make *', 'Audi');
+    expect(model).toHaveTextContent('Select a model');
     expect(screen.getByLabelText('Engine *')).toBeDisabled();
     expect(screen.getByLabelText('Year *')).toHaveRole('combobox');
     expect(screen.getByLabelText('Fuel type *')).toHaveRole('combobox');
@@ -133,6 +141,19 @@ describe('admin dashboard UI', () => {
     expect(mileage).toHaveValue(12000);
     expect(fireEvent.paste(mileage, { clipboardData: { getData: () => '-12.5' } })).toBe(false);
     expect(mileage).toHaveValue(12000);
+  });
+
+  test('supports keyboard-only selection in styled form dropdowns', async () => {
+    const user = userEvent.setup();
+    renderAdmin();
+    await signIn(user);
+    await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
+    const make = screen.getByRole('combobox', { name: 'Make *' });
+    make.focus();
+    await user.keyboard('{Enter}{ArrowDown}{Enter}');
+    expect(make).toHaveTextContent('Acura');
+    expect(make).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('combobox', { name: 'Model *' })).toBeEnabled();
   });
 
   test('exposes a keyboard-operable mobile navigation drawer', async () => {

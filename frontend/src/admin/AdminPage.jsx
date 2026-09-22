@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 import VehicleImage from '../components/VehicleImage.jsx';
@@ -241,9 +241,52 @@ function Field({ label, name, value, error, onChange, type = 'text', ...props })
 }
 
 function SelectField({ label, name, value, error, onChange, options, placeholder = 'Select an option', disabled = false }) {
+  const id = useId().replace(/:/g, '');
   const errorId = `${name}-error`;
   const hasUnsupportedValue = Boolean(value) && !options.includes(value);
-  return <label className={`admin-field admin-select-field ${error ? 'has-error' : ''}`}><span>{label}</span><select name={name} value={value} onChange={onChange} disabled={disabled} aria-label={label} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined}><option value="" disabled>{placeholder}</option>{options.map((option) => <option key={option} value={option}>{option}</option>)}{hasUnsupportedValue && <option value={value}>{value} (Other)</option>}</select>{error && <small id={errorId} className="admin-field-error">{error}</small>}</label>;
+  const resolvedOptions = hasUnsupportedValue ? [...options, value] : options;
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(Math.max(0, resolvedOptions.indexOf(value)));
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    function closeOnOutsideClick(event) {
+      if (!rootRef.current?.contains(event.target)) setOpen(false);
+    }
+    document.addEventListener('pointerdown', closeOnOutsideClick);
+    return () => document.removeEventListener('pointerdown', closeOnOutsideClick);
+  }, []);
+  useEffect(() => { if (disabled) setOpen(false); }, [disabled]);
+
+  function choose(nextValue) {
+    onChange({ target: { name, value: nextValue } });
+    setOpen(false);
+  }
+  function handleKeyDown(event) {
+    if (disabled) return;
+    if (event.key === 'Escape') { setOpen(false); return; }
+    if (event.key === 'Tab') { setOpen(false); return; }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const direction = event.key === 'ArrowDown' ? 1 : -1;
+      setOpen(true);
+      setActiveIndex((current) => (current + direction + resolvedOptions.length) % resolvedOptions.length);
+      return;
+    }
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      setOpen(true);
+      setActiveIndex(event.key === 'Home' ? 0 : resolvedOptions.length - 1);
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      if (open && resolvedOptions[activeIndex]) choose(resolvedOptions[activeIndex]);
+      else setOpen(true);
+    }
+  }
+
+  return <div className={`admin-field admin-select-field ${open ? 'is-open' : ''} ${error ? 'has-error' : ''}`} ref={rootRef}><span id={`${id}-label`}>{label}</span><button id={`${id}-trigger`} className="admin-select-trigger" type="button" role="combobox" aria-label={label} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-listbox`} aria-activedescendant={open && resolvedOptions[activeIndex] ? `${id}-option-${activeIndex}` : undefined} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} disabled={disabled} onClick={() => setOpen((current) => !current)} onKeyDown={handleKeyDown}><span className={value ? '' : 'placeholder'}>{value || placeholder}</span><span className="admin-select-chevron" aria-hidden="true" /></button>{open && <div className="admin-select-menu" id={`${id}-listbox`} role="listbox" aria-label={`${label} options`}>{resolvedOptions.map((option, index) => <button id={`${id}-option-${index}`} type="button" role="option" aria-selected={option === value} className={index === activeIndex ? 'is-active' : ''} key={option} onPointerMove={() => setActiveIndex(index)} onClick={() => choose(option)}>{option}{hasUnsupportedValue && option === value ? ' (Other)' : ''}{option === value && <span aria-hidden="true">✓</span>}</button>)}</div>}{error && <small id={errorId} className="admin-field-error">{error}</small>}</div>;
 }
 
 function CarForm({ mode, initialCar, onCancel, onSave }) {
