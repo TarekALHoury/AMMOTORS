@@ -108,8 +108,13 @@ describe('admin dashboard UI', () => {
     expect(within(model).getByRole('option', { name: 'M4 Competition' })).toBeInTheDocument();
     expect(within(model).queryByRole('option', { name: 'C300' })).not.toBeInTheDocument();
     await user.selectOptions(model, 'M4 Competition');
+    expect(screen.getByLabelText('Engine *')).toBeEnabled();
+    expect(within(screen.getByLabelText('Engine *')).getByRole('option', { name: '3.0L Twin-Turbo' })).toBeInTheDocument();
     await user.selectOptions(make, 'Audi');
     expect(model).toHaveValue('');
+    expect(screen.getByLabelText('Engine *')).toBeDisabled();
+    expect(screen.getByLabelText('Year *')).toHaveRole('combobox');
+    expect(screen.getByLabelText('Fuel type *')).toHaveRole('combobox');
   });
 
   test('restricts mileage to non-negative whole numbers and requests a mobile number keypad', async () => {

@@ -64,3 +64,28 @@ export const vehicleModels = {
 export const vehicleMakes = Object.keys(vehicleModels).sort((left, right) => left.localeCompare(right));
 export const drivetrainOptions = ['FWD', 'RWD', 'AWD', '4WD'];
 export const transmissionOptions = ['Automatic', 'Manual', 'CVT', 'Dual-clutch', 'Automated manual'];
+export const fuelOptions = ['Petrol', 'Diesel', 'Hybrid', 'Plug-in Hybrid', 'Electric', 'LPG', 'Hydrogen'];
+export const yearOptions = Array.from({ length: new Date().getFullYear() - 1884 }, (_, index) => String(new Date().getFullYear() + 1 - index));
+
+const enginesByModel = {
+  'Audi Q5 Premium Plus': ['2.0L Turbo', '2.0L Plug-in Hybrid'],
+  'BMW M4 Competition': ['3.0L Twin-Turbo'],
+  'Mercedes-Benz C300': ['2.0L Turbo', '2.0L Mild Hybrid'],
+  'Ford F-150': ['2.7L Twin-Turbo V6', '3.5L Twin-Turbo V6', '5.0L V8', 'Electric Dual Motor'],
+  'Nissan Patrol': ['3.5L Twin-Turbo V6', '5.6L V8'],
+  'Toyota Land Cruiser': ['2.8L Turbo Diesel', '3.3L Twin-Turbo Diesel', '3.5L Twin-Turbo V6', '4.0L V6'],
+};
+
+const electricModelPattern = /(^|\s)(e-tron|EV|EQA|EQE|EQS|Ioniq 5|Lyriq|Model [3SXY]|Polestar|Nevera|R1[ST]|VF [5-9]|i[457X]|EX30|EX90|Atto 3|Dolphin|Seal|Born|Taycan|Air|Gravity|Cybertruck)(\s|$)/i;
+const largeVehiclePattern = /(1500|2500|3500|F-150|Silverado|Sierra|Tahoe|Suburban|Yukon|Escalade|Patrol|Land Cruiser|LX|G-Class|Range Rover|Defender|R1T|Canyon|Ranger|Hilux|D-Max|L200|RAM)/i;
+const performancePattern = /(AMG| M[2-5]|RS|911|718|Corvette|Mustang|Camaro|Challenger|Charger|Ferrari|Huracan|Aventador|Revuelto|McLaren|Chiron|Jesko|Utopia|Supra|GT)/i;
+
+export function getEngineOptions(make, model) {
+  if (!make || !model) return [];
+  const exact = enginesByModel[`${make} ${model}`];
+  if (exact) return exact;
+  if (electricModelPattern.test(model)) return ['Single Electric Motor', 'Dual Electric Motors', 'Tri-Motor Electric'];
+  if (largeVehiclePattern.test(model)) return ['2.8L Turbo Diesel', '3.0L Turbo Diesel', '3.5L Twin-Turbo V6', '4.0L V6', '5.0L V8', '5.7L V8'];
+  if (performancePattern.test(model)) return ['2.0L Turbo', '3.0L Twin-Turbo', '4.0L Twin-Turbo V8', '5.0L V8', '6.2L V8'];
+  return ['1.0L Turbo', '1.2L Turbo', '1.4L Turbo', '1.5L Turbo', '1.6L', '2.0L', '2.0L Turbo', '2.5L', '3.0L', 'Hybrid', 'Plug-in Hybrid'];
+}
