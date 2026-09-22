@@ -53,16 +53,30 @@ describe('admin dashboard UI', () => {
     expect(screen.getAllByText('BMW M4 Competition').length).toBeGreaterThan(0);
   });
 
-  test('searches and filters inventory', async () => {
+  test('searches every vehicle detail and combines advanced inventory filters', async () => {
     const user = userEvent.setup();
     renderAdmin();
     await signIn(user);
     await user.click(screen.getByRole('button', { name: /Inventory 3/i }));
-    await user.type(screen.getByPlaceholderText('Search make, model, or year'), 'Audi');
+    const search = screen.getByPlaceholderText('Search all vehicle details');
+    await user.type(search, 'refined practical');
     expect(screen.getByText('Audi Q5 Premium Plus')).toBeInTheDocument();
     expect(screen.queryByText('BMW M4 Competition')).not.toBeInTheDocument();
+    await user.clear(search);
+    await user.click(screen.getByText(/^Advanced filters/));
+    await user.selectOptions(screen.getByLabelText('Filter by make'), 'BMW');
+    expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
+    expect(screen.queryByText('Audi Q5 Premium Plus')).not.toBeInTheDocument();
+    expect(within(screen.getByLabelText('Filter by model')).getByRole('option', { name: 'M4 Competition' })).toBeInTheDocument();
+    expect(within(screen.getByLabelText('Filter by model')).queryByRole('option', { name: 'C300' })).not.toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText('Filter by drivetrain'), 'RWD');
+    await user.selectOptions(screen.getByLabelText('Filter by exterior color'), 'Black');
+    await user.type(screen.getByLabelText('Minimum horsepower'), '500');
     await user.selectOptions(screen.getByLabelText('Filter by status'), 'sold');
+    expect(screen.getByText('No vehicles found')).toBeInTheDocument();
+    await user.click(within(document.querySelector('.admin-empty')).getByRole('button', { name: 'Clear all filters' }));
     expect(screen.getByText('Audi Q5 Premium Plus')).toBeInTheDocument();
+    expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
   });
 
   test('focuses and reports validation errors on an empty add-car form', async () => {

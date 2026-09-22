@@ -120,35 +120,104 @@ function Summary({ cars, onNavigate }) {
   );
 }
 
-function EmptyState({ onAction }) {
-  return <div className="admin-empty"><div className="admin-empty-icon"><AdminIcon name="cars" /></div><h3>No vehicles found</h3><p>Add a vehicle or adjust your search and filters.</p>{onAction && <button className="button button-outline" onClick={onAction}>Add first vehicle</button>}</div>;
+function EmptyState({ onAction, actionLabel = 'Add first vehicle' }) {
+  return <div className="admin-empty"><div className="admin-empty-icon"><AdminIcon name="cars" /></div><h3>No vehicles found</h3><p>Add a vehicle or adjust your search and filters.</p>{onAction && <button className="button button-outline" onClick={onAction}>{actionLabel}</button>}</div>;
+}
+
+const defaultInventoryFilters = {
+  status: 'all', make: 'all', model: 'all', year: 'all', drivetrain: 'all',
+  transmission: 'all', fuel: 'all', engine: 'all', exteriorColor: 'all', interiorColor: 'all',
+  minPrice: '', maxPrice: '', maxMileage: '', minHorsepower: '', maxHorsepower: '',
+};
+
+function uniqueCarValues(cars, field, numeric = false) {
+  const values = [...new Set(cars.map((car) => car[field]).filter((value) => value !== '' && value != null))];
+  return values.sort(numeric ? (left, right) => right - left : (left, right) => String(left).localeCompare(String(right)));
 }
 
 function Inventory({ cars, onNavigate, onDelete }) {
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('all');
+  const [filters, setFilters] = useState(defaultInventoryFilters);
   const [sort, setSort] = useState('newest');
   const [view, setView] = useState('table');
+  const options = useMemo(() => ({
+    makes: uniqueCarValues(cars, 'make'),
+    models: uniqueCarValues(cars.filter((car) => filters.make === 'all' || car.make === filters.make), 'model'),
+    years: uniqueCarValues(cars, 'year', true),
+    drivetrains: uniqueCarValues(cars, 'drivetrain'),
+    transmissions: uniqueCarValues(cars, 'transmission'),
+    fuels: uniqueCarValues(cars, 'fuel'),
+    engines: uniqueCarValues(cars, 'engine'),
+    exteriorColors: uniqueCarValues(cars, 'exteriorColor'),
+    interiorColors: uniqueCarValues(cars, 'interiorColor'),
+  }), [cars, filters.make]);
+  const activeFilterCount = Object.entries(filters).filter(([key, value]) => value !== defaultInventoryFilters[key]).length;
+  function updateFilter(name, value) {
+    setFilters((current) => ({ ...current, [name]: value, ...(name === 'make' ? { model: 'all' } : {}) }));
+  }
+  function resetFilters() { setSearch(''); setFilters(defaultInventoryFilters); }
   const filtered = useMemo(() => cars.filter((car) => {
-    const matchesText = `${car.make} ${car.model} ${car.year}`.toLowerCase().includes(search.trim().toLowerCase());
-    return matchesText && (status === 'all' || car.status === status);
+    const searchable = [car.make, car.model, car.year, car.price, car.mileage, car.engine, car.horsepower, car.transmission, car.drivetrain, car.fuel, car.exteriorColor, car.interiorColor, car.description, car.status].join(' ').toLowerCase();
+    const queryWords = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const matchesText = queryWords.every((word) => searchable.includes(word));
+    const withinMinimumPrice = filters.minPrice === '' || Number(car.price) >= Number(filters.minPrice);
+    const withinMaximumPrice = filters.maxPrice === '' || Number(car.price) <= Number(filters.maxPrice);
+    const withinMileage = filters.maxMileage === '' || Number(car.mileage) <= Number(filters.maxMileage);
+    const withinMinimumHorsepower = filters.minHorsepower === '' || Number(car.horsepower) >= Number(filters.minHorsepower);
+    const withinMaximumHorsepower = filters.maxHorsepower === '' || Number(car.horsepower) <= Number(filters.maxHorsepower);
+    return matchesText
+      && (filters.status === 'all' || car.status === filters.status)
+      && (filters.make === 'all' || car.make === filters.make)
+      && (filters.model === 'all' || car.model === filters.model)
+      && (filters.year === 'all' || String(car.year) === filters.year)
+      && (filters.drivetrain === 'all' || car.drivetrain === filters.drivetrain)
+      && (filters.transmission === 'all' || car.transmission === filters.transmission)
+      && (filters.fuel === 'all' || car.fuel === filters.fuel)
+      && (filters.engine === 'all' || car.engine === filters.engine)
+      && (filters.exteriorColor === 'all' || car.exteriorColor === filters.exteriorColor)
+      && (filters.interiorColor === 'all' || car.interiorColor === filters.interiorColor)
+      && withinMinimumPrice && withinMaximumPrice && withinMileage
+      && withinMinimumHorsepower && withinMaximumHorsepower;
   }).sort((left, right) => {
     if (sort === 'price-high') return right.price - left.price;
     if (sort === 'price-low') return left.price - right.price;
+    if (sort === 'mileage-low') return left.mileage - right.mileage;
+    if (sort === 'mileage-high') return right.mileage - left.mileage;
+    if (sort === 'oldest') return left.year - right.year;
     if (sort === 'make') return `${left.make} ${left.model}`.localeCompare(`${right.make} ${right.model}`);
     return right.year - left.year;
-  }), [cars, search, status, sort]);
+  }), [cars, filters, search, sort]);
 
   return (
     <div className="admin-view">
       <div className="admin-page-heading"><div><p className="admin-kicker">Vehicle management</p><h1>Inventory</h1><p>{filtered.length} of {cars.length} vehicles shown.</p></div><button className="button button-primary" onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
       <section className="admin-toolbar" aria-label="Inventory controls">
-        <label className="admin-search"><span className="sr-only">Search inventory</span><AdminIcon name="search" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search make, model, or year" /></label>
-        <label><span className="sr-only">Filter by status</span><select value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">All statuses</option><option value="available">Available</option><option value="reserved">Reserved</option><option value="sold">Sold</option></select></label>
-        <label><span className="sr-only">Sort inventory</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="newest">Newest year</option><option value="price-high">Price: high to low</option><option value="price-low">Price: low to high</option><option value="make">Make and model</option></select></label>
+        <label className="admin-search"><span className="sr-only">Search inventory</span><AdminIcon name="search" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search all vehicle details" /></label>
+        <label><span className="sr-only">Filter by status</span><select value={filters.status} onChange={(event) => updateFilter('status', event.target.value)}><option value="all">All statuses</option><option value="available">Available</option><option value="reserved">Reserved</option><option value="sold">Sold</option></select></label>
+        <label><span className="sr-only">Sort inventory</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="newest">Newest year</option><option value="oldest">Oldest year</option><option value="price-high">Price: high to low</option><option value="price-low">Price: low to high</option><option value="mileage-low">Mileage: low to high</option><option value="mileage-high">Mileage: high to low</option><option value="make">Make and model</option></select></label>
         <div className="admin-view-toggle" aria-label="View style"><button className={view === 'table' ? 'active' : ''} onClick={() => setView('table')} aria-pressed={view === 'table'}>Table</button><button className={view === 'grid' ? 'active' : ''} onClick={() => setView('grid')} aria-pressed={view === 'grid'}>Grid</button></div>
       </section>
-      {!filtered.length ? <EmptyState onAction={cars.length ? null : () => onNavigate('add')} /> : view === 'table' ? (
+      <details className="admin-filter-panel">
+        <summary><span>Advanced filters{activeFilterCount ? ` (${activeFilterCount})` : ''}</span><small>Make, model, year, specifications, price, and mileage</small></summary>
+        <div className="admin-filter-grid">
+          <label><span>Make</span><select aria-label="Filter by make" value={filters.make} onChange={(event) => updateFilter('make', event.target.value)}><option value="all">All makes</option>{options.makes.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <label><span>Model</span><select aria-label="Filter by model" value={filters.model} onChange={(event) => updateFilter('model', event.target.value)}><option value="all">All models</option>{options.models.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <label><span>Year</span><select aria-label="Filter by year" value={filters.year} onChange={(event) => updateFilter('year', event.target.value)}><option value="all">All years</option>{options.years.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <label><span>Drivetrain</span><select aria-label="Filter by drivetrain" value={filters.drivetrain} onChange={(event) => updateFilter('drivetrain', event.target.value)}><option value="all">All drivetrains</option>{options.drivetrains.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <label><span>Transmission</span><select aria-label="Filter by transmission" value={filters.transmission} onChange={(event) => updateFilter('transmission', event.target.value)}><option value="all">All transmissions</option>{options.transmissions.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <label><span>Fuel type</span><select aria-label="Filter by fuel type" value={filters.fuel} onChange={(event) => updateFilter('fuel', event.target.value)}><option value="all">All fuel types</option>{options.fuels.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <label><span>Engine</span><select aria-label="Filter by engine" value={filters.engine} onChange={(event) => updateFilter('engine', event.target.value)}><option value="all">All engines</option>{options.engines.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <label><span>Exterior color</span><select aria-label="Filter by exterior color" value={filters.exteriorColor} onChange={(event) => updateFilter('exteriorColor', event.target.value)}><option value="all">All exterior colors</option>{options.exteriorColors.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <label><span>Interior color</span><select aria-label="Filter by interior color" value={filters.interiorColor} onChange={(event) => updateFilter('interiorColor', event.target.value)}><option value="all">All interior colors</option>{options.interiorColors.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <label><span>Minimum price</span><input aria-label="Minimum price" type="number" min="0" inputMode="numeric" value={filters.minPrice} onChange={(event) => updateFilter('minPrice', event.target.value)} placeholder="$0" /></label>
+          <label><span>Maximum price</span><input aria-label="Maximum price" type="number" min="0" inputMode="numeric" value={filters.maxPrice} onChange={(event) => updateFilter('maxPrice', event.target.value)} placeholder="No maximum" /></label>
+          <label><span>Maximum mileage</span><input aria-label="Maximum mileage" type="number" min="0" inputMode="numeric" value={filters.maxMileage} onChange={(event) => updateFilter('maxMileage', event.target.value)} placeholder="No maximum" /></label>
+          <label><span>Minimum horsepower</span><input aria-label="Minimum horsepower" type="number" min="0" inputMode="numeric" value={filters.minHorsepower} onChange={(event) => updateFilter('minHorsepower', event.target.value)} placeholder="No minimum" /></label>
+          <label><span>Maximum horsepower</span><input aria-label="Maximum horsepower" type="number" min="0" inputMode="numeric" value={filters.maxHorsepower} onChange={(event) => updateFilter('maxHorsepower', event.target.value)} placeholder="No maximum" /></label>
+        </div>
+        <div className="admin-filter-footer"><span>{filtered.length} matching vehicle{filtered.length === 1 ? '' : 's'}</span><button type="button" onClick={resetFilters} disabled={!search && !activeFilterCount}>Clear all filters</button></div>
+      </details>
+      {!filtered.length ? <EmptyState onAction={cars.length ? resetFilters : () => onNavigate('add')} actionLabel={cars.length ? 'Clear all filters' : 'Add first vehicle'} /> : view === 'table' ? (
         <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Vehicle</th><th>Status</th><th>Year</th><th>Mileage</th><th>Price</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{filtered.map((car) => <tr key={car.id}><td><div className="admin-vehicle-cell"><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.engine}</small></span></div></td><td><span className={`admin-status status-${car.status}`}>{car.status}</span></td><td>{car.year}</td><td>{Number(car.mileage || 0).toLocaleString()} km</td><td><strong>{money(car.price)}</strong></td><td><div className="admin-row-actions"><button aria-label={`View ${car.make} ${car.model}`} onClick={() => onNavigate('details', car)}><AdminIcon name="eye" /></button><button aria-label={`Edit ${car.make} ${car.model}`} onClick={() => onNavigate('edit', car)}><AdminIcon name="edit" /></button><button className="danger" aria-label={`Delete ${car.make} ${car.model}`} onClick={() => onDelete(car)}><AdminIcon name="trash" /></button></div></td></tr>)}</tbody></table></div>
       ) : <div className="admin-inventory-grid">{filtered.map((car) => <article className="admin-inventory-card" key={car.id}><VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model}`} /><div><span className={`admin-status status-${car.status}`}>{car.status}</span><h2>{car.make} {car.model}</h2><p>{car.year} · {Number(car.mileage || 0).toLocaleString()} km</p><strong>{money(car.price)}</strong><div className="admin-card-actions"><button onClick={() => onNavigate('details', car)}>View</button><button onClick={() => onNavigate('edit', car)}>Edit</button><button className="danger" onClick={() => onDelete(car)}>Delete</button></div></div></article>)}</div>}
     </div>
