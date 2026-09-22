@@ -113,6 +113,20 @@ describe('admin dashboard UI', () => {
     expect(mileage).toHaveValue(12000);
   });
 
+  test('exposes a keyboard-operable mobile navigation drawer', async () => {
+    const user = userEvent.setup();
+    const { container } = renderAdmin();
+    await signIn(user);
+    const toggle = screen.getByRole('button', { name: 'Toggle admin navigation' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(container.querySelector('.admin-sidebar')).toHaveClass('open');
+    await user.click(screen.getByRole('button', { name: 'Close admin navigation' }));
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(container.querySelector('.admin-sidebar')).not.toHaveClass('open');
+  });
+
   test('requires confirmation before deleting a vehicle', async () => {
     const user = userEvent.setup();
     renderAdmin();
