@@ -5,21 +5,23 @@ const { getStorage } = require('firebase-admin/storage');
 const { createFirestoreCarsRepository } = require('./firestoreCarsRepository');
 
 function createFirebaseServices({ projectId, storageBucket }) {
-  if (!projectId || !storageBucket) return null;
+  if (!projectId) return null;
 
-  const options = { credential: applicationDefault(), projectId, storageBucket };
+  const options = { credential: applicationDefault(), projectId };
+  if (storageBucket) options.storageBucket = storageBucket;
   const firebaseApp = getApps()[0] || initializeApp(options);
   const firestore = getFirestore(firebaseApp);
-  const bucket = getStorage(firebaseApp).bucket();
 
   return {
     adminAuth: getAuth(firebaseApp),
     carsRepository: createFirestoreCarsRepository({ firestore, FieldValue }),
-    imageStorage: {
-      async deleteCarImages(carId) {
-        await bucket.deleteFiles({ prefix: `cars/${carId}/` });
+    ...(storageBucket && {
+      imageStorage: {
+        async deleteCarImages(carId) {
+          await getStorage(firebaseApp).bucket().deleteFiles({ prefix: `cars/${carId}/` });
+        },
       },
-    },
+    }),
   };
 }
 

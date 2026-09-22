@@ -10,6 +10,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@firebase/app": "^0.16.2",
+    "@firebase/auth": "^1.13.2",
+    "@firebase/firestore": "^4.17.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.18.4"

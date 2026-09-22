@@ -5,12 +5,12 @@
   "description": "Simple Express API for the AMMOTORS website",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "dev": "node --env-file-if-exists=.env --watch src/server.js",
     "test": "node --test",
     "test:rules": "firebase emulators:exec --project demo-ammotors --only firestore,storage \"node --test test/securityRules.emulator.test.js\"",
-    "migrate:cars": "node scripts/migrateCars.js",
-    "admin:grant": "node scripts/setAdminClaim.js"
+    "migrate:cars": "node --env-file-if-exists=.env scripts/migrateCars.js",
+    "admin:grant": "node --env-file-if-exists=.env scripts/setAdminClaim.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

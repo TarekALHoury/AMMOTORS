@@ -5,6 +5,7 @@
 .admin-signin-card { width: min(100%, 480px); padding: 44px; border: 1px solid var(--line); border-radius: 12px; background: rgba(16,21,25,.96); box-shadow: 0 32px 80px rgba(0,0,0,.42); }
 .admin-signin-logo { width: 184px; height: 78px; margin: -18px auto 16px; object-fit: contain; }
 .admin-signin-card h1 { margin-bottom: 10px; font-size: clamp(2rem, 6vw, 2.8rem); text-align: center; }
+.admin-auth-error { margin-bottom: 2px; padding: 12px 14px; border: 1px solid rgba(255,105,97,.35); border-radius: 5px; background: rgba(214,69,61,.1); color: #ffaaa5; font-size: .78rem; line-height: 1.5; }
 .admin-signin-card > p { text-align: center; }
 .admin-signin-card .admin-kicker { text-align: center; }
 .admin-demo-note { margin: 22px 0; padding: 12px 14px; border: 1px solid rgba(214,69,61,.3); border-radius: 6px; background: rgba(214,69,61,.08); color: #e7c5c3; font-size: .78rem; line-height: 1.5; }

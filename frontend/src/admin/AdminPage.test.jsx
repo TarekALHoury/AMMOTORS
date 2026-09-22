@@ -4,8 +4,14 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import AdminPage, { demoCars } from './AdminPage.jsx';
 import { getCars } from '../services/carsApi.js';
+import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 
 vi.mock('../services/carsApi.js', () => ({ getCars: vi.fn() }));
+vi.mock('../services/adminAuth.js', () => ({
+  observeAdminAuth: vi.fn(),
+  signInAdmin: vi.fn(),
+  signOutAdmin: vi.fn(),
+}));
 
 function renderAdmin() {
   return render(<MemoryRouter><AdminPage /></MemoryRouter>);
@@ -21,9 +27,15 @@ describe('admin dashboard UI', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getCars.mockResolvedValue(demoCars);
+    observeAdminAuth.mockImplementation((onUser) => {
+      onUser(null);
+      return vi.fn();
+    });
+    signInAdmin.mockResolvedValue({ email: 'admin@example.com' });
+    signOutAdmin.mockResolvedValue();
   });
 
-  test('shows accessible sign-in validation without real authentication', async () => {
+  test('shows accessible sign-in validation before authentication', async () => {
     const user = userEvent.setup();
     renderAdmin();
     await user.click(screen.getByRole('button', { name: 'Sign in' }));

@@ -7,11 +7,13 @@ const { normalizeCarInput } = require('../src/carInput');
 async function main() {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
-  if (!projectId || !storageBucket) {
-    throw new Error('FIREBASE_PROJECT_ID and FIREBASE_STORAGE_BUCKET are required.');
+  if (!projectId) {
+    throw new Error('FIREBASE_PROJECT_ID is required.');
   }
 
-  const app = initializeApp({ credential: applicationDefault(), projectId, storageBucket });
+  const options = { credential: applicationDefault(), projectId };
+  if (storageBucket) options.storageBucket = storageBucket;
+  const app = initializeApp(options);
   const firestore = getFirestore(app);
   const source = JSON.parse(await fs.readFile(
     path.join(__dirname, '..', 'data', 'cars.json'), 'utf8',

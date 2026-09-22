@@ -454,6 +454,7 @@ p {
   display: block;
   flex: 0 0 auto;
   object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
 .benefit strong {
@@ -1165,6 +1166,7 @@ p {
   height: 24px;
   flex: 0 0 auto;
   object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
 .spec span {

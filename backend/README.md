@@ -1,22 +1,23 @@
 # AMMOTORS backend
 
-The Express API uses Firebase Authentication for admin identity, Cloud Firestore for the
-car catalog, and Cloud Storage for vehicle images. When Firebase environment variables are
-absent, public reads continue to use `data/cars.json`; admin routes return `503`. This keeps
-the existing local frontend contract working while making incomplete production setup fail
-closed for writes.
+The Express API uses Firebase Authentication for admin identity and Cloud Firestore for the
+car catalog. Cloud Storage is optional and can be enabled later for vehicle-image uploads.
+When Firebase environment variables are absent, public reads continue to use `data/cars.json`;
+admin routes return `503`. This keeps the existing local frontend contract working while making
+incomplete production setup fail closed for writes.
 
 ## Environment
 
-Copy `.env.example` to a secure environment configuration location. Node does not load the
-file automatically; provide these values through the process manager or hosting platform.
+Copy `.env.example` to `.env` for local development. The npm start, development, migration,
+and administrator scripts load this Git-ignored file automatically. On hosting, provide the
+same values through the platform environment instead.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `PORT` | No | API port, default `5000`. |
 | `CORS_ORIGINS` | Production | Comma-separated exact frontend origins. |
 | `FIREBASE_PROJECT_ID` | Firebase mode | Firebase project ID. |
-| `FIREBASE_STORAGE_BUCKET` | Firebase mode | Storage bucket name shown in Firebase Storage. |
+| `FIREBASE_STORAGE_BUCKET` | Optional | Storage bucket name, needed only when Firebase Storage uploads are enabled. |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Local production access only | Absolute path to a service-account JSON file stored outside the repository. Do not use this on Google-managed hosting, which supplies Application Default Credentials. |
 
 Never prefix backend credentials with `VITE_`, embed a service account in frontend code, or
@@ -120,7 +121,7 @@ credentials are used.
 
 ## Operational scripts
 
-After Application Default Credentials and environment variables are configured:
+After Application Default Credentials and `FIREBASE_PROJECT_ID` are configured:
 
 ```powershell
 npm.cmd run admin:grant -- admin@example.com

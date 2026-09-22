@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getCars } from '../services/carsApi.js';
+import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 import VehicleImage from '../components/VehicleImage.jsx';
 import logo from '../assets/am-motors-logo.png';
 import './admin.css';
@@ -43,7 +44,7 @@ function SignIn({ onSuccess }) {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
     const nextErrors = {};
     if (!/^\S+@\S+\.\S+$/.test(values.email)) nextErrors.email = 'Enter a valid email address.';
@@ -51,7 +52,18 @@ function SignIn({ onSuccess }) {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
     setSubmitting(true);
-    window.setTimeout(() => onSuccess(values.email), 350);
+    try {
+      const user = await signInAdmin(values.email, values.password);
+      onSuccess(user);
+    } catch (error) {
+      const message = error.code === 'auth/not-admin'
+        ? 'This account does not have administrator access.'
+        : error.code === 'auth/invalid-credential'
+          ? 'Incorrect email or password.'
+          : 'Unable to sign in. Please try again.';
+      setErrors({ form: message });
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -61,8 +73,8 @@ function SignIn({ onSuccess }) {
         <p className="admin-kicker">Management portal</p>
         <h1 id="signin-title">Welcome back</h1>
         <p>Sign in to manage vehicle listings, availability, details, and images.</p>
-        <div className="admin-demo-note" role="note">UI preview only — authentication will be connected to Firebase later.</div>
         <form onSubmit={submit} noValidate>
+          {errors.form && <div className="admin-auth-error" role="alert">{errors.form}</div>}
           <label className="admin-field">
             <span>Email address</span>
             <input type="email" aria-label="Email address" autoComplete="username" value={values.email} aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'signin-email-error' : undefined} onChange={(event) => setValues({ ...values, email: event.target.value })} />
@@ -243,8 +255,27 @@ function AdminWorkspace({ email, onSignOut }) {
 }
 
 function AdminPage() {
-  const [adminEmail, setAdminEmail] = useState(null);
-  return adminEmail ? <AdminWorkspace email={adminEmail} onSignOut={() => setAdminEmail(null)} /> : <SignIn onSuccess={setAdminEmail} />;
+  const [authState, setAuthState] = useState({ loading: true, user: null });
+
+  useEffect(() => observeAdminAuth(
+    (user) => setAuthState({ loading: false, user }),
+    () => setAuthState({ loading: false, user: null }),
+  ), []);
+
+  if (authState.loading) return <LoadingState />;
+  if (!authState.user) {
+    return <SignIn onSuccess={(user) => setAuthState({ loading: false, user })} />;
+  }
+
+  return (
+    <AdminWorkspace
+      email={authState.user.email || 'Administrator'}
+      onSignOut={async () => {
+        await signOutAdmin();
+        setAuthState({ loading: false, user: null });
+      }}
+    />
+  );
 }
 
 export default AdminPage;
