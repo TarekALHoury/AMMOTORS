@@ -11,9 +11,15 @@
 .admin-demo-note { margin: 22px 0; padding: 12px 14px; border: 1px solid rgba(214,69,61,.3); border-radius: 6px; background: rgba(214,69,61,.08); color: #e7c5c3; font-size: .78rem; line-height: 1.5; }
 .admin-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; color: #d7dcdf; font-size: .79rem; font-weight: 700; }
 .admin-field input, .admin-field select, .admin-field textarea, .admin-toolbar input, .admin-toolbar select, .admin-url-input input { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 6px; outline: none; background: #0c1114; color: var(--text); transition: border-color 160ms, box-shadow 160ms; }
+.admin-field select, .admin-toolbar select { appearance: none; padding-right: 42px; color-scheme: dark; cursor: pointer; background-color: #0c1114; background-image: linear-gradient(45deg,transparent 50%,#9da5aa 50%),linear-gradient(135deg,#9da5aa 50%,transparent 50%); background-position: calc(100% - 18px) 21px,calc(100% - 13px) 21px; background-size: 5px 5px; background-repeat: no-repeat; }
+.admin-field select:hover, .admin-toolbar select:hover { border-color: #59636a; background-color: #10161a; }
+.admin-field select option, .admin-toolbar select option { background: #11171b; color: #edf0f2; }
+.admin-field select option:checked, .admin-toolbar select option:checked { background: #d6453d; color: #fff; }
+.admin-field select option:hover, .admin-field select option:focus, .admin-toolbar select option:hover, .admin-toolbar select option:focus { background: #252d32; color: #fff; }
+.admin-field select:disabled, .admin-toolbar select:disabled { cursor: not-allowed; border-color: #252b2f; background-color: #0a0e10; color: #646d72; opacity: .72; }
 .admin-field textarea { min-height: 130px; padding-block: 13px; resize: vertical; font: inherit; }
 .admin-field input:focus, .admin-field select:focus, .admin-field textarea:focus, .admin-toolbar input:focus, .admin-toolbar select:focus, .admin-url-input input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(214,69,61,.16); }
-.admin-field [aria-invalid="true"] { border-color: #ef6d66; }
+.admin-field [aria-invalid="true"] { border-color: #ef6d66; background-color: rgba(214,69,61,.045); }
 .admin-field small { color: var(--muted); font-weight: 500; }
 .admin-field-error { color: #ff8c86 !important; }
 .admin-signin-card form { display: grid; gap: 18px; }
@@ -71,7 +77,6 @@
 .admin-search { position: relative; }
 .admin-search svg { position: absolute; z-index: 1; top: 14px; left: 14px; color: var(--muted); }
 .admin-search input { padding-left: 44px; }
-.admin-toolbar select { appearance: none; background-image: linear-gradient(45deg,transparent 50%,#8f989e 50%),linear-gradient(135deg,#8f989e 50%,transparent 50%); background-position: calc(100% - 17px) 20px,calc(100% - 12px) 20px; background-size: 5px 5px; background-repeat: no-repeat; }
 .admin-view-toggle { display: flex; padding: 4px; border: 1px solid var(--line); border-radius: 6px; }
 .admin-view-toggle button { padding: 0 12px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: .72rem; font-weight: 700; }
 .admin-view-toggle button.active { background: var(--panel-light); color: #fff; }
@@ -200,6 +205,7 @@
   .admin-summary-grid, .admin-toolbar, .admin-form-grid, .admin-inventory-grid { grid-template-columns: 1fr; }
   .admin-search { grid-column: auto; }
   .admin-form-section { padding: 20px 16px; }
+  .admin-field select, .admin-toolbar select { min-height: 52px; font-size: 16px; background-position: calc(100% - 18px) 23px,calc(100% - 13px) 23px; }
   .admin-image-previews { grid-template-columns: repeat(2,1fr); }
   .admin-recent-row { grid-template-columns: 62px minmax(0,1fr) auto; gap: 12px; padding-inline: 14px; }
   .admin-recent-row img { width: 62px; height: 46px; }

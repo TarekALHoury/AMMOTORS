@@ -1,5 +1,5 @@
 import { MemoryRouter } from 'react-router-dom';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import AdminPage, { demoCars } from './AdminPage.jsx';
@@ -74,6 +74,43 @@ describe('admin dashboard UI', () => {
     await user.click(within(form).getByRole('button', { name: 'Add vehicle' }));
     expect(await screen.findAllByText('Required.')).not.toHaveLength(0);
     expect(screen.getByLabelText('Make *')).toHaveFocus();
+  });
+
+  test('filters model choices by make and keeps select controls keyboard accessible', async () => {
+    const user = userEvent.setup();
+    renderAdmin();
+    await signIn(user);
+    await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
+    const make = screen.getByLabelText('Make *');
+    const model = screen.getByLabelText('Model *');
+    expect(make).toHaveRole('combobox');
+    expect(model).toBeDisabled();
+    expect(screen.queryByRole('option', { name: /Other/ })).not.toBeInTheDocument();
+    await user.selectOptions(make, 'BMW');
+    expect(model).toBeEnabled();
+    expect(within(model).getByRole('option', { name: 'M4 Competition' })).toBeInTheDocument();
+    expect(within(model).queryByRole('option', { name: 'C300' })).not.toBeInTheDocument();
+    await user.selectOptions(model, 'M4 Competition');
+    await user.selectOptions(make, 'Audi');
+    expect(model).toHaveValue('');
+  });
+
+  test('restricts mileage to non-negative whole numbers and requests a mobile number keypad', async () => {
+    const user = userEvent.setup();
+    renderAdmin();
+    await signIn(user);
+    await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
+    const mileage = screen.getByLabelText('Mileage (km) *');
+    expect(mileage).toHaveAttribute('type', 'number');
+    expect(mileage).toHaveAttribute('inputmode', 'numeric');
+    expect(mileage).toHaveAttribute('min', '0');
+    expect(mileage).toHaveAttribute('step', '1');
+    await user.type(mileage, '12000');
+    expect(mileage).toHaveValue(12000);
+    await user.type(mileage, '.e-+abc');
+    expect(mileage).toHaveValue(12000);
+    expect(fireEvent.paste(mileage, { clipboardData: { getData: () => '-12.5' } })).toBe(false);
+    expect(mileage).toHaveValue(12000);
   });
 
   test('requires confirmation before deleting a vehicle', async () => {
