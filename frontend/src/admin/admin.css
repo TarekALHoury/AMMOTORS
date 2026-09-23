@@ -28,6 +28,9 @@
 .admin-input-with-icon { position: relative; }
 .admin-input-with-icon > svg { position: absolute; z-index: 1; top: 50%; left: 14px; color: #8f999f; pointer-events: none; transform: translateY(-50%); }
 .admin-input-with-icon > input { padding-left: 44px; }
+.admin-textarea-with-icon { position: relative; }
+.admin-textarea-with-icon > svg { position: absolute; z-index: 1; top: 15px; left: 14px; color: #8f999f; pointer-events: none; }
+.admin-textarea-with-icon > textarea { padding-left: 44px; }
 .admin-select-field { position: relative; }
 .admin-select-trigger { display: flex; width: 100%; min-height: 48px; align-items: center; justify-content: space-between; gap: 14px; padding: 0 14px; border: 1px solid var(--line); border-radius: 6px; outline: none; background: #0c1114; color: var(--text); text-align: left; transition: border-color 160ms, background-color 160ms, box-shadow 160ms; }
 .admin-select-trigger:hover:not(:disabled) { border-color: #59636a; background: #10161a; }

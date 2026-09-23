@@ -132,6 +132,13 @@ describe('admin dashboard UI', () => {
     renderAdmin();
     await signIn(user);
     await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
+    const vehicleDetails = document.querySelector('.admin-vehicle-detail-fields');
+    expect(vehicleDetails.querySelector('.lucide-car-front')).toBeInTheDocument();
+    expect(vehicleDetails.querySelector('.lucide-tags')).toBeInTheDocument();
+    expect(vehicleDetails.querySelector('.lucide-calendar-days')).toBeInTheDocument();
+    expect(vehicleDetails.querySelector('.lucide-circle-dollar-sign')).toBeInTheDocument();
+    expect(vehicleDetails.querySelector('.lucide-badge-check')).toBeInTheDocument();
+    expect(vehicleDetails.querySelector('.lucide-file-text')).toBeInTheDocument();
     const make = screen.getByLabelText('Make *');
     const model = screen.getByLabelText('Model *');
     expect(make).toHaveRole('combobox');
