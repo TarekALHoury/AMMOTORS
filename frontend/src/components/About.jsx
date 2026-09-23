@@ -8,8 +8,8 @@ function About() {
         <div className="about-copy">
           <p className="eyebrow">Our dealership</p>
           <h2>About AM MOTORS</h2>
-          <p>AM MOTORS is a modern automotive dealership offering a carefully selected range of vehicles. Browse our current inventory and contact us directly for more information.</p>
-          <div className="about-points"><span>Quality-first selection</span><span>Direct, personal service</span></div>
+          <p>AM MOTORS, owned by Ali Moussawi, is a Lebanon-based automotive dealership focused on carefully selected quality vehicles. Explore our latest inventory, review each car’s specifications, and contact us directly for clear, personal guidance before your next purchase.</p>
+          <div className="about-points"><span>Quality-first selection</span><span>Transparent, personal service</span></div>
         </div>
       </div>
     </section>
@@ -17,4 +17,3 @@ function About() {
 }
 
 export default About;
-
