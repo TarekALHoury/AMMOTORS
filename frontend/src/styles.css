@@ -821,6 +821,18 @@ p {
   border-color: var(--line-strong);
 }
 
+.phone-link {
+  grid-column: 1 / -1;
+}
+
+.tiktok-link svg {
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+}
+
 .location-link {
   grid-column: 1 / -1;
 }
