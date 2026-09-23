@@ -240,14 +240,20 @@ function Field({ label, name, value, error, onChange, type = 'text', ...props })
   return <label className={`admin-field ${error ? 'has-error' : ''}`}><span>{label}</span><input name={name} type={type} value={value} onChange={onChange} aria-label={label} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} {...props} />{error && <small id={errorId} className="admin-field-error">{error}</small>}</label>;
 }
 
-function SelectField({ label, name, value, error, onChange, options, optionLabels = {}, placeholder = 'Select an option', disabled = false }) {
+function SelectField({ label, name, value, error, onChange, options, optionLabels = {}, placeholder = 'Select an option', disabled = false, searchable = name === 'make' }) {
   const id = useId().replace(/:/g, '');
   const errorId = `${name}-error`;
   const hasUnsupportedValue = Boolean(value) && !options.includes(value);
   const resolvedOptions = hasUnsupportedValue ? [...options, value] : options;
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(Math.max(0, resolvedOptions.indexOf(value)));
   const rootRef = useRef(null);
+  const triggerRef = useRef(null);
+  const searchRef = useRef(null);
+  const visibleOptions = searchable && query
+    ? resolvedOptions.filter((option) => (optionLabels[option] || option).toLowerCase().includes(query.trim().toLowerCase()))
+    : resolvedOptions;
 
   useEffect(() => {
     function closeOnOutsideClick(event) {
@@ -257,10 +263,15 @@ function SelectField({ label, name, value, error, onChange, options, optionLabel
     return () => document.removeEventListener('pointerdown', closeOnOutsideClick);
   }, []);
   useEffect(() => { if (disabled) setOpen(false); }, [disabled]);
+  useEffect(() => {
+    if (open && searchable) window.requestAnimationFrame(() => searchRef.current?.focus());
+  }, [open, searchable]);
+  useEffect(() => { setActiveIndex(0); }, [query]);
 
   function choose(nextValue) {
     onChange({ target: { name, value: nextValue } });
     setOpen(false);
+    setQuery('');
   }
   function handleKeyDown(event) {
     if (disabled) return;
@@ -270,28 +281,37 @@ function SelectField({ label, name, value, error, onChange, options, optionLabel
       event.preventDefault();
       const direction = event.key === 'ArrowDown' ? 1 : -1;
       setOpen(true);
-      setActiveIndex((current) => (current + direction + resolvedOptions.length) % resolvedOptions.length);
+      if (visibleOptions.length) setActiveIndex((current) => (current + direction + visibleOptions.length) % visibleOptions.length);
       return;
     }
     if (event.key === 'Home' || event.key === 'End') {
       event.preventDefault();
       setOpen(true);
-      setActiveIndex(event.key === 'Home' ? 0 : resolvedOptions.length - 1);
+      setActiveIndex(event.key === 'Home' ? 0 : visibleOptions.length - 1);
       return;
     }
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      if (open && resolvedOptions[activeIndex]) choose(resolvedOptions[activeIndex]);
+      if (open && visibleOptions[activeIndex]) choose(visibleOptions[activeIndex]);
       else setOpen(true);
+    }
+  }
+  function handleSearchKeyDown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
+    } else if (['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(event.key)) {
+      handleKeyDown(event);
     }
   }
 
   return <div className={`admin-field admin-select-field ${open ? 'is-open' : ''} ${error ? 'has-error' : ''}`} ref={rootRef}>
     <span id={`${id}-label`}>{label}</span>
-    <button id={`${id}-trigger`} className="admin-select-trigger" type="button" role="combobox" aria-label={label} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-listbox`} aria-activedescendant={open && resolvedOptions[activeIndex] ? `${id}-option-${activeIndex}` : undefined} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} disabled={disabled} onClick={() => setOpen((current) => !current)} onKeyDown={handleKeyDown}>
+    <button ref={triggerRef} id={`${id}-trigger`} className="admin-select-trigger" type="button" role="combobox" aria-label={label} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-listbox`} aria-activedescendant={open && visibleOptions[activeIndex] ? `${id}-option-${activeIndex}` : undefined} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} disabled={disabled} onClick={() => { setQuery(''); setOpen((current) => !current); }} onKeyDown={handleKeyDown}>
       <span className={value ? '' : 'placeholder'}>{value ? optionLabels[value] || value : placeholder}</span><span className="admin-select-chevron" aria-hidden="true" />
     </button>
-    {open && <div className="admin-select-menu" id={`${id}-listbox`} role="listbox" aria-label={`${label} options`}>{resolvedOptions.map((option, index) => <button id={`${id}-option-${index}`} type="button" role="option" aria-selected={option === value} className={index === activeIndex ? 'is-active' : ''} key={option} onPointerMove={() => setActiveIndex(index)} onClick={() => choose(option)}>{optionLabels[option] || option}{hasUnsupportedValue && option === value ? ' (Other)' : ''}{option === value && <span aria-hidden="true">✓</span>}</button>)}</div>}
+    {open && <div className="admin-select-menu">{searchable && <label className="admin-select-search"><span className="sr-only">Search {label.replace(' *', '')}</span><AdminIcon name="search" /><input ref={searchRef} type="search" aria-label={`Search ${label.replace(' *', '')}`} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleSearchKeyDown} placeholder={`Search ${label.replace(' *', '').toLowerCase()}s`} /></label>}<div className="admin-select-options" id={`${id}-listbox`} role="listbox" aria-label={`${label} options`}>{visibleOptions.map((option, index) => <button id={`${id}-option-${index}`} type="button" role="option" aria-selected={option === value} className={index === activeIndex ? 'is-active' : ''} key={option} onPointerMove={() => setActiveIndex(index)} onClick={() => choose(option)}>{optionLabels[option] || option}{hasUnsupportedValue && option === value ? ' (Other)' : ''}{option === value && <span aria-hidden="true">✓</span>}</button>)}{!visibleOptions.length && <p className="admin-select-empty">No matching makes found.</p>}</div></div>}
     {error && <small id={errorId} className="admin-field-error">{error}</small>}
   </div>;
 }

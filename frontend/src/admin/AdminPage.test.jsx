@@ -163,6 +163,23 @@ describe('admin dashboard UI', () => {
     expect(screen.getByRole('combobox', { name: 'Model *' })).toBeEnabled();
   });
 
+  test('searches the make dropdown and selects from filtered brands', async () => {
+    const user = userEvent.setup();
+    renderAdmin();
+    await signIn(user);
+    await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
+    const make = screen.getByRole('combobox', { name: 'Make *' });
+    await user.click(make);
+    const makeSearch = screen.getByRole('searchbox', { name: 'Search Make' });
+    expect(makeSearch).toHaveFocus();
+    await user.type(makeSearch, 'land rover');
+    expect(screen.getByRole('option', { name: 'Land Rover' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'BMW' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('option', { name: 'Land Rover' }));
+    expect(make).toHaveTextContent('Land Rover');
+    expect(make).toHaveAttribute('aria-expanded', 'false');
+  });
+
   test('exposes a keyboard-operable mobile navigation drawer', async () => {
     const user = userEvent.setup();
     const { container } = renderAdmin();

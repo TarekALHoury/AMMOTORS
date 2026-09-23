@@ -35,7 +35,14 @@
 .admin-select-trigger .placeholder { color: #6f777c; font-weight: 500; }
 .admin-select-chevron { width: 8px; height: 8px; flex: 0 0 auto; border-right: 1.5px solid #aeb5b9; border-bottom: 1.5px solid #aeb5b9; transform: translateY(-2px) rotate(45deg); transition: transform 160ms; }
 .admin-select-field.is-open .admin-select-chevron { transform: translateY(2px) rotate(225deg); }
-.admin-select-menu { position: absolute; z-index: 40; top: calc(100% - 1px); right: 0; left: 0; max-height: min(310px, 45vh); padding: 6px; overflow-y: auto; border: 1px solid #555e64; border-radius: 0 0 7px 7px; background: #101619; box-shadow: 0 18px 42px rgba(0,0,0,.5); overscroll-behavior: contain; scrollbar-color: #4c555b #101619; }
+.admin-select-menu { position: absolute; z-index: 40; top: calc(100% - 1px); right: 0; left: 0; display: flex; max-height: min(310px, 45vh); padding: 6px; overflow: hidden; border: 1px solid #555e64; border-radius: 0 0 7px 7px; background: #101619; box-shadow: 0 18px 42px rgba(0,0,0,.5); flex-direction: column; overscroll-behavior: contain; scrollbar-color: #4c555b #101619; }
+.admin-select-options { overflow-y: auto; overscroll-behavior: contain; }
+.admin-select-search { position: relative; display: block; flex: 0 0 auto; margin-bottom: 6px; }
+.admin-select-search svg { position: absolute; top: 13px; left: 12px; width: 18px; height: 18px; color: #8f999f; pointer-events: none; }
+.admin-select-search input { width: 100%; min-height: 44px; padding: 0 12px 0 40px; border: 1px solid var(--line-strong); border-radius: 5px; outline: none; background: #090d0f; color: #fff; font: inherit; }
+.admin-select-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(214,69,61,.16); }
+.admin-select-search input::placeholder { color: #727b80; }
+.admin-select-empty { margin: 0; padding: 24px 12px; color: var(--muted); font-size: .78rem; text-align: center; }
 .admin-select-menu button { display: flex; width: 100%; min-height: 42px; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 11px; border: 0; border-radius: 4px; background: transparent; color: #e8edef; font-size: .82rem; text-align: left; }
 .admin-select-menu button:hover, .admin-select-menu button.is-active { background: #242c31; color: #fff; }
 .admin-select-menu button[aria-selected="true"] { background: rgba(214,69,61,.16); color: #ffaaa5; font-weight: 800; }
