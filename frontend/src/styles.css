@@ -1361,20 +1361,30 @@ p {
 .hero-copy-block { animation: public-rise-in 700ms cubic-bezier(.2,.75,.25,1) both; }
 .hero-vehicle { animation: hero-vehicle-in 800ms 180ms cubic-bezier(.2,.75,.25,1) both; }
 .hero-benefits { animation: public-rise-in 720ms 300ms cubic-bezier(.2,.75,.25,1) both; }
-.benefit { transition: background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease; }
-.benefit:hover { z-index: 1; background: rgba(255,255,255,.04); box-shadow: 0 18px 38px rgba(0,0,0,.2); transform: translateY(-4px); }
+.benefit { position: relative; isolation: isolate; transform-style: preserve-3d; transition: background-color 200ms ease,transform 150ms ease,box-shadow 200ms ease; }
+.benefit::before, .car-card::before { position: absolute; z-index: 2; inset: 0; border-radius: inherit; background: radial-gradient(circle at var(--glow-x,50%) var(--glow-y,50%),rgba(255,255,255,.18),transparent 36%); content: ''; opacity: 0; pointer-events: none; transition: opacity 160ms ease; }
+.benefit.is-tilting::before, .car-card.is-tilting::before { opacity: 1; }
+.benefit:hover { z-index: 1; background: rgba(255,255,255,.04); box-shadow: -8px 20px 42px rgba(0,0,0,.3); transform: translateY(-7px) rotateX(var(--tilt-x,1deg)) rotateY(var(--tilt-y,-1deg)) scale(1.025); }
+.benefit-icon, .benefit > div { position: relative; z-index: 3; transform: translateZ(22px); }
 .car-grid { perspective: 1400px; }
-.car-card { transform-style: preserve-3d; animation: public-card-in 620ms cubic-bezier(.2,.75,.25,1) both; transition: transform 260ms ease,border-color 220ms ease,box-shadow 260ms ease; }
+.car-card { position: relative; isolation: isolate; transform-style: preserve-3d; animation: public-card-in 620ms cubic-bezier(.2,.75,.25,1) both; transition: transform 150ms ease,border-color 220ms ease,box-shadow 260ms ease; }
 .car-card:nth-child(2) { animation-delay: 70ms; }
 .car-card:nth-child(3) { animation-delay: 140ms; }
 .car-card:nth-child(4) { animation-delay: 210ms; }
-.car-card:hover { border-color: rgba(255,255,255,.27); box-shadow: -12px 24px 46px rgba(0,0,0,.32); transform: translateY(-8px) rotateX(2deg) rotateY(-2deg); }
-.car-card-body { transform: translateZ(16px); }
+.car-card:hover { border-color: rgba(255,255,255,.34); box-shadow: -14px 28px 58px rgba(0,0,0,.42); transform: translateY(-11px) rotateX(var(--tilt-x,2deg)) rotateY(var(--tilt-y,-2deg)) scale(1.018); }
+.car-card-image { transform: translateZ(10px); transition: transform 220ms ease; }
+.car-card:hover .car-card-image { transform: translateZ(28px); }
+.car-card-body { position: relative; z-index: 3; transform: translateZ(20px); }
+.about-visual { transform-style: preserve-3d; transition: transform 160ms ease,box-shadow 240ms ease,border-color 240ms ease; }
+.about-visual:hover { border-color: rgba(255,255,255,.24); box-shadow: -16px 28px 60px rgba(0,0,0,.42); transform: rotateX(var(--tilt-x,1deg)) rotateY(var(--tilt-y,-1deg)) scale(1.018); }
+.about-brand-mark { transform: translateZ(34px); transition: transform 260ms ease; }
+.about-visual:hover .about-brand-mark { transform: translateZ(52px) scale(1.035); }
+.about-visual small { transform: translateZ(24px); }
 @keyframes public-rise-in { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes public-card-in { from { opacity: 0; transform: translateY(28px) rotateX(-5deg); } to { opacity: 1; transform: translateY(0) rotateX(0); } }
 @keyframes hero-vehicle-in { from { opacity: 0; transform: translateX(45px) rotateY(-8deg); } to { opacity: 1; transform: translateX(18px) rotateY(0); } }
 @keyframes hero-orbit-drift { from { transform: translateY(-50%) rotateX(66deg) rotateZ(-18deg) scale(.96); } to { transform: translateY(-53%) rotateX(62deg) rotateZ(-10deg) scale(1.04); } }
-@media (max-width: 720px) { .hero-depth-orbit { display: none; } .car-card:hover, .benefit:hover { transform: translateY(-3px); } }
+@media (max-width: 720px) { .hero-depth-orbit { display: none; } .car-card:hover, .benefit:hover { transform: translateY(-3px); } .about-visual:hover { transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1386,5 +1396,5 @@ p {
     transition-duration: 0.01ms !important;
   }
   .hero-copy-block, .hero-vehicle, .hero-benefits, .hero-depth-orbit, .car-card { animation: none !important; }
-  .car-card:hover, .benefit:hover { transform: none; }
+  .car-card:hover, .benefit:hover, .about-visual:hover { transform: none; }
 }

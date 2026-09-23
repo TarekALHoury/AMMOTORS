@@ -9,5 +9,6 @@ describe('Hero', () => {
     const orbit = container.querySelector('.hero-depth-orbit');
     expect(orbit).toHaveAttribute('aria-hidden', 'true');
     expect(orbit.children).toHaveLength(3);
+    expect(container.querySelectorAll('.benefit[data-tilt="5"]')).toHaveLength(4);
   });
 });

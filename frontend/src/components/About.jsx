@@ -4,7 +4,7 @@ function About() {
   return (
     <section className="section about-section" id="about">
       <div className="page-width about-layout">
-        <div className="about-visual"><img className="about-brand-mark" src={amMark} alt="AM Motors metallic logo" /><small>Driven by quality</small></div>
+        <div className="about-visual" data-tilt="5"><img className="about-brand-mark" src={amMark} alt="AM Motors metallic logo" /><small>Driven by quality</small></div>
         <div className="about-copy">
           <p className="eyebrow">Our dealership</p>
           <h2>About AM MOTORS</h2>

@@ -4,7 +4,7 @@ import VehicleImage from './VehicleImage.jsx';
 
 function CarCard({ car }) {
   return (
-    <Link className="car-card" to={`/cars/${car.id}`} aria-label={`View ${car.year} ${car.make} ${car.model}`}>
+    <Link className="car-card" data-tilt="8" to={`/cars/${car.id}`} aria-label={`View ${car.year} ${car.make} ${car.model}`}>
       <div className="car-card-image">
         <VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model}`} />
         {car.status && <span className="status-pill">{car.status}</span>}

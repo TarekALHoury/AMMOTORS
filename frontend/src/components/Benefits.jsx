@@ -12,7 +12,7 @@ function Benefits({ embedded = false }) {
     <section className={embedded ? 'hero-benefits' : 'benefits'} aria-label="Why choose AM MOTORS">
       <div className={embedded ? 'hero-benefits-grid' : 'page-width benefits-grid'}>
         {benefits.map((benefit) => (
-          <div className="benefit" key={benefit.title}>
+          <div className="benefit" data-tilt="5" key={benefit.title}>
             <span className="benefit-icon"><Icon name={benefit.icon} size={embedded ? 32 : 22} /></span>
             <div><strong>{benefit.title}</strong><small>{benefit.text}</small></div>
           </div>
