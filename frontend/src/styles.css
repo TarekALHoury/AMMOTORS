@@ -378,11 +378,11 @@ p {
 
 .hero-vehicle {
   position: relative;
-  min-width: 150px;
+  min-width: 190px;
   justify-self: end;
-  text-align: center;
+  text-align: left;
   text-transform: uppercase;
-  transform: translateX(18px);
+  transform: translateX(32px);
 }
 
 .hero-vehicle::before {
@@ -398,13 +398,15 @@ p {
 .hero-vehicle p {
   margin-bottom: 12px;
   color: #d1d5d7;
-  font-size: 0.82rem;
+  font-size: 1rem;
   letter-spacing: 0.48em;
   line-height: 1;
+  padding-left: 34px;
 }
 
 .hero-vehicle h2 {
   margin-bottom: 28px;
+  padding-left: 16px;
   font-size: clamp(1.65rem, 2.2vw, 2.2rem);
   font-weight: 400;
   letter-spacing: 0.04em;
@@ -412,6 +414,8 @@ p {
 }
 
 .hero-vehicle span {
+  display: block;
+  padding-left: 16px;
   color: #b9bec1;
   font-size: 0.72rem;
   letter-spacing: 0.2em;
@@ -1398,7 +1402,7 @@ p {
 .about-visual small { transform: translateZ(24px); }
 @keyframes public-rise-in { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes public-card-in { from { opacity: 0; transform: translateY(28px) rotateX(-5deg); } to { opacity: 1; transform: translateY(0) rotateX(0); } }
-@keyframes hero-vehicle-in { from { opacity: 0; transform: translateX(45px) rotateY(-8deg); } to { opacity: 1; transform: translateX(18px) rotateY(0); } }
+@keyframes hero-vehicle-in { from { opacity: 0; transform: translateX(55px) rotateY(-8deg); } to { opacity: 1; transform: translateX(32px) rotateY(0); } }
 @keyframes hero-orbit-drift { from { transform: translateY(-50%) rotateX(66deg) rotateZ(-18deg) scale(.96); } to { transform: translateY(-53%) rotateX(62deg) rotateZ(-10deg) scale(1.04); } }
 @media (max-width: 720px) { .hero-depth-orbit { display: none; } .car-card:hover, .benefit:hover { transform: translateY(-3px); } .about-visual:hover { transform: none; } }
 
