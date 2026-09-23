@@ -80,9 +80,10 @@ describe('admin dashboard UI', () => {
     expect(document.querySelector('.admin-filter-grid .lucide-circle-dollar-sign')).toBeInTheDocument();
     expect(document.querySelector('.admin-filter-grid .lucide-milestone')).toBeInTheDocument();
     const specializedIcons = [...document.querySelectorAll('.admin-filter-grid .admin-select-leading-image')];
-    expect(specializedIcons).toHaveLength(2);
+    expect(specializedIcons).toHaveLength(3);
     expect(specializedIcons.some((icon) => icon.src.includes('drivetrain.png'))).toBe(true);
     expect(specializedIcons.some((icon) => icon.src.includes('gearshifter.png'))).toBe(true);
+    expect(specializedIcons.some((icon) => icon.dataset.icon === 'engine')).toBe(true);
     await chooseFormOption(user, 'Filter by make', 'BMW');
     expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
     expect(screen.queryByText('Audi Q5 Premium Plus')).not.toBeInTheDocument();
@@ -147,6 +148,7 @@ describe('admin dashboard UI', () => {
     expect(screen.queryByRole('option', { name: 'C300' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('option', { name: 'M4 Competition' }));
     expect(screen.getByLabelText('Engine *')).toBeEnabled();
+    expect(screen.getByLabelText('Engine *').querySelector('img[data-icon="engine"]')).toBeInTheDocument();
     await chooseFormOption(user, 'Engine *', '3.0L Twin-Turbo');
     expect(screen.getByRole('combobox', { name: 'Engine *' })).toHaveTextContent('3.0L Twin-Turbo');
     await chooseFormOption(user, 'Make *', 'Audi');

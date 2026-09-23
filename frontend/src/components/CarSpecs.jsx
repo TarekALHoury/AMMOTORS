@@ -34,7 +34,7 @@ function CarSpecs({ car }) {
     ['road', 'Mileage', car.mileage ? `${car.mileage.toLocaleString()} km` : null],
   ].filter(([, , value]) => value !== undefined && value !== null && value !== '');
 
-  return <div className="spec-grid">{specs.map(([icon, label, value]) => <div className="spec" key={label}><img className="spec-icon" src={iconAssets[icon]} alt="" aria-hidden="true" /><div><span>{label}</span><strong>{value}</strong></div></div>)}</div>;
+  return <div className="spec-grid">{specs.map(([icon, label, value]) => <div className="spec" key={label}><img className="spec-icon" src={iconAssets[icon]} alt="" aria-hidden="true" data-icon={icon} /><div><span>{label}</span><strong>{value}</strong></div></div>)}</div>;
 }
 
 export default CarSpecs;
