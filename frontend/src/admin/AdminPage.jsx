@@ -129,7 +129,7 @@ function Summary({ cars, onNavigate }) {
     ['Reserved', reserved, 'awaiting completion'], ['Active value', money(totalValue), 'available + reserved'],
   ];
   return (
-    <div className="admin-view">
+    <div className="admin-view admin-dashboard-view">
       <div className="admin-page-heading"><div><p className="admin-kicker">Overview</p><h1>Dashboard</h1><p>Monitor inventory status and keep listings current.</p></div><button className="button button-primary" onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
       <section className="admin-summary-grid" aria-label="Inventory summary">
         {cards.map(([label, value, note]) => <article className="admin-summary-card" key={label}><span>{label}</span><strong>{value}</strong><small>{note}</small></article>)}

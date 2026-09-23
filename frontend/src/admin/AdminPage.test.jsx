@@ -55,6 +55,7 @@ describe('admin dashboard UI', () => {
     renderAdmin();
     await signIn(user);
     expect(getCars).toHaveBeenCalledOnce();
+    expect(document.querySelector('.admin-dashboard-view')).toBeInTheDocument();
     expect(screen.getByText('Total inventory').nextSibling).toHaveTextContent('3');
     expect(screen.getAllByText('BMW M4 Competition').length).toBeGreaterThan(0);
     expect(document.querySelector('.lucide-layout-dashboard')).toBeInTheDocument();
