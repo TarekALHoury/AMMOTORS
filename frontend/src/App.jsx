@@ -7,6 +7,7 @@ import CarsPage from './pages/CarsPage.jsx';
 import CarDetailsPage from './pages/CarDetailsPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import AdminPage from './admin/AdminPage.jsx';
+import { useInteractiveDepth } from './utils/useInteractiveDepth.js';
 
 function ScrollManager() {
   const location = useLocation();
@@ -27,6 +28,7 @@ function ScrollManager() {
 
 function App() {
   const location = useLocation();
+  useInteractiveDepth();
 
   if (location.pathname.startsWith('/admin')) {
     return <><ScrollManager /><Routes><Route path="/admin/*" element={<AdminPage />} /></Routes></>;
