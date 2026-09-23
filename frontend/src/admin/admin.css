@@ -88,12 +88,14 @@
 .admin-dashboard-view { perspective: 1200px; }
 .admin-dashboard-view .admin-page-heading { animation: admin-rise-in 520ms cubic-bezier(.2,.75,.25,1) both; }
 .admin-summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; perspective: 1200px; }
-.admin-summary-card { position: relative; isolation: isolate; padding: 24px; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(145deg, rgba(255,255,255,.035), transparent 52%), var(--panel); box-shadow: 0 14px 34px rgba(0,0,0,.16); transform-style: preserve-3d; animation: admin-card-in 600ms cubic-bezier(.2,.75,.25,1) both; transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease; }
+.admin-summary-card { position: relative; isolation: isolate; padding: 24px; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(145deg, rgba(255,255,255,.035), transparent 52%), var(--panel); box-shadow: 0 14px 34px rgba(0,0,0,.16); transform-style: preserve-3d; animation: admin-card-in 600ms cubic-bezier(.2,.75,.25,1) both; transition: transform 160ms ease, border-color 220ms ease, box-shadow 220ms ease; }
+.admin-summary-card::before, .admin-inventory-card::before { position: absolute; z-index: 0; inset: 0; background: radial-gradient(circle at var(--glow-x,50%) var(--glow-y,50%),rgba(255,255,255,.13),transparent 34%); content: ''; opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
+.admin-summary-card.is-tilting::before, .admin-inventory-card.is-tilting::before { opacity: 1; }
 .admin-summary-card::after { position: absolute; z-index: -1; top: -70px; right: -70px; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, rgba(214,69,61,.18), transparent 68%); content: ''; transition: transform 300ms ease, opacity 300ms ease; }
 .admin-summary-card:nth-child(2) { animation-delay: 70ms; }
 .admin-summary-card:nth-child(3) { animation-delay: 140ms; }
 .admin-summary-card:nth-child(4) { animation-delay: 210ms; }
-.admin-summary-card:hover { border-color: rgba(214,69,61,.48); box-shadow: -10px 22px 48px rgba(0,0,0,.3); transform: translateY(-7px) rotateX(2deg) rotateY(-2deg); }
+.admin-summary-card:hover { border-color: rgba(214,69,61,.48); box-shadow: -10px 24px 52px rgba(0,0,0,.38); transform: translateY(-10px) rotateX(var(--tilt-x,2deg)) rotateY(var(--tilt-y,-2deg)) scale(1.025); }
 .admin-summary-card:hover::after { opacity: 1; transform: translate3d(-12px, 12px, 18px) scale(1.12); }
 .admin-summary-card span, .admin-summary-card small { display: block; color: var(--muted); }
 .admin-summary-card span { font-size: .76rem; font-weight: 700; }
@@ -162,7 +164,11 @@
 .admin-row-actions button:hover { background: rgba(255,255,255,.08); color: #fff; }
 .admin-row-actions button.danger:hover { color: #ff7c75; }
 .admin-inventory-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
-.admin-inventory-card { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.admin-inventory-card { position: relative; isolation: isolate; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: 0 16px 36px rgba(0,0,0,.18); transform-style: preserve-3d; transition: transform 160ms ease,border-color 180ms ease,box-shadow 180ms ease; }
+.admin-inventory-card:hover { border-color: rgba(214,69,61,.42); box-shadow: -10px 26px 55px rgba(0,0,0,.38); transform: translateY(-9px) rotateX(var(--tilt-x,2deg)) rotateY(var(--tilt-y,-2deg)); }
+.admin-inventory-card > img { transform: translateZ(10px); transition: transform 260ms ease; }
+.admin-inventory-card:hover > img { transform: translateZ(24px) scale(1.035); }
+.admin-inventory-card > div { position: relative; z-index: 1; transform: translateZ(18px); }
 .admin-inventory-card > img { width: 100%; aspect-ratio: 16/10; object-fit: cover; }
 .admin-inventory-card > div { padding: 20px; }
 .admin-inventory-card h2 { margin: 14px 0 5px; font-size: 1.25rem; }
@@ -319,5 +325,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .admin-sidebar, .admin-loading > svg, .admin-dashboard-view .admin-page-heading, .admin-summary-card, .admin-dashboard-view .admin-panel { animation: none; transition: none; }
-  .admin-summary-card:hover, .admin-recent-row:hover { transform: none; }
+  .admin-summary-card:hover, .admin-inventory-card:hover, .admin-recent-row:hover { transform: none; }
 }
