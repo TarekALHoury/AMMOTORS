@@ -70,19 +70,22 @@ describe('admin dashboard UI', () => {
     await user.clear(search);
     expect(document.querySelector('.admin-toolbar select')).not.toBeInTheDocument();
     await user.click(screen.getByText(/^Advanced filters/));
-    await user.selectOptions(screen.getByLabelText('Filter by make'), 'BMW');
+    await chooseFormOption(user, 'Filter by make', 'BMW');
     expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
     expect(screen.queryByText('Audi Q5 Premium Plus')).not.toBeInTheDocument();
-    expect(within(screen.getByLabelText('Filter by model')).getByRole('option', { name: 'M4 Competition' })).toBeInTheDocument();
-    expect(within(screen.getByLabelText('Filter by model')).queryByRole('option', { name: 'C300' })).not.toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText('Filter by drivetrain'), 'RWD');
-    await user.selectOptions(screen.getByLabelText('Filter by exterior color'), 'Black');
+    await user.click(screen.getByLabelText('Filter by model'));
+    expect(screen.getByRole('option', { name: 'M4 Competition' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'C300' })).not.toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    await chooseFormOption(user, 'Filter by drivetrain', 'RWD');
+    await chooseFormOption(user, 'Filter by exterior color', 'Black');
     await user.type(screen.getByLabelText('Minimum horsepower'), '500');
     await chooseFormOption(user, 'Filter by status', 'Sold');
     expect(screen.getByText('No vehicles found')).toBeInTheDocument();
     await user.click(within(document.querySelector('.admin-empty')).getByRole('button', { name: 'Clear all filters' }));
     expect(screen.getByText('Audi Q5 Premium Plus')).toBeInTheDocument();
     expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
+    expect(document.querySelector('.admin-filter-panel select')).not.toBeInTheDocument();
   });
 
   test('focuses and reports validation errors on an empty add-car form', async () => {
