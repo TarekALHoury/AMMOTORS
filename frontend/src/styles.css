@@ -917,12 +917,12 @@ p {
   background: var(--panel);
 }
 
-.filters label,
-.filters label span {
+.filters > label,
+.filters > label > span {
   display: block;
 }
 
-.filters label span {
+.filters > label > span {
   margin-bottom: 7px;
   color: #8d969c;
   font-size: 0.64rem;
