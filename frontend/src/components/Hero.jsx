@@ -8,7 +8,6 @@ function Hero() {
   return (
     <section className="hero" style={{ '--hero-image': `url(${heroImage})` }}>
       <div className="hero-shade" />
-      <div className="hero-depth-orbit" aria-hidden="true"><span /><span /><span /></div>
       <div className="page-width hero-content">
         <div className="hero-copy-block">
           <p className="eyebrow">Premium vehicles</p>

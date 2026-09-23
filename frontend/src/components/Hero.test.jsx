@@ -4,11 +4,9 @@ import { describe, expect, test } from 'vitest';
 import Hero from './Hero.jsx';
 
 describe('Hero', () => {
-  test('includes decorative depth layers without exposing them to assistive technology', () => {
+  test('renders hero benefits without decorative orbit rings', () => {
     const { container } = render(<MemoryRouter><Hero /></MemoryRouter>);
-    const orbit = container.querySelector('.hero-depth-orbit');
-    expect(orbit).toHaveAttribute('aria-hidden', 'true');
-    expect(orbit.children).toHaveLength(3);
+    expect(container.querySelector('.hero-depth-orbit')).toBeNull();
     expect(container.querySelectorAll('.benefit[data-tilt="5"]')).toHaveLength(4);
   });
 });
