@@ -65,6 +65,12 @@ export const vehicleMakes = Object.keys(vehicleModels).sort((left, right) => lef
 export const drivetrainOptions = ['FWD', 'RWD', 'AWD', '4WD'];
 export const transmissionOptions = ['Automatic', 'Manual', 'CVT', 'Dual-clutch', 'Automated manual'];
 export const fuelOptions = ['Petrol', 'Diesel', 'Hybrid', 'Plug-in Hybrid', 'Electric', 'LPG', 'Hydrogen'];
+export const vehicleOptionLabels = {
+  'Automated manual': 'Automated Manual Transmission (AMT)',
+  Hybrid: 'Self-charging Hybrid (HEV)',
+  'Plug-in Hybrid': 'Plug-in Hybrid (PHEV)',
+  Electric: 'Fully Electric (BEV)',
+};
 export const yearOptions = Array.from({ length: new Date().getFullYear() - 1884 }, (_, index) => String(new Date().getFullYear() + 1 - index));
 
 const enginesByModel = {

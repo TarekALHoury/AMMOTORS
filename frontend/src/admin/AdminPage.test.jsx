@@ -123,6 +123,13 @@ describe('admin dashboard UI', () => {
     expect(screen.getByLabelText('Engine *')).toBeDisabled();
     expect(screen.getByLabelText('Year *')).toHaveRole('combobox');
     expect(screen.getByLabelText('Fuel type *')).toHaveRole('combobox');
+    await user.click(screen.getByLabelText('Transmission *'));
+    expect(screen.getByRole('option', { name: 'Automated Manual Transmission (AMT)' })).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    await user.click(screen.getByLabelText('Fuel type *'));
+    expect(screen.getByRole('option', { name: 'Self-charging Hybrid (HEV)' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Plug-in Hybrid (PHEV)' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Fully Electric (BEV)' })).toBeInTheDocument();
   });
 
   test('restricts mileage to non-negative whole numbers and requests a mobile number keypad', async () => {
