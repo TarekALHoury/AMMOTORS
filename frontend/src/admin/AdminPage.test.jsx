@@ -83,7 +83,7 @@ describe('admin dashboard UI', () => {
     expect(document.querySelector('.lucide-sliders-horizontal')).toBeInTheDocument();
     expect(document.querySelector('.admin-filter-grid .lucide-car-front')).toBeInTheDocument();
     expect(document.querySelector('.admin-filter-grid .lucide-circle-dollar-sign')).toBeInTheDocument();
-    expect(document.querySelector('.admin-filter-grid .lucide-milestone')).toBeInTheDocument();
+    expect(document.querySelector('.admin-filter-grid img[data-icon="road"]')).toBeInTheDocument();
     const specializedIcons = [...document.querySelectorAll('.admin-filter-grid .admin-select-leading-image')];
     expect(specializedIcons).toHaveLength(3);
     expect(specializedIcons.some((icon) => icon.src.includes('drivetrain.png'))).toBe(true);
@@ -162,7 +162,7 @@ describe('admin dashboard UI', () => {
     expect(screen.getByLabelText('Engine *')).toBeEnabled();
     expect(screen.getByLabelText('Engine *').querySelector('img[data-icon="engine"]')).toBeInTheDocument();
     const specificationFields = document.querySelector('.admin-specification-fields');
-    expect(specificationFields.querySelector('.lucide-milestone')).toBeInTheDocument();
+    expect(specificationFields.querySelector('img[data-icon="road"]')).toBeInTheDocument();
     expect(specificationFields.querySelector('.lucide-gauge')).toBeInTheDocument();
     expect(specificationFields.querySelector('.lucide-fuel')).toBeInTheDocument();
     expect(specificationFields.querySelectorAll('.lucide-palette')).toHaveLength(2);

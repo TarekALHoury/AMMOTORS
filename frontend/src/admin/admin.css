@@ -26,7 +26,8 @@
 .admin-field small { color: var(--muted); font-weight: 500; }
 .admin-field-error { color: #ff8c86 !important; }
 .admin-input-with-icon { position: relative; }
-.admin-input-with-icon > svg { position: absolute; z-index: 1; top: 50%; left: 14px; color: #8f999f; pointer-events: none; transform: translateY(-50%); }
+.admin-input-with-icon > svg, .admin-input-with-icon > img { position: absolute; z-index: 1; top: 50%; left: 14px; width: 18px; height: 18px; color: #8f999f; object-fit: contain; pointer-events: none; transform: translateY(-50%); }
+.admin-input-with-icon > img, .admin-filter-label img { filter: invert(68%) sepia(8%) saturate(304%) hue-rotate(155deg) brightness(89%); }
 .admin-input-with-icon > input { padding-left: 44px; }
 .admin-textarea-with-icon { position: relative; }
 .admin-textarea-with-icon > svg { position: absolute; z-index: 1; top: 15px; left: 14px; color: #8f999f; pointer-events: none; }
@@ -174,6 +175,7 @@
 .admin-filter-grid .admin-field { gap: 7px; font-size: .72rem; }
 .admin-filter-label { display: inline-flex; align-items: center; gap: 7px; }
 .admin-filter-label svg { color: #8f999f; }
+.admin-filter-label img { width: 16px; height: 16px; object-fit: contain; }
 .admin-filter-footer { display: flex; min-height: 54px; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: .72rem; }
 .admin-filter-footer button { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 5px; background: transparent; color: #dce1e3; font-size: .7rem; font-weight: 700; }
 .admin-filter-footer button:hover:not(:disabled) { border-color: var(--line-strong); background: rgba(255,255,255,.05); }
