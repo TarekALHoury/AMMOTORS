@@ -149,6 +149,13 @@ describe('admin dashboard UI', () => {
     await user.click(screen.getByRole('option', { name: 'M4 Competition' }));
     expect(screen.getByLabelText('Engine *')).toBeEnabled();
     expect(screen.getByLabelText('Engine *').querySelector('img[data-icon="engine"]')).toBeInTheDocument();
+    const specificationFields = document.querySelector('.admin-specification-fields');
+    expect(specificationFields.querySelector('.lucide-milestone')).toBeInTheDocument();
+    expect(specificationFields.querySelector('.lucide-gauge')).toBeInTheDocument();
+    expect(specificationFields.querySelector('.lucide-fuel')).toBeInTheDocument();
+    expect(specificationFields.querySelectorAll('.lucide-palette')).toHaveLength(2);
+    expect(specificationFields.querySelector('img[data-icon="transmission"]')).toBeInTheDocument();
+    expect(specificationFields.querySelector('img[data-icon="drivetrain"]')).toBeInTheDocument();
     await chooseFormOption(user, 'Engine *', '3.0L Twin-Turbo');
     expect(screen.getByRole('combobox', { name: 'Engine *' })).toHaveTextContent('3.0L Twin-Turbo');
     await chooseFormOption(user, 'Make *', 'Audi');
