@@ -10,6 +10,7 @@ function Contact() {
         <div className="contact-actions">
           <WhatsAppButton>Chat on WhatsApp</WhatsAppButton>
           <a className="contact-link" href={dealership.instagram} target="_blank" rel="noreferrer"><Icon name="instagram" />Instagram</a>
+          <a className="contact-link" href={dealership.tiktok} target="_blank" rel="noreferrer"><Icon name="tiktok" />TikTok</a>
           <a className="contact-link" href={`tel:${dealership.phone.replace(/\s/g, '')}`}><Icon name="phone" />{dealership.phone}</a>
           <a className="contact-link location-link" href={dealership.location} target="_blank" rel="noreferrer"><Icon name="location" />View Our Location</a>
         </div>
