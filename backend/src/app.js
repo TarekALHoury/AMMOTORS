@@ -9,6 +9,14 @@ const { CarNotFoundError } = require('./firestoreCarsRepository');
 
 const defaultCarsFile = path.join(__dirname, '..', 'data', 'cars.json');
 
+function validateCarId(request, response, next) {
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(request.params.id || '')) {
+    response.set('Cache-Control', 'no-store');
+    return response.status(400).json({ message: 'Invalid car ID.' });
+  }
+  return next();
+}
+
 function createApp({
   carsFile = defaultCarsFile,
   carsRepository = createCarsRepository({ carsFile }),
@@ -63,7 +71,7 @@ function createApp({
     }
   });
 
-  app.get('/api/cars/:id', async (request, response, next) => {
+  app.get('/api/cars/:id', validateCarId, async (request, response, next) => {
     try {
       const car = await carsRepository.getById(request.params.id);
 
@@ -90,7 +98,7 @@ function createApp({
     }
   });
 
-  app.put('/api/admin/cars/:id', requireAdmin, async (request, response, next) => {
+  app.put('/api/admin/cars/:id', validateCarId, requireAdmin, async (request, response, next) => {
     try {
       const car = normalizeCarInput(request.body);
       const updated = await carsRepository.update(request.params.id, car, request.adminUser.uid);
@@ -100,7 +108,7 @@ function createApp({
     }
   });
 
-  app.patch('/api/admin/cars/:id', requireAdmin, async (request, response, next) => {
+  app.patch('/api/admin/cars/:id', validateCarId, requireAdmin, async (request, response, next) => {
     try {
       const changes = normalizeCarInput(request.body, { partial: true });
       const updated = await carsRepository.update(
@@ -114,7 +122,7 @@ function createApp({
     }
   });
 
-  app.delete('/api/admin/cars/:id', requireAdmin, async (request, response, next) => {
+  app.delete('/api/admin/cars/:id', validateCarId, requireAdmin, async (request, response, next) => {
     try {
       const car = await carsRepository.getById(request.params.id);
       if (!car) throw new CarNotFoundError();

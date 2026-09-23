@@ -82,6 +82,17 @@ test('GET /api/cars/:id returns the existing 404 error shape', async () => {
   assert.deepEqual(await response.json(), { message: 'Car not found.' });
 });
 
+test('car routes reject unsafe identifiers before repository access', async () => {
+  const unsafeResponse = await fetch(`${baseUrl}/api/cars/${'x'.repeat(129)}`);
+  const encodedResponse = await fetch(`${baseUrl}/api/cars/unsafe%20id`);
+
+  assert.equal(unsafeResponse.status, 400);
+  assert.deepEqual(await unsafeResponse.json(), { message: 'Invalid car ID.' });
+  assert.equal(encodedResponse.status, 400);
+  assert.deepEqual(await encodedResponse.json(), { message: 'Invalid car ID.' });
+  assert.equal(encodedResponse.headers.get('cache-control'), 'no-store');
+});
+
 test('unknown API routes return JSON', async () => {
   const response = await fetch(`${baseUrl}/api/unknown`);
 
@@ -94,6 +105,12 @@ test('admin routes fail closed when Firebase is not configured', async () => {
   assert.equal(response.status, 503);
   assert.deepEqual(await response.json(), { message: 'Admin service is not configured.' });
   assert.equal(response.headers.get('cache-control'), 'no-store');
+});
+
+test('admin car routes reject unsafe identifiers before authentication', async () => {
+  const response = await fetch(`${baseUrl}/api/admin/cars/unsafe%20id`, { method: 'DELETE' });
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { message: 'Invalid car ID.' });
 });
 
 test('malformed JSON receives a safe client error', async () => {
