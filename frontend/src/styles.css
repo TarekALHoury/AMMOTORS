@@ -378,46 +378,45 @@ p {
 
 .hero-vehicle {
   position: relative;
-  min-width: 190px;
+  width: 180px;
   justify-self: end;
-  text-align: left;
+  text-align: right;
   text-transform: uppercase;
-  transform: translateX(32px);
+  --hero-vehicle-offset: 8px;
+  transform: translateX(var(--hero-vehicle-offset));
 }
 
-.hero-vehicle::before {
-  position: absolute;
-  top: 5px;
-  left: 0;
-  width: 38px;
+.hero-vehicle p {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-bottom: 9px;
+  color: #d1d5d7;
+  font-size: 0.95rem;
+  letter-spacing: 0.48em;
+  line-height: 1;
+}
+
+.hero-vehicle p::before {
+  width: 28px;
   height: 1px;
   background: rgba(255, 255, 255, 0.7);
   content: "";
 }
 
-.hero-vehicle p {
-  margin-bottom: 12px;
-  color: #d1d5d7;
-  font-size: 1rem;
-  letter-spacing: 0.48em;
-  line-height: 1;
-  padding-left: 34px;
-}
-
 .hero-vehicle h2 {
-  margin-bottom: 28px;
-  padding-left: 16px;
-  font-size: clamp(1.65rem, 2.2vw, 2.2rem);
+  margin-bottom: 34px;
+  font-size: clamp(1.5rem, 1.9vw, 1.9rem);
   font-weight: 400;
-  letter-spacing: 0.04em;
-  line-height: 1.05;
+  letter-spacing: 0.1em;
+  line-height: 1.04;
 }
 
 .hero-vehicle span {
   display: block;
-  padding-left: 16px;
   color: #b9bec1;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   letter-spacing: 0.2em;
   line-height: 1.65;
 }
@@ -1307,7 +1306,7 @@ p {
   .hero-copy { margin-bottom: 24px; font-size: 0.95rem; }
   .hero-actions { gap: 8px; }
   .hero-actions .button { padding-inline: 16px; font-size: 0.78rem; }
-  .hero-vehicle { transform: none; }
+  .hero-vehicle { --hero-vehicle-offset: 0px; }
   .hero-vehicle h2 { font-size: 1.45rem; }
   .hero-benefits { width: 100%; }
   .hero-benefits-grid { width: 100%; max-width: 620px; gap: 16px; }
@@ -1402,7 +1401,7 @@ p {
 .about-visual small { transform: translateZ(24px); }
 @keyframes public-rise-in { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes public-card-in { from { opacity: 0; transform: translateY(28px) rotateX(-5deg); } to { opacity: 1; transform: translateY(0) rotateX(0); } }
-@keyframes hero-vehicle-in { from { opacity: 0; transform: translateX(55px) rotateY(-8deg); } to { opacity: 1; transform: translateX(32px) rotateY(0); } }
+@keyframes hero-vehicle-in { from { opacity: 0; transform: translateX(calc(var(--hero-vehicle-offset) + 24px)) rotateY(-8deg); } to { opacity: 1; transform: translateX(var(--hero-vehicle-offset)) rotateY(0); } }
 @keyframes hero-orbit-drift { from { transform: translateY(-50%) rotateX(66deg) rotateZ(-18deg) scale(.96); } to { transform: translateY(-53%) rotateX(62deg) rotateZ(-10deg) scale(1.04); } }
 @media (max-width: 720px) { .hero-depth-orbit { display: none; } .car-card:hover, .benefit:hover { transform: translateY(-3px); } .about-visual:hover { transform: none; } }
 
