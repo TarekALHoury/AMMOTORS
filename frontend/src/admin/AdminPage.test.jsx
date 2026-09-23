@@ -17,10 +17,10 @@ function renderAdmin() {
   return render(<MemoryRouter><AdminPage /></MemoryRouter>);
 }
 
-async function signIn(user) {
+async function signIn(user, expectedHeading = 'Dashboard') {
   await user.type(screen.getByLabelText('Email address'), 'admin@example.com');
   await user.type(screen.getByLabelText('Password'), 'secure-password{Enter}');
-  await screen.findByRole('heading', { name: 'Dashboard' });
+  await screen.findByRole('heading', { name: expectedHeading });
 }
 
 async function chooseFormOption(user, label, option) {
@@ -31,6 +31,7 @@ async function chooseFormOption(user, label, option) {
 describe('admin dashboard UI', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
     getCars.mockResolvedValue(demoCars);
     observeAdminAuth.mockImplementation((onUser) => {
       onUser(null);
@@ -94,6 +95,20 @@ describe('admin dashboard UI', () => {
     expect(screen.getByText('Audi Q5 Premium Plus')).toBeInTheDocument();
     expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
     expect(document.querySelector('.admin-filter-panel select')).not.toBeInTheDocument();
+  });
+
+  test('restores the current admin section after a refresh without storing credentials', async () => {
+    const user = userEvent.setup();
+    const firstRender = renderAdmin();
+    await signIn(user);
+    await user.click(screen.getByRole('button', { name: /Inventory 3/i }));
+    expect(screen.getByRole('heading', { name: 'Inventory' })).toBeInTheDocument();
+    firstRender.unmount();
+
+    renderAdmin();
+    await signIn(userEvent.setup(), 'Inventory');
+    expect(await screen.findByRole('heading', { name: 'Inventory' })).toBeInTheDocument();
+    expect(sessionStorage.getItem('ammotors.admin-location.v1')).not.toContain('secure-password');
   });
 
   test('focuses and reports validation errors on an empty add-car form', async () => {

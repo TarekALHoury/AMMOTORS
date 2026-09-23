@@ -13,6 +13,26 @@ const emptyCar = {
   exteriorColor: '', interiorColor: '', images: [],
 };
 
+const ADMIN_LOCATION_KEY = 'ammotors.admin-location.v1';
+const adminViews = new Set(['dashboard', 'inventory', 'add', 'edit', 'details']);
+
+function readAdminLocation() {
+  try {
+    const location = JSON.parse(sessionStorage.getItem(ADMIN_LOCATION_KEY));
+    return { view: adminViews.has(location?.view) ? location.view : 'dashboard', selectedId: typeof location?.selectedId === 'string' ? location.selectedId : null };
+  } catch {
+    return { view: 'dashboard', selectedId: null };
+  }
+}
+
+function storeAdminLocation(view, selectedId = null) {
+  try {
+    sessionStorage.setItem(ADMIN_LOCATION_KEY, JSON.stringify({ view, selectedId }));
+  } catch {
+    // Session storage can be unavailable in privacy modes; navigation still works.
+  }
+}
+
 const demoCars = [
   { id: 'demo-001', make: 'BMW', model: 'M4 Competition', year: 2024, price: 80000, mileage: 12000, engine: '3.0L Twin-Turbo', horsepower: 503, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Petrol', exteriorColor: 'Black', interiorColor: 'Black', description: 'Clean, low-mileage performance coupe.', status: 'available', images: [] },
   { id: 'demo-002', make: 'Mercedes-Benz', model: 'C300', year: 2023, price: 54000, mileage: 18500, engine: '2.0L Turbo', horsepower: 255, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Petrol', exteriorColor: 'White', interiorColor: 'Beige', description: 'Comfortable and well maintained.', status: 'reserved', images: [] },
@@ -389,8 +409,9 @@ function DeleteDialog({ car, onCancel, onConfirm }) {
 function LoadingState() { return <div className="admin-loading" role="status"><LoaderCircle aria-hidden="true" /><h2>Loading inventory</h2><p>Preparing the management workspace…</p></div>; }
 
 function AdminWorkspace({ email, onSignOut }) {
+  const initialLocation = useMemo(readAdminLocation, []);
   const [cars, setCars] = useState([]);
-  const [view, setView] = useState('dashboard');
+  const [view, setView] = useState(initialLocation.view);
   const [selectedCar, setSelectedCar] = useState(null);
   const [deleteCar, setDeleteCar] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -403,7 +424,13 @@ function AdminWorkspace({ email, onSignOut }) {
     getCars().then(setCars).catch(() => setLoadError(true)).finally(() => setLoading(false));
   }
   useEffect(loadInventory, []);
-  function navigate(nextView, car = null) { setView(nextView); setSelectedCar(car); setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'auto' }); }
+  useEffect(() => {
+    if (!cars.length || selectedCar || !['edit', 'details'].includes(view)) return;
+    const restoredCar = cars.find((car) => car.id === initialLocation.selectedId);
+    if (restoredCar) setSelectedCar(restoredCar);
+    else { setView('inventory'); storeAdminLocation('inventory'); }
+  }, [cars, initialLocation.selectedId, selectedCar, view]);
+  function navigate(nextView, car = null) { setView(nextView); setSelectedCar(car); storeAdminLocation(nextView, car?.id); setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'auto' }); }
   function saveCar(car) {
     if (view === 'add') {
       setCars([{ ...car, id: `local-${Date.now()}` }, ...cars]); setNotice('Vehicle added to this UI preview.');
