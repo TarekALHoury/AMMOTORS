@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, CarFront, Check, ChevronDown, ChevronRight, Eye, ImageUp, LayoutDashboard, LoaderCircle, LogOut, Menu, Plus, Search, SlidersHorizontal, SquarePen, Trash2, X } from 'lucide-react';
 import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 import VehicleImage from '../components/VehicleImage.jsx';
@@ -23,21 +24,22 @@ function money(value) {
 }
 
 function AdminIcon({ name }) {
-  const paths = {
-    dashboard: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
-    cars: <><path d="m5 17-2-1v-4l2-1 2-4h10l2 4 2 1v4l-2 1" /><path d="M5 11h14M7 17v2M17 17v2" /></>,
-    plus: <path d="M12 5v14M5 12h14" />,
-    search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
-    edit: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" /></>,
-    trash: <><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15" /></>,
-    eye: <><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="2.5" /></>,
-    logout: <><path d="M10 17l5-5-5-5M15 12H3" /><path d="M14 4h6v16h-6" /></>,
-    menu: <path d="M4 7h16M4 12h16M4 17h16" />,
-    close: <path d="m6 6 12 12M18 6 6 18" />,
-    upload: <><path d="M12 16V4m-4 4 4-4 4 4" /><path d="M4 15v5h16v-5" /></>,
-    arrow: <path d="m9 18 6-6-6-6" />,
+  const icons = {
+    dashboard: LayoutDashboard,
+    cars: CarFront,
+    plus: Plus,
+    search: Search,
+    edit: SquarePen,
+    trash: Trash2,
+    eye: Eye,
+    logout: LogOut,
+    menu: Menu,
+    close: X,
+    upload: ImageUp,
+    arrow: ChevronRight,
   };
-  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
+  const Icon = icons[name];
+  return Icon ? <Icon size={20} strokeWidth={1.8} aria-hidden="true" /> : null;
 }
 
 function SignIn({ onSuccess }) {
@@ -88,7 +90,7 @@ function SignIn({ onSuccess }) {
           </label>
           <button className="button button-primary admin-submit" type="submit" disabled={submitting}>{submitting ? 'Signing in…' : 'Sign in'}</button>
         </form>
-        <a className="admin-back-link" href="/">← Return to website</a>
+        <a className="admin-back-link" href="/"><ArrowLeft size={16} aria-hidden="true" /> Return to website</a>
       </section>
     </main>
   );
@@ -198,7 +200,7 @@ function Inventory({ cars, onNavigate, onDelete }) {
         <div className="admin-view-toggle" aria-label="View style"><button className={view === 'table' ? 'active' : ''} onClick={() => setView('table')} aria-pressed={view === 'table'}>Table</button><button className={view === 'grid' ? 'active' : ''} onClick={() => setView('grid')} aria-pressed={view === 'grid'}>Grid</button></div>
       </section>
       <details className="admin-filter-panel">
-        <summary><span>Advanced filters{activeFilterCount ? ` (${activeFilterCount})` : ''}</span><small>Make, model, year, specifications, price, and mileage</small></summary>
+        <summary><SlidersHorizontal size={18} aria-hidden="true" /><span>Advanced filters{activeFilterCount ? ` (${activeFilterCount})` : ''}</span><small>Make, model, year, specifications, price, and mileage</small><ChevronDown className="admin-filter-chevron" size={18} aria-hidden="true" /></summary>
         <div className="admin-filter-grid">
           <SelectField label="Make" ariaLabel="Filter by make" name="makeFilter" value={filters.make} onChange={(event) => updateFilter('make', event.target.value)} options={['all', ...options.makes]} optionLabels={{ all: 'All makes' }} searchable />
           <SelectField label="Model" ariaLabel="Filter by model" name="modelFilter" value={filters.model} onChange={(event) => updateFilter('model', event.target.value)} options={['all', ...options.models]} optionLabels={{ all: 'All models' }} searchable />
@@ -311,7 +313,7 @@ function SelectField({ label, ariaLabel = label, name, value, error, onChange, o
     <button ref={triggerRef} id={`${id}-trigger`} className="admin-select-trigger" type="button" role="combobox" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-listbox`} aria-activedescendant={open && visibleOptions[activeIndex] ? `${id}-option-${activeIndex}` : undefined} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} disabled={disabled} onClick={() => { setQuery(''); setOpen((current) => !current); }} onKeyDown={handleKeyDown}>
       <span className={value ? '' : 'placeholder'}>{value ? optionLabels[value] || value : placeholder}</span><span className="admin-select-chevron" aria-hidden="true" />
     </button>
-    {open && <div className="admin-select-menu">{searchable && <label className="admin-select-search"><span className="sr-only">Search {label.replace(' *', '')}</span><AdminIcon name="search" /><input ref={searchRef} type="search" aria-label={`Search ${label.replace(' *', '')}`} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleSearchKeyDown} placeholder={`Search ${label.replace(' *', '').toLowerCase()}s`} /></label>}<div className="admin-select-options" id={`${id}-listbox`} role="listbox" aria-label={`${label} options`}>{visibleOptions.map((option, index) => <button id={`${id}-option-${index}`} type="button" role="option" aria-selected={option === value} className={index === activeIndex ? 'is-active' : ''} key={option} onPointerMove={() => setActiveIndex(index)} onClick={() => choose(option)}>{optionLabels[option] || option}{hasUnsupportedValue && option === value ? ' (Other)' : ''}{option === value && <span aria-hidden="true">✓</span>}</button>)}{!visibleOptions.length && <p className="admin-select-empty">No matching makes found.</p>}</div></div>}
+    {open && <div className="admin-select-menu">{searchable && <label className="admin-select-search"><span className="sr-only">Search {label.replace(' *', '')}</span><AdminIcon name="search" /><input ref={searchRef} type="search" aria-label={`Search ${label.replace(' *', '')}`} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleSearchKeyDown} placeholder={`Search ${label.replace(' *', '').toLowerCase()}s`} /></label>}<div className="admin-select-options" id={`${id}-listbox`} role="listbox" aria-label={`${label} options`}>{visibleOptions.map((option, index) => <button id={`${id}-option-${index}`} type="button" role="option" aria-selected={option === value} className={index === activeIndex ? 'is-active' : ''} key={option} onPointerMove={() => setActiveIndex(index)} onClick={() => choose(option)}>{optionLabels[option] || option}{hasUnsupportedValue && option === value ? ' (Other)' : ''}{option === value && <Check size={16} aria-hidden="true" />}</button>)}{!visibleOptions.length && <p className="admin-select-empty">No matching makes found.</p>}</div></div>}
     {error && <small id={errorId} className="admin-field-error">{error}</small>}
   </div>;
 }
@@ -364,10 +366,10 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
     window.setTimeout(() => onSave({ ...car, year: Number(car.year), price: Number(car.price), mileage: Number(car.mileage), horsepower: Number(car.horsepower) }), 300);
   }
 
-  return <div className="admin-view"><div className="admin-page-heading"><div><button className="admin-back-button" onClick={onCancel}>← Back to inventory</button><p className="admin-kicker">{mode === 'add' ? 'New listing' : 'Update listing'}</p><h1>{mode === 'add' ? 'Add vehicle' : `Edit ${initialCar.make} ${initialCar.model}`}</h1><p>Fields marked required are needed before this listing can be saved.</p></div></div><form className="admin-car-form" onSubmit={submit} noValidate ref={firstErrorRef}>
+  return <div className="admin-view"><div className="admin-page-heading"><div><button className="admin-back-button" onClick={onCancel}><ArrowLeft size={16} aria-hidden="true" /> Back to inventory</button><p className="admin-kicker">{mode === 'add' ? 'New listing' : 'Update listing'}</p><h1>{mode === 'add' ? 'Add vehicle' : `Edit ${initialCar.make} ${initialCar.model}`}</h1><p>Fields marked required are needed before this listing can be saved.</p></div></div><form className="admin-car-form" onSubmit={submit} noValidate ref={firstErrorRef}>
     <section className="admin-form-section"><div className="admin-form-section-heading"><span>01</span><div><h2>Vehicle details</h2><p>Core listing and availability information.</p></div></div><div className="admin-form-grid"><SelectField label="Make *" name="make" value={car.make} error={errors.make} onChange={changeMake} options={vehicleMakes} placeholder="Select a make" /><SelectField label="Model *" name="model" value={car.model} error={errors.model} onChange={changeModel} options={modelOptions} placeholder={car.make ? 'Select a model' : 'Select a make first'} disabled={!car.make} /><SelectField label="Year *" name="year" value={String(car.year)} error={errors.year} onChange={change} options={yearOptions} placeholder="Select a year" /><Field label="Price (USD) *" name="price" type="number" value={car.price} error={errors.price} onChange={change} /><SelectField label="Status *" name="status" value={car.status} onChange={change} options={['available', 'reserved', 'sold']} /><label className="admin-field admin-field-wide"><span>Description</span><textarea name="description" rows="5" value={car.description} onChange={change} aria-invalid={Boolean(errors.description)} /><small>{car.description.length}/5000</small>{errors.description && <small className="admin-field-error">{errors.description}</small>}</label></div></section>
     <section className="admin-form-section"><div className="admin-form-section-heading"><span>02</span><div><h2>Specifications</h2><p>Technical and appearance information.</p></div></div><div className="admin-form-grid"><Field label="Mileage (km) *" name="mileage" type="number" inputMode="numeric" min="0" step="1" value={car.mileage} error={errors.mileage} onChange={changeMileage} onKeyDown={preventInvalidMileageKey} onPaste={preventInvalidMileagePaste} /><SelectField label="Engine *" name="engine" value={car.engine} error={errors.engine} onChange={change} options={engineOptions} placeholder={car.model ? 'Select an engine' : 'Select a model first'} disabled={!car.model} /><Field label="Horsepower *" name="horsepower" type="number" value={car.horsepower} error={errors.horsepower} onChange={change} /><SelectField label="Transmission *" name="transmission" value={car.transmission} error={errors.transmission} onChange={change} options={transmissionOptions} optionLabels={vehicleOptionLabels} /><SelectField label="Drivetrain *" name="drivetrain" value={car.drivetrain} error={errors.drivetrain} onChange={change} options={drivetrainOptions} /><SelectField label="Fuel type *" name="fuel" value={car.fuel} error={errors.fuel} onChange={change} options={fuelOptions} optionLabels={vehicleOptionLabels} /><Field label="Exterior color *" name="exteriorColor" value={car.exteriorColor} error={errors.exteriorColor} onChange={change} /><Field label="Interior color *" name="interiorColor" value={car.interiorColor} error={errors.interiorColor} onChange={change} /></div></section>
-    <section className="admin-form-section"><div className="admin-form-section-heading"><span>03</span><div><h2>Vehicle images</h2><p>Select local images for preview or add hosted URLs. Uploading will be connected later.</p></div></div><div className="admin-image-controls"><label className="admin-upload-zone"><AdminIcon name="upload" /><strong>Select images</strong><span>JPEG, PNG, or WebP · max 10 MB each</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={selectFiles} /></label><div className="admin-url-input"><label htmlFor="image-url">Hosted image URL</label><div><input id="image-url" type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://…" /><button type="button" onClick={addImageUrl}>Add URL</button></div>{errors.images && <small className="admin-field-error">{errors.images}</small>}</div></div>{car.images.length > 0 && <div className="admin-image-previews" aria-label="Selected image previews">{car.images.map((image, index) => <div key={`${image}-${index}`}><VehicleImage src={image} alt={`Vehicle preview ${index + 1}`} /><button type="button" aria-label={`Remove image ${index + 1}`} onClick={() => setCar({ ...car, images: car.images.filter((_, imageIndex) => imageIndex !== index) })}>×</button>{index === 0 && <span>Cover</span>}</div>)}</div>}</section>
+    <section className="admin-form-section"><div className="admin-form-section-heading"><span>03</span><div><h2>Vehicle images</h2><p>Select local images for preview or add hosted URLs. Uploading will be connected later.</p></div></div><div className="admin-image-controls"><label className="admin-upload-zone"><AdminIcon name="upload" /><strong>Select images</strong><span>JPEG, PNG, or WebP · max 10 MB each</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={selectFiles} /></label><div className="admin-url-input"><label htmlFor="image-url">Hosted image URL</label><div><input id="image-url" type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://…" /><button type="button" onClick={addImageUrl}>Add URL</button></div>{errors.images && <small className="admin-field-error">{errors.images}</small>}</div></div>{car.images.length > 0 && <div className="admin-image-previews" aria-label="Selected image previews">{car.images.map((image, index) => <div key={`${image}-${index}`}><VehicleImage src={image} alt={`Vehicle preview ${index + 1}`} /><button type="button" aria-label={`Remove image ${index + 1}`} onClick={() => setCar({ ...car, images: car.images.filter((_, imageIndex) => imageIndex !== index) })}><X size={16} aria-hidden="true" /></button>{index === 0 && <span>Cover</span>}</div>)}</div>}</section>
     <div className="admin-form-actions"><button className="button button-outline" type="button" onClick={onCancel}>Cancel</button><button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : mode === 'add' ? 'Add vehicle' : 'Save changes'}</button></div>
   </form></div>;
 }
@@ -384,7 +386,7 @@ function DeleteDialog({ car, onCancel, onConfirm }) {
   return <dialog className="admin-dialog" ref={dialogRef} open={!supportsModal} onCancel={onCancel} aria-labelledby="delete-title"><div className="admin-dialog-icon"><AdminIcon name="trash" /></div><h2 id="delete-title">Delete this vehicle?</h2><p><strong>{car.make} {car.model}</strong> will be removed from the inventory. This action cannot be undone after backend integration.</p><div><button className="button button-outline" onClick={onCancel}>Cancel</button><button className="button admin-danger-button" onClick={onConfirm}>Delete vehicle</button></div></dialog>;
 }
 
-function LoadingState() { return <div className="admin-loading" role="status"><span /><h2>Loading inventory</h2><p>Preparing the management workspace…</p></div>; }
+function LoadingState() { return <div className="admin-loading" role="status"><LoaderCircle aria-hidden="true" /><h2>Loading inventory</h2><p>Preparing the management workspace…</p></div>; }
 
 function AdminWorkspace({ email, onSignOut }) {
   const [cars, setCars] = useState([]);

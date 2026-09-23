@@ -56,6 +56,8 @@ describe('admin dashboard UI', () => {
     expect(getCars).toHaveBeenCalledOnce();
     expect(screen.getByText('Total inventory').nextSibling).toHaveTextContent('3');
     expect(screen.getAllByText('BMW M4 Competition').length).toBeGreaterThan(0);
+    expect(document.querySelector('.lucide-layout-dashboard')).toBeInTheDocument();
+    expect(document.querySelector('.lucide-car-front')).toBeInTheDocument();
   });
 
   test('searches every vehicle detail and combines advanced inventory filters', async () => {
@@ -70,6 +72,7 @@ describe('admin dashboard UI', () => {
     await user.clear(search);
     expect(document.querySelector('.admin-toolbar select')).not.toBeInTheDocument();
     await user.click(screen.getByText(/^Advanced filters/));
+    expect(document.querySelector('.lucide-sliders-horizontal')).toBeInTheDocument();
     await chooseFormOption(user, 'Filter by make', 'BMW');
     expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
     expect(screen.queryByText('Audi Q5 Premium Plus')).not.toBeInTheDocument();
