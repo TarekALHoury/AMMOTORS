@@ -125,22 +125,41 @@ function Summary({ cars, onNavigate }) {
   const sold = cars.filter((car) => car.status === 'sold').length;
   const totalValue = cars.filter((car) => car.status !== 'sold').reduce((sum, car) => sum + Number(car.price || 0), 0);
   const cards = [
-    ['Total inventory', cars.length, 'cars'], ['Available', available, 'ready to sell'],
-    ['Reserved', reserved, 'awaiting completion'], ['Active value', money(totalValue), 'available + reserved'],
+    { label: 'Total inventory', value: cars.length, note: 'vehicles tracked', icon: CarFront, tone: 'neutral' },
+    { label: 'Available', value: available, note: 'ready to sell', icon: BadgeCheck, tone: 'available' },
+    { label: 'Reserved', value: reserved, note: 'awaiting completion', icon: Tags, tone: 'reserved' },
+    { label: 'Active value', value: money(totalValue), note: 'available + reserved', icon: CircleDollarSign, tone: 'value' },
+  ];
+  const statusBreakdown = [
+    { label: 'Available', value: available, status: 'available' },
+    { label: 'Reserved', value: reserved, status: 'reserved' },
+    { label: 'Sold', value: sold, status: 'sold' },
   ];
   return (
     <div className="admin-view admin-dashboard-view">
       <div className="admin-page-heading"><div><p className="admin-kicker">Overview</p><h1>Dashboard</h1><p>Monitor inventory status and keep listings current.</p></div><button className="button button-primary" onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
       <section className="admin-summary-grid" aria-label="Inventory summary">
-        {cards.map(([label, value, note]) => <article className="admin-summary-card" data-tilt="10" key={label}><span>{label}</span><strong>{value}</strong><small>{note}</small></article>)}
+        {cards.map(({ label, value, note, icon: CardIcon, tone }) => <article className={`admin-summary-card admin-summary-${tone}`} data-tilt="10" key={label}><div className="admin-summary-card-top"><span>{label}</span><span className="admin-summary-icon"><CardIcon size={20} strokeWidth={1.8} aria-hidden="true" /></span></div><strong>{value}</strong><small>{note}</small></article>)}
       </section>
-      <section className="admin-panel" data-tilt="2">
-        <div className="admin-panel-heading"><div><p className="admin-kicker">Recent inventory</p><h2>Latest vehicles</h2></div><button className="admin-text-button" onClick={() => onNavigate('inventory')}>View all <AdminIcon name="arrow" /></button></div>
-        <div className="admin-recent-list">
-          {cars.slice(0, 4).map((car) => <button key={car.id} className="admin-recent-row" onClick={() => onNavigate('details', car)}><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.year} · {money(car.price)}</small></span><span className={`admin-status status-${car.status}`}>{car.status}</span><AdminIcon name="arrow" /></button>)}
-          {!cars.length && <EmptyState onAction={() => onNavigate('add')} />}
-        </div>
-      </section>
+      <div className="admin-dashboard-grid">
+        <section className="admin-panel admin-recent-panel" data-tilt="2">
+          <div className="admin-panel-heading"><div><p className="admin-kicker">Recent inventory</p><h2>Latest vehicles</h2></div><button className="admin-text-button" onClick={() => onNavigate('inventory')}>View all <AdminIcon name="arrow" /></button></div>
+          <div className="admin-recent-list">
+            {cars.slice(0, 4).map((car) => <button key={car.id} className="admin-recent-row" onClick={() => onNavigate('details', car)}><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.year} · {money(car.price)}</small></span><span className={`admin-status status-${car.status}`}>{car.status}</span><AdminIcon name="arrow" /></button>)}
+            {!cars.length && <EmptyState onAction={() => onNavigate('add')} />}
+          </div>
+        </section>
+        <aside className="admin-panel admin-status-panel" aria-labelledby="inventory-mix-title">
+          <div className="admin-panel-heading"><div><p className="admin-kicker">Live distribution</p><h2 id="inventory-mix-title">Inventory mix</h2></div><span className="admin-live-indicator"><i /> Live</span></div>
+          <div className="admin-status-chart" aria-label={`${available} available, ${reserved} reserved, ${sold} sold`}>
+            <div className="admin-status-ring" style={{ '--available': `${cars.length ? (available / cars.length) * 100 : 0}%`, '--reserved': `${cars.length ? ((available + reserved) / cars.length) * 100 : 0}%` }}><span><strong>{cars.length}</strong><small>Total</small></span></div>
+            <div className="admin-status-legend">
+              {statusBreakdown.map(({ label, value, status }) => <button key={status} onClick={() => onNavigate('inventory')}><i className={`status-dot-${status}`} /><span>{label}</span><strong>{value}</strong><small>{cars.length ? Math.round((value / cars.length) * 100) : 0}%</small></button>)}
+            </div>
+          </div>
+          <button className="admin-status-action" onClick={() => onNavigate('inventory')}>Manage inventory <ChevronRight size={17} aria-hidden="true" /></button>
+        </aside>
+      </div>
     </div>
   );
 }
