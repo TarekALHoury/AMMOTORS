@@ -102,6 +102,7 @@
 
 .admin-toolbar { display: grid; grid-template-columns: minmax(260px,1fr) 180px 190px auto; gap: 12px; margin-bottom: 18px; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
 .admin-toolbar > *, .admin-form-grid > *, .admin-image-controls > *, .admin-details-layout > * { min-width: 0; }
+.admin-toolbar .admin-select-field { gap: 0; }
 .admin-search { position: relative; }
 .admin-search svg { position: absolute; z-index: 1; top: 14px; left: 14px; color: var(--muted); }
 .admin-search input { padding-left: 44px; }
