@@ -31,7 +31,8 @@
 .admin-select-trigger:focus-visible, .admin-select-field.is-open .admin-select-trigger { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(214,69,61,.16); }
 .admin-select-trigger[aria-invalid="true"] { border-color: #ef6d66; background: rgba(214,69,61,.045); }
 .admin-select-trigger:disabled { cursor: not-allowed; border-color: #252b2f; background: #0a0e10; color: #646d72; opacity: .72; }
-.admin-select-trigger > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-select-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-select-leading-icon { flex: 0 0 auto; color: #8f999f; }
 .admin-select-trigger .placeholder { color: #6f777c; font-weight: 500; }
 .admin-select-chevron { width: 8px; height: 8px; flex: 0 0 auto; border-right: 1.5px solid #aeb5b9; border-bottom: 1.5px solid #aeb5b9; transform: translateY(-2px) rotate(45deg); transition: transform 160ms; }
 .admin-select-field.is-open .admin-select-chevron { transform: translateY(2px) rotate(225deg); }
@@ -119,6 +120,8 @@
 .admin-filter-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; padding: 18px 16px; border-top: 1px solid var(--line); }
 .admin-filter-grid label { display: grid; min-width: 0; gap: 7px; color: #d7dcdf; font-size: .72rem; font-weight: 700; }
 .admin-filter-grid .admin-field { gap: 7px; font-size: .72rem; }
+.admin-filter-label { display: inline-flex; align-items: center; gap: 7px; }
+.admin-filter-label svg { color: #8f999f; }
 .admin-filter-footer { display: flex; min-height: 54px; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: .72rem; }
 .admin-filter-footer button { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 5px; background: transparent; color: #dce1e3; font-size: .7rem; font-weight: 700; }
 .admin-filter-footer button:hover:not(:disabled) { border-color: var(--line-strong); background: rgba(255,255,255,.05); }

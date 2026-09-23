@@ -71,8 +71,13 @@ describe('admin dashboard UI', () => {
     expect(screen.queryByText('BMW M4 Competition')).not.toBeInTheDocument();
     await user.clear(search);
     expect(document.querySelector('.admin-toolbar select')).not.toBeInTheDocument();
+    expect(document.querySelector('.admin-toolbar .lucide-badge-check')).toBeInTheDocument();
+    expect(document.querySelector('.admin-toolbar .lucide-arrow-up-down')).toBeInTheDocument();
     await user.click(screen.getByText(/^Advanced filters/));
     expect(document.querySelector('.lucide-sliders-horizontal')).toBeInTheDocument();
+    expect(document.querySelector('.admin-filter-grid .lucide-car-front')).toBeInTheDocument();
+    expect(document.querySelector('.admin-filter-grid .lucide-circle-dollar-sign')).toBeInTheDocument();
+    expect(document.querySelector('.admin-filter-grid .lucide-milestone')).toBeInTheDocument();
     await chooseFormOption(user, 'Filter by make', 'BMW');
     expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
     expect(screen.queryByText('Audi Q5 Premium Plus')).not.toBeInTheDocument();
