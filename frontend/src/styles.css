@@ -795,6 +795,10 @@ p {
   color: #06150b;
 }
 
+.whatsapp-button .icon-image {
+  filter: brightness(0);
+}
+
 .whatsapp-button:hover {
   background: #36df76;
 }
