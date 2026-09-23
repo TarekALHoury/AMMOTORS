@@ -1,6 +1,25 @@
 import { collection, doc, getDoc, getDocs } from '@firebase/firestore';
 import { firestore } from './firebase.js';
 
+const CARS_CACHE_KEY = 'ammotors.public-cars.v1';
+
+function readCachedCars() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(CARS_CACHE_KEY));
+    return Array.isArray(cached?.cars) ? cached.cars : null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheCars(cars) {
+  try {
+    localStorage.setItem(CARS_CACHE_KEY, JSON.stringify({ cachedAt: Date.now(), cars }));
+  } catch {
+    // Browsers may disable or exhaust storage. Live Firestore data still works normally.
+  }
+}
+
 export class CarsApiError extends Error {
   constructor(message, status) {
     super(message);
@@ -36,8 +55,12 @@ function toPublicCar(snapshot) {
 export async function getCars() {
   try {
     const snapshot = await getDocs(collection(firestore, 'cars'));
-    return snapshot.docs.map(toPublicCar).sort((left, right) => left.id.localeCompare(right.id));
+    const cars = snapshot.docs.map(toPublicCar).sort((left, right) => left.id.localeCompare(right.id));
+    cacheCars(cars);
+    return cars;
   } catch {
+    const cachedCars = readCachedCars();
+    if (cachedCars) return cachedCars;
     throw new CarsApiError('Unable to load vehicles.', 0);
   }
 }
@@ -46,9 +69,14 @@ export async function getCarById(id) {
   try {
     const snapshot = await getDoc(doc(firestore, 'cars', id));
     if (!snapshot.exists()) throw new CarsApiError('Car not found.', 404);
-    return toPublicCar(snapshot);
+    const car = toPublicCar(snapshot);
+    const cachedCars = readCachedCars() || [];
+    cacheCars([...cachedCars.filter((cachedCar) => cachedCar.id !== car.id), car]);
+    return car;
   } catch (error) {
     if (error instanceof CarsApiError) throw error;
+    const cachedCar = readCachedCars()?.find((car) => car.id === id);
+    if (cachedCar) return cachedCar;
     throw new CarsApiError('Unable to load vehicle.', 0);
   }
 }
