@@ -1371,6 +1371,50 @@ p {
   .spec { min-height: 86px; }
 }
 
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hero-content {
+    width: calc(100% - clamp(64px, 13.7vw, 140px));
+    grid-template-columns: minmax(0, 1fr) 180px;
+    gap: 24px;
+  }
+  .hero h1 { font-size: clamp(48px, 5.86vw, 60px); }
+  .hero-vehicle { width: 180px; }
+  .hero-benefits-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .hero-benefits .benefit { border: 0; }
+}
+
+@media (max-width: 767px) {
+  .hero {
+    height: clamp(620px, calc(100svh - var(--nav-height) - 100px), 660px);
+    background-position: 72% 56%;
+  }
+  .hero-shade {
+    background: linear-gradient(90deg, rgba(3, 5, 6, 0.84) 0%, rgba(3, 5, 6, 0.58) 45%, rgba(3, 5, 6, 0.12) 100%),
+      linear-gradient(0deg, rgba(3, 5, 6, 0.7), transparent 30%);
+  }
+  .hero-content {
+    width: calc(100% - 24px);
+    height: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    gap: 24px;
+    padding: 30px 0 28px;
+  }
+  .hero-copy-block { width: 100%; min-width: 0; align-self: center; }
+  .hero h1 { font-size: clamp(42px, 13vw, 56px); }
+  .hero-vehicle { display: none; }
+  .hero-benefits { width: 100%; }
+  .hero-benefits-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
+  .hero-benefits .benefit { flex-direction: row; align-items: center; gap: 8px; border: 0; }
+  .hero-benefits .benefit-icon { width: 34px; height: 34px; }
+}
+
+@media (min-width: 601px) and (max-width: 767px) {
+  .hero h1 { font-size: clamp(56px, 8vw, 62px); }
+  .hero-actions { flex-direction: row; }
+  .hero-actions .button { width: auto; }
+}
+
 .hero-copy-block { animation: public-rise-in 700ms cubic-bezier(.2,.75,.25,1) both; }
 .hero-vehicle { animation: hero-vehicle-in 800ms 180ms cubic-bezier(.2,.75,.25,1) both; }
 .hero-benefits { animation: public-rise-in 720ms 300ms cubic-bezier(.2,.75,.25,1) both; }
