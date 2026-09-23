@@ -32,6 +32,17 @@ test('API responses include defensive security headers', async () => {
   assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
   assert.match(response.headers.get('content-security-policy'), /frame-ancestors 'none'/);
   assert.equal(response.headers.get('x-powered-by'), null);
+  assert.match(response.headers.get('x-request-id'), /^[0-9a-f-]{36}$/);
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+});
+
+test('public inventory responses advertise short resilient caching', async () => {
+  const listResponse = await fetch(`${baseUrl}/api/cars`);
+  const detailResponse = await fetch(`${baseUrl}/api/cars/car-001`);
+
+  assert.equal(listResponse.headers.get('cache-control'), 'public, max-age=60, stale-while-revalidate=300');
+  assert.equal(detailResponse.headers.get('cache-control'), 'public, max-age=60, stale-while-revalidate=300');
+  assert.notEqual(listResponse.headers.get('x-request-id'), detailResponse.headers.get('x-request-id'));
 });
 
 test('default CORS behavior preserves access for the frontend', async () => {
@@ -82,6 +93,7 @@ test('admin routes fail closed when Firebase is not configured', async () => {
   const response = await fetch(`${baseUrl}/api/admin/cars`, { method: 'POST' });
   assert.equal(response.status, 503);
   assert.deepEqual(await response.json(), { message: 'Admin service is not configured.' });
+  assert.equal(response.headers.get('cache-control'), 'no-store');
 });
 
 test('malformed JSON receives a safe client error', async () => {

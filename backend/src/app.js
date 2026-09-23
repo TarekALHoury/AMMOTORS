@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { randomUUID } = require('node:crypto');
 const path = require('path');
 const { createCarsRepository } = require('./carsRepository');
 const { createRequireAdmin } = require('./adminAuth');
@@ -20,6 +21,7 @@ function createApp({
 
   app.disable('x-powered-by');
   app.use(cors({
+    exposedHeaders: ['X-Request-Id'],
     origin(origin, callback) {
       const origins = Array.isArray(allowedOrigins) ? allowedOrigins : [allowedOrigins];
       const isAllowed = !origin || origins.includes('*') || origins.includes(origin);
@@ -36,16 +38,24 @@ function createApp({
     });
     next();
   });
+  app.use((request, response, next) => {
+    request.requestId = randomUUID();
+    response.set('X-Request-Id', request.requestId);
+    if (request.path.startsWith('/api/admin')) response.set('Cache-Control', 'no-store');
+    next();
+  });
   app.use(express.json({ limit: '100kb' }));
   const requireAdmin = createRequireAdmin(adminAuth);
 
   app.get('/api/health', (_request, response) => {
+    response.set('Cache-Control', 'no-store');
     response.json({ status: 'ok' });
   });
 
   app.get('/api/cars', async (_request, response, next) => {
     try {
       const cars = await carsRepository.getAll();
+      response.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
       response.json(cars);
     } catch (error) {
       error.publicMessage = 'Could not load cars.';
@@ -58,9 +68,11 @@ function createApp({
       const car = await carsRepository.getById(request.params.id);
 
       if (!car) {
+        response.set('Cache-Control', 'no-store');
         return response.status(404).json({ message: 'Car not found.' });
       }
 
+      response.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
       return response.json(car);
     } catch (error) {
       error.publicMessage = 'Could not load car.';
@@ -115,10 +127,12 @@ function createApp({
   });
 
   app.use('/api', (_request, response) => {
+    response.set('Cache-Control', 'no-store');
     response.status(404).json({ message: 'API route not found.' });
   });
 
   app.use((error, request, response, _next) => {
+    response.set('Cache-Control', 'no-store');
     if (error.type === 'entity.too.large') {
       return response.status(413).json({ message: 'Request body is too large.' });
     }
