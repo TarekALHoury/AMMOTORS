@@ -1,9 +1,11 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, ArrowUpDown, BadgeCheck, CalendarDays, CarFront, Check, ChevronDown, ChevronRight, CircleDollarSign, Eye, Fuel, Gauge, ImageUp, LayoutDashboard, LoaderCircle, LogOut, Menu, Milestone, Palette, Plus, Search, Settings2, SlidersHorizontal, SquarePen, Trash2, Waypoints, X } from 'lucide-react';
+import { ArrowLeft, ArrowUpDown, BadgeCheck, CalendarDays, CarFront, Check, ChevronDown, ChevronRight, CircleDollarSign, Eye, Fuel, Gauge, ImageUp, LayoutDashboard, LoaderCircle, LogOut, Menu, Milestone, Palette, Plus, Search, SlidersHorizontal, SquarePen, Trash2, X } from 'lucide-react';
 import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 import VehicleImage from '../components/VehicleImage.jsx';
 import logo from '../assets/am-motors-logo.png';
+import drivetrainIcon from '../assets/icons/drivetrain.png';
+import transmissionIcon from '../assets/icons/gearshifter.png';
 import { drivetrainOptions, fuelOptions, getEngineOptions, transmissionOptions, vehicleMakes, vehicleModels, vehicleOptionLabels, yearOptions } from './vehicleCatalog.js';
 import './admin.css';
 
@@ -225,8 +227,8 @@ function Inventory({ cars, onNavigate, onDelete }) {
           <SelectField label="Make" ariaLabel="Filter by make" name="makeFilter" value={filters.make} onChange={(event) => updateFilter('make', event.target.value)} options={['all', ...options.makes]} optionLabels={{ all: 'All makes' }} leadingIcon={CarFront} searchable />
           <SelectField label="Model" ariaLabel="Filter by model" name="modelFilter" value={filters.model} onChange={(event) => updateFilter('model', event.target.value)} options={['all', ...options.models]} optionLabels={{ all: 'All models' }} leadingIcon={Search} searchable />
           <SelectField label="Year" ariaLabel="Filter by year" name="yearFilter" value={filters.year} onChange={(event) => updateFilter('year', event.target.value)} options={['all', ...options.years.map(String)]} optionLabels={{ all: 'All years' }} leadingIcon={CalendarDays} searchable={false} />
-          <SelectField label="Drivetrain" ariaLabel="Filter by drivetrain" name="drivetrainFilter" value={filters.drivetrain} onChange={(event) => updateFilter('drivetrain', event.target.value)} options={['all', ...options.drivetrains]} optionLabels={{ all: 'All drivetrains' }} leadingIcon={Waypoints} searchable={false} />
-          <SelectField label="Transmission" ariaLabel="Filter by transmission" name="transmissionFilter" value={filters.transmission} onChange={(event) => updateFilter('transmission', event.target.value)} options={['all', ...options.transmissions]} optionLabels={{ all: 'All transmissions' }} leadingIcon={Settings2} searchable={false} />
+          <SelectField label="Drivetrain" ariaLabel="Filter by drivetrain" name="drivetrainFilter" value={filters.drivetrain} onChange={(event) => updateFilter('drivetrain', event.target.value)} options={['all', ...options.drivetrains]} optionLabels={{ all: 'All drivetrains' }} leadingIconSrc={drivetrainIcon} searchable={false} />
+          <SelectField label="Transmission" ariaLabel="Filter by transmission" name="transmissionFilter" value={filters.transmission} onChange={(event) => updateFilter('transmission', event.target.value)} options={['all', ...options.transmissions]} optionLabels={{ all: 'All transmissions' }} leadingIconSrc={transmissionIcon} searchable={false} />
           <SelectField label="Fuel type" ariaLabel="Filter by fuel type" name="fuelFilter" value={filters.fuel} onChange={(event) => updateFilter('fuel', event.target.value)} options={['all', ...options.fuels]} optionLabels={{ all: 'All fuel types' }} leadingIcon={Fuel} searchable={false} />
           <SelectField label="Engine" ariaLabel="Filter by engine" name="engineFilter" value={filters.engine} onChange={(event) => updateFilter('engine', event.target.value)} options={['all', ...options.engines]} optionLabels={{ all: 'All engines' }} leadingIcon={Gauge} searchable={false} />
           <SelectField label="Exterior color" ariaLabel="Filter by exterior color" name="exteriorColorFilter" value={filters.exteriorColor} onChange={(event) => updateFilter('exteriorColor', event.target.value)} options={['all', ...options.exteriorColors]} optionLabels={{ all: 'All exterior colors' }} leadingIcon={Palette} searchable={false} />
@@ -262,7 +264,7 @@ function Field({ label, name, value, error, onChange, type = 'text', ...props })
   return <label className={`admin-field ${error ? 'has-error' : ''}`}><span>{label}</span><input name={name} type={type} value={value} onChange={onChange} aria-label={label} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} {...props} />{error && <small id={errorId} className="admin-field-error">{error}</small>}</label>;
 }
 
-function SelectField({ label, ariaLabel = label, name, value, error, onChange, options, optionLabels = {}, placeholder = 'Select an option', disabled = false, searchable = name === 'make', hideLabel = false, leadingIcon: LeadingIcon }) {
+function SelectField({ label, ariaLabel = label, name, value, error, onChange, options, optionLabels = {}, placeholder = 'Select an option', disabled = false, searchable = name === 'make', hideLabel = false, leadingIcon: LeadingIcon, leadingIconSrc }) {
   const id = useId().replace(/:/g, '');
   const errorId = `${name}-error`;
   const hasUnsupportedValue = Boolean(value) && !options.includes(value);
@@ -331,7 +333,7 @@ function SelectField({ label, ariaLabel = label, name, value, error, onChange, o
   return <div className={`admin-field admin-select-field ${open ? 'is-open' : ''} ${error ? 'has-error' : ''}`} ref={rootRef}>
     <span id={`${id}-label`} className={hideLabel ? 'sr-only' : undefined}>{label}</span>
     <button ref={triggerRef} id={`${id}-trigger`} className="admin-select-trigger" type="button" role="combobox" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-listbox`} aria-activedescendant={open && visibleOptions[activeIndex] ? `${id}-option-${activeIndex}` : undefined} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} disabled={disabled} onClick={() => { setQuery(''); setOpen((current) => !current); }} onKeyDown={handleKeyDown}>
-      {LeadingIcon && <LeadingIcon className="admin-select-leading-icon" size={18} aria-hidden="true" />}<span className={`admin-select-value ${value ? '' : 'placeholder'}`}>{value ? optionLabels[value] || value : placeholder}</span><span className="admin-select-chevron" aria-hidden="true" />
+      {LeadingIcon && <LeadingIcon className="admin-select-leading-icon" size={18} aria-hidden="true" />}{leadingIconSrc && <img className="admin-select-leading-image" src={leadingIconSrc} alt="" aria-hidden="true" />}<span className={`admin-select-value ${value ? '' : 'placeholder'}`}>{value ? optionLabels[value] || value : placeholder}</span><span className="admin-select-chevron" aria-hidden="true" />
     </button>
     {open && <div className="admin-select-menu">{searchable && <label className="admin-select-search"><span className="sr-only">Search {label.replace(' *', '')}</span><AdminIcon name="search" /><input ref={searchRef} type="search" aria-label={`Search ${label.replace(' *', '')}`} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleSearchKeyDown} placeholder={`Search ${label.replace(' *', '').toLowerCase()}s`} /></label>}<div className="admin-select-options" id={`${id}-listbox`} role="listbox" aria-label={`${label} options`}>{visibleOptions.map((option, index) => <button id={`${id}-option-${index}`} type="button" role="option" aria-selected={option === value} className={index === activeIndex ? 'is-active' : ''} key={option} onPointerMove={() => setActiveIndex(index)} onClick={() => choose(option)}>{optionLabels[option] || option}{hasUnsupportedValue && option === value ? ' (Other)' : ''}{option === value && <Check size={16} aria-hidden="true" />}</button>)}{!visibleOptions.length && <p className="admin-select-empty">No matching makes found.</p>}</div></div>}
     {error && <small id={errorId} className="admin-field-error">{error}</small>}

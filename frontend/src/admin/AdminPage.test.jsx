@@ -79,6 +79,10 @@ describe('admin dashboard UI', () => {
     expect(document.querySelector('.admin-filter-grid .lucide-car-front')).toBeInTheDocument();
     expect(document.querySelector('.admin-filter-grid .lucide-circle-dollar-sign')).toBeInTheDocument();
     expect(document.querySelector('.admin-filter-grid .lucide-milestone')).toBeInTheDocument();
+    const specializedIcons = [...document.querySelectorAll('.admin-filter-grid .admin-select-leading-image')];
+    expect(specializedIcons).toHaveLength(2);
+    expect(specializedIcons.some((icon) => icon.src.includes('drivetrain.png'))).toBe(true);
+    expect(specializedIcons.some((icon) => icon.src.includes('gearshifter.png'))).toBe(true);
     await chooseFormOption(user, 'Filter by make', 'BMW');
     expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
     expect(screen.queryByText('Audi Q5 Premium Plus')).not.toBeInTheDocument();

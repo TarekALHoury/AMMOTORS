@@ -33,6 +33,7 @@
 .admin-select-trigger:disabled { cursor: not-allowed; border-color: #252b2f; background: #0a0e10; color: #646d72; opacity: .72; }
 .admin-select-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-select-leading-icon { flex: 0 0 auto; color: #8f999f; }
+.admin-select-leading-image { width: 18px; height: 18px; flex: 0 0 auto; object-fit: contain; filter: invert(68%) sepia(8%) saturate(304%) hue-rotate(155deg) brightness(89%); }
 .admin-select-trigger .placeholder { color: #6f777c; font-weight: 500; }
 .admin-select-chevron { width: 8px; height: 8px; flex: 0 0 auto; border-right: 1.5px solid #aeb5b9; border-bottom: 1.5px solid #aeb5b9; transform: translateY(-2px) rotate(45deg); transition: transform 160ms; }
 .admin-select-field.is-open .admin-select-chevron { transform: translateY(2px) rotate(225deg); }
