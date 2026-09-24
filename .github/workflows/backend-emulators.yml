@@ -1,0 +1,33 @@
+name: Backend and Firebase emulator checks
+
+on:
+  pull_request:
+    paths: ['backend/**', '.github/workflows/backend-emulators.yml']
+  push:
+    branches: [main]
+    paths: ['backend/**', '.github/workflows/backend-emulators.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:rules
+      - run: npm audit --omit=dev

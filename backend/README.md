@@ -31,6 +31,17 @@ configuration, but still belongs in the frontend developer's environment configu
 Returns the existing JSON array of public cars. `GET /api/cars/:id` returns one object or
 `404 { "message": "Car not found." }`.
 
+### `GET /api/v1/cars`
+
+Returns `{ "items": [...], "page": { "limit": 24, "hasMore": false, "nextCursor": null } }`.
+Supported query parameters are `search`, `status`, `make`, `model`, `year`, `minPrice`,
+`maxPrice`, `minMileage`, `maxMileage`, `limit`, `cursor`, and `sort`. Sort values are
+`newest`, `oldest`, `price-high`, `price-low`, `mileage-high`, `mileage-low`, and `make`.
+Unknown parameters, invalid ranges, unsupported sorting, and malformed cursors return `400`.
+The cursor is opaque and must be returned unchanged by clients.
+
+The complete machine-readable contract is in [`openapi.yaml`](openapi.yaml).
+
 ```json
 {
   "id": "Firestore-document-id",
@@ -118,6 +129,20 @@ npm.cmd run test:rules
 `npm run test:rules` starts isolated Firestore and Storage emulators and executes the rules
 suite. Firebase CLI 15 requires JDK 21 or newer for the emulators. No live Firebase data or
 credentials are used.
+
+GitHub Actions runs unit/API tests, Firestore and Storage emulator rules tests, and the
+production-dependency audit for backend changes. The workflow does not require Firebase secrets.
+
+## Operations and abuse controls
+
+- `GET /api/health` is a liveness check and does not contact Firebase.
+- `GET /api/ready` checks Firestore when Firebase mode is enabled and returns only `ready` or
+  `not_ready`, never credential or connection details.
+- Public inventory requests are limited to 120 per client per minute; admin routes are limited
+  to 60 per client per minute. A rejected request returns `429` with `RateLimit-*` and
+  `Retry-After` headers.
+- Unexpected errors are logged as structured objects containing the request ID, method, path,
+  and error class without returning internal error details to the client.
 
 ## Operational scripts
 
