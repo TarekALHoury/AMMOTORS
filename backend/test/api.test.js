@@ -24,6 +24,19 @@ test('GET /api/health reports that the API is available', async () => {
   assert.deepEqual(await response.json(), { status: 'ok' });
 });
 
+test('GET /api/ready reports dependency readiness without exposing errors', async (context) => {
+  const ready = await fetch(`${baseUrl}/api/ready`);
+  assert.equal(ready.status, 200);
+  assert.deepEqual(await ready.json(), { status: 'ready' });
+
+  const unavailableServer = createApp({ readinessCheck: async () => { throw new Error('credentials'); } }).listen(0);
+  await new Promise((resolve) => unavailableServer.once('listening', resolve));
+  context.after(() => new Promise((resolve) => unavailableServer.close(resolve)));
+  const unavailable = await fetch(`http://127.0.0.1:${unavailableServer.address().port}/api/ready`);
+  assert.equal(unavailable.status, 503);
+  assert.deepEqual(await unavailable.json(), { status: 'not_ready' });
+});
+
 test('API responses include defensive security headers', async () => {
   const response = await fetch(`${baseUrl}/api/health`);
 

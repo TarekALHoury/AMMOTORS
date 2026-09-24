@@ -15,6 +15,7 @@ function createFirebaseServices({ projectId, storageBucket }) {
   return {
     adminAuth: getAuth(firebaseApp),
     carsRepository: createFirestoreCarsRepository({ firestore, FieldValue }),
+    readinessCheck: async () => firestore.collection('cars').limit(1).get(),
     ...(storageBucket && {
       imageStorage: {
         async deleteCarImages(carId) {

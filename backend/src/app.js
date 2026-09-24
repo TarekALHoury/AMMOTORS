@@ -7,6 +7,7 @@ const { createRequireAdmin } = require('./adminAuth');
 const { CarValidationError, normalizeCarInput } = require('./carInput');
 const { CarNotFoundError } = require('./firestoreCarsRepository');
 const { InventoryQueryError, parseInventoryQuery, queryInventory } = require('./inventoryQuery');
+const { createRateLimiter } = require('./rateLimit');
 
 const defaultCarsFile = path.join(__dirname, '..', 'data', 'cars.json');
 
@@ -23,6 +24,8 @@ function createApp({
   carsRepository = createCarsRepository({ carsFile }),
   adminAuth = null,
   imageStorage = null,
+  readinessCheck = null,
+  rateLimits = {},
   allowedOrigins = '*',
   logger = console,
 } = {}) {
@@ -55,11 +58,27 @@ function createApp({
   });
   app.use(express.json({ limit: '100kb' }));
   const requireAdmin = createRequireAdmin(adminAuth);
+  const publicLimiter = createRateLimiter({ limit: rateLimits.public || 120, keyPrefix: 'public' });
+  const adminLimiter = createRateLimiter({ limit: rateLimits.admin || 60, keyPrefix: 'admin' });
 
   app.get('/api/health', (_request, response) => {
     response.set('Cache-Control', 'no-store');
     response.json({ status: 'ok' });
   });
+
+  app.get('/api/ready', async (_request, response) => {
+    response.set('Cache-Control', 'no-store');
+    try {
+      if (readinessCheck) await readinessCheck();
+      return response.json({ status: 'ready' });
+    } catch {
+      return response.status(503).json({ status: 'not_ready' });
+    }
+  });
+
+  app.use('/api/admin', adminLimiter);
+  app.use('/api/cars', publicLimiter);
+  app.use('/api/v1/cars', publicLimiter);
 
   app.get('/api/cars', async (_request, response, next) => {
     try {
@@ -169,7 +188,10 @@ function createApp({
     if (error instanceof CarNotFoundError) {
       return response.status(404).json({ message: 'Car not found.' });
     }
-    logger.error(`Request failed: ${request.method} ${request.originalUrl}`, error);
+    logger.error({
+      event: 'request_failed', requestId: request.requestId, method: request.method,
+      path: request.originalUrl, errorName: error.name,
+    });
     return response.status(500).json({
       message: error.publicMessage || 'Internal server error.',
     });
