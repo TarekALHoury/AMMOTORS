@@ -6,6 +6,7 @@ const { createCarsRepository } = require('./carsRepository');
 const { createRequireAdmin } = require('./adminAuth');
 const { CarValidationError, normalizeCarInput } = require('./carInput');
 const { CarNotFoundError } = require('./firestoreCarsRepository');
+const { InventoryQueryError, parseInventoryQuery, queryInventory } = require('./inventoryQuery');
 
 const defaultCarsFile = path.join(__dirname, '..', 'data', 'cars.json');
 
@@ -68,6 +69,18 @@ function createApp({
     } catch (error) {
       error.publicMessage = 'Could not load cars.';
       next(error);
+    }
+  });
+
+  app.get('/api/v1/cars', async (request, response, next) => {
+    try {
+      const query = parseInventoryQuery(request.query);
+      const cars = await carsRepository.getAll();
+      response.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
+      return response.json(queryInventory(cars, query));
+    } catch (error) {
+      error.publicMessage = 'Could not load cars.';
+      return next(error);
     }
   });
 
@@ -148,6 +161,9 @@ function createApp({
       return response.status(400).json({ message: 'Invalid JSON body.' });
     }
     if (error instanceof CarValidationError) {
+      return response.status(400).json({ message: error.message, errors: error.errors });
+    }
+    if (error instanceof InventoryQueryError) {
       return response.status(400).json({ message: error.message, errors: error.errors });
     }
     if (error instanceof CarNotFoundError) {

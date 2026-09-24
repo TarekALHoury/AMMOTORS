@@ -67,6 +67,20 @@ test('GET /api/cars preserves the frontend array contract', async () => {
   assert.equal(typeof cars[0].images, 'object');
 });
 
+test('GET /api/v1/cars adds filtered cursor pagination without changing the legacy contract', async () => {
+  const response = await fetch(`${baseUrl}/api/v1/cars?make=BMW&status=available&limit=1&sort=price-high`);
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.ok(Array.isArray(body.items));
+  assert.equal(body.items.length, 1);
+  assert.equal(body.items[0].make, 'BMW');
+  assert.deepEqual(Object.keys(body.page), ['limit', 'hasMore', 'nextCursor']);
+
+  const invalid = await fetch(`${baseUrl}/api/v1/cars?sort=unsafe`);
+  assert.equal(invalid.status, 400);
+  assert.equal((await invalid.json()).message, 'Invalid inventory query.');
+});
+
 test('GET /api/cars/:id returns a matching car', async () => {
   const response = await fetch(`${baseUrl}/api/cars/car-001`);
   const car = await response.json();
