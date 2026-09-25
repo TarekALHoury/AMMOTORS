@@ -1,5 +1,5 @@
 import { collection, doc, getDoc, getDocs } from '@firebase/firestore';
-import { firestore } from './firebase.js';
+import { firestore } from './firestore.js';
 
 const CARS_CACHE_KEY = 'ammotors.public-cars.v1';
 

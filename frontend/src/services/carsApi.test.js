@@ -8,7 +8,7 @@ vi.mock('@firebase/firestore', () => ({
   getDoc: firestoreMocks.getDoc,
   getDocs: firestoreMocks.getDocs,
 }));
-vi.mock('./firebase.js', () => ({ firestore: {} }));
+vi.mock('./firestore.js', () => ({ firestore: {} }));
 
 import { getCarById, getCars } from './carsApi.js';
 

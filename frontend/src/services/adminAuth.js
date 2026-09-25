@@ -4,7 +4,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from '@firebase/auth';
-import { firebaseAuth } from './firebase.js';
+import { firebaseAuth } from './firebaseAuth.js';
 
 async function requireAdmin(user) {
   const token = await getIdTokenResult(user, true);
