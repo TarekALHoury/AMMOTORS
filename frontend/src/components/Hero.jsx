@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import heroImage from '../assets/gmc-hero-final.png';
+import heroImage from '../assets/gmc-hero-final.jpg';
 import { dealership } from '../config/dealership.js';
 import Benefits from './Benefits.jsx';
 import Icon from './Icon.jsx';

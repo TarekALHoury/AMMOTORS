@@ -4,7 +4,7 @@
 .admin-app button, .admin-app input, .admin-app select, .admin-app textarea { max-width: 100%; }
 .admin-app h1, .admin-app h2, .admin-app h3, .admin-app p, .admin-app strong, .admin-app small { overflow-wrap: anywhere; }
 .admin-kicker { margin: 0 0 8px; color: #d4dade; font-size: .7rem; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
-.admin-signin-shell { display: grid; place-items: center; min-height: 100dvh; padding: 32px 20px; background: radial-gradient(circle at 50% 0%, rgba(214,69,61,.13), transparent 34%), linear-gradient(rgba(8,11,13,.93), rgba(8,11,13,.98)), url('../assets/gmc-hero-final.png') center/cover; }
+.admin-signin-shell { display: grid; place-items: center; min-height: 100dvh; padding: 32px 20px; background: radial-gradient(circle at 50% 0%, rgba(214,69,61,.13), transparent 34%), linear-gradient(rgba(8,11,13,.93), rgba(8,11,13,.98)), url('../assets/gmc-hero-final.jpg') center/cover; }
 .admin-signin-card { width: min(100%, 480px); padding: 44px; border: 1px solid var(--line); border-radius: 12px; background: rgba(16,21,25,.96); box-shadow: 0 32px 80px rgba(0,0,0,.42); }
 .admin-signin-logo { width: 184px; height: 78px; margin: -18px auto 16px; object-fit: contain; }
 .admin-signin-card h1 { margin-bottom: 10px; font-size: clamp(2rem, 6vw, 2.8rem); text-align: center; }
