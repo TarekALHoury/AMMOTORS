@@ -97,6 +97,11 @@ p {
   min-height: 100vh;
 }
 
+.route-loading { display: flex; min-height: 55vh; align-items: center; justify-content: center; gap: 12px; padding: 48px 20px; color: var(--muted); font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.route-loading-admin { min-height: 100vh; min-height: 100dvh; background: #090c0e; color: #a9b0b4; }
+.route-loading-spinner { width: 22px; height: 22px; border: 2px solid rgba(255,255,255,.13); border-top-color: var(--accent); border-radius: 50%; animation: route-loading-spin .75s linear infinite; }
+@keyframes route-loading-spin { to { transform: rotate(360deg); } }
+
 .page-width {
   width: min(1240px, calc(100% - 48px));
   margin-inline: auto;

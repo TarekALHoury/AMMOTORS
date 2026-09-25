@@ -1,13 +1,18 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
-import HomePage from './pages/HomePage.jsx';
-import CarsPage from './pages/CarsPage.jsx';
-import CarDetailsPage from './pages/CarDetailsPage.jsx';
-import NotFoundPage from './pages/NotFoundPage.jsx';
-import AdminPage from './admin/AdminPage.jsx';
 import { useInteractiveDepth } from './utils/useInteractiveDepth.js';
+
+const HomePage = lazy(() => import('./pages/HomePage.jsx'));
+const CarsPage = lazy(() => import('./pages/CarsPage.jsx'));
+const CarDetailsPage = lazy(() => import('./pages/CarDetailsPage.jsx'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage.jsx'));
+const AdminPage = lazy(() => import('./admin/AdminPage.jsx'));
+
+function RouteLoading({ admin = false }) {
+  return <main className={`route-loading ${admin ? 'route-loading-admin' : ''}`} aria-live="polite" aria-busy="true"><span className="route-loading-spinner" /><span>Loading page…</span></main>;
+}
 
 function ScrollManager() {
   const location = useLocation();
@@ -31,19 +36,21 @@ function App() {
   useInteractiveDepth();
 
   if (location.pathname.startsWith('/admin')) {
-    return <><ScrollManager /><Routes><Route path="/admin/*" element={<AdminPage />} /></Routes></>;
+    return <><ScrollManager /><Suspense fallback={<RouteLoading admin />}><Routes><Route path="/admin/*" element={<AdminPage />} /></Routes></Suspense></>;
   }
 
   return (
     <div className="site-shell">
       <ScrollManager />
       <Navbar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/cars" element={<CarsPage />} />
-        <Route path="/cars/:id" element={<CarDetailsPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+      <Suspense fallback={<RouteLoading />}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/cars" element={<CarsPage />} />
+          <Route path="/cars/:id" element={<CarDetailsPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
       <Footer />
     </div>
   );
