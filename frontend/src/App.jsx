@@ -45,10 +45,10 @@ function App() {
   }
 
   const isHome = location.pathname === '/';
-  const visibleTheme = isHome ? 'dark' : theme;
+  const visibleTheme = theme;
 
   return (
-    <div className={`site-shell theme-${visibleTheme} ${isHome ? 'home-route' : ''}`}>
+    <div className={`site-shell theme-${visibleTheme} ${isHome && theme === 'dark' ? 'home-route' : ''}`}>
       <ScrollManager />
       <Navbar theme={theme} onToggleTheme={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')} />
       <Suspense fallback={<RouteLoading />}>

@@ -43,9 +43,9 @@ test('toggles the selected color mode', () => {
   expect(onToggleTheme).toHaveBeenCalledOnce();
 });
 
-test('keeps the white logo on the homepage and reserves the light-page logo variant', () => {
+test('uses the selected logo variant on every public route', () => {
   const { unmount } = render(<MemoryRouter initialEntries={['/']}><Navbar theme="light" /></MemoryRouter>);
-  expect(screen.getByAltText('AM MOTORS')).toHaveClass('brand-logo-dark');
+  expect(screen.getByAltText('AM MOTORS')).toHaveClass('brand-logo-light');
 
   unmount();
   render(<MemoryRouter initialEntries={['/cars']}><Navbar theme="light" /></MemoryRouter>);
