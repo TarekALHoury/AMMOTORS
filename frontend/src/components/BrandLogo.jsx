@@ -1,9 +1,9 @@
 import whiteLogo from '../assets/am-motors-logo.png';
+import blackLogo from '../assets/am-motors-logo-black.png';
 
-// Replace the light entry with the supplied black-logo asset when it is available.
 const logoVariants = {
   dark: whiteLogo,
-  light: whiteLogo,
+  light: blackLogo,
 };
 
 function BrandLogo({ theme = 'dark' }) {

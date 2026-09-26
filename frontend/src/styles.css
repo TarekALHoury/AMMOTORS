@@ -321,7 +321,6 @@ p {
 }
 
 .brand-logo { transition: filter 180ms ease; }
-.brand-logo-light { filter: brightness(0); }
 
 .hero {
   position: relative;
