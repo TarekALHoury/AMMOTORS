@@ -1795,7 +1795,9 @@ p {
   background: #f5f6f6;
 }
 
-.site-shell.theme-light:not(.home-route) .eyebrow,
+.site-shell.theme-light:not(.home-route) .page-content .eyebrow,
+.site-shell.theme-light:not(.home-route) .about-section .eyebrow,
+.site-shell.theme-light:not(.home-route) .contact-section .eyebrow,
 .site-shell.theme-light:not(.home-route) .latest-page-count,
 .site-shell.theme-light:not(.home-route) .inventory-pagination,
 .site-shell.theme-light:not(.home-route) .text-link {
@@ -1883,13 +1885,13 @@ p {
   background: var(--accent);
 }
 
-.site-shell.theme-light:not(.home-route) .button-outline {
+.site-shell.theme-light:not(.home-route) .page-content .button-outline {
   border-color: var(--line-strong);
   color: #0b0f12;
   background: rgba(255, 255, 255, 0.78);
 }
 
-.site-shell.theme-light:not(.home-route) .button-outline:hover {
+.site-shell.theme-light:not(.home-route) .page-content .button-outline:hover {
   border-color: rgba(0, 0, 0, 0.38);
   background: #fff;
 }
@@ -1941,23 +1943,8 @@ p {
   color: #fff;
 }
 
-.site-shell.theme-light:not(.home-route) .hero .eyebrow {
-  color: #d7dcdf;
-}
-
 .site-shell.theme-light:not(.home-route) .hero .icon-image {
   filter: brightness(0) invert(1);
-}
-
-.site-shell.theme-light:not(.home-route) .hero .button-outline {
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #fff;
-  background: rgba(8, 11, 13, 0.5);
-}
-
-.site-shell.theme-light:not(.home-route) .hero .button-outline:hover {
-  border-color: rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.08);
 }
 
 .site-shell.theme-light:not(.home-route) .latest-section,
