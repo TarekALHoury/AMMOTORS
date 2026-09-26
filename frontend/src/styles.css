@@ -321,6 +321,7 @@ p {
 }
 
 .brand-logo { transition: filter 180ms ease; }
+.brand-logo-picture { display: contents; }
 .theme-icon-image { display: block; object-fit: contain; }
 
 .hero {
@@ -1980,4 +1981,42 @@ p {
 @media (max-width: 850px) {
   .nav-container { gap: 12px; }
   .nav-right { gap: 0; }
+}
+
+@media (min-width: 851px) {
+  .site-shell.theme-light:not(.home-route) .navbar {
+    background: rgba(8, 11, 13, 0.91);
+  }
+
+  .site-shell.theme-light:not(.home-route) .nav-link {
+    color: #b8bec2;
+  }
+
+  .site-shell.theme-light:not(.home-route) .nav-link:hover,
+  .site-shell.theme-light:not(.home-route) .nav-link.active,
+  .site-shell.theme-light:not(.home-route) .icon-button:hover,
+  .site-shell.theme-light:not(.home-route) .button-small:hover {
+    color: #fff;
+  }
+
+  .site-shell.theme-light:not(.home-route) .icon-button,
+  .site-shell.theme-light:not(.home-route) .button-small {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #dce0e2;
+  }
+
+  .site-shell.theme-light:not(.home-route) .theme-toggle {
+    border-color: rgba(255, 255, 255, 0.11);
+    color: #f5f7f8;
+  }
+
+  .site-shell.theme-light:not(.home-route) .theme-toggle:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  .site-shell.theme-light:not(.home-route) .navbar .theme-icon-image,
+  .site-shell.theme-light:not(.home-route) .navbar .icon-image {
+    filter: brightness(0) invert(1);
+  }
 }

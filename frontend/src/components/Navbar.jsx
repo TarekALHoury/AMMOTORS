@@ -71,7 +71,7 @@ function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
     <header className="navbar">
       <div className="nav-container">
         <Link className="brand" to="/" aria-label="AM MOTORS home">
-          <BrandLogo theme={theme} />
+          <BrandLogo theme={theme} responsiveNavigation />
         </Link>
 
         <div className="nav-right">

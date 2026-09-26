@@ -43,11 +43,10 @@ test('toggles the selected color mode', () => {
   expect(onToggleTheme).toHaveBeenCalledOnce();
 });
 
-test('uses the selected logo variant on every public route', () => {
-  const { unmount } = render(<MemoryRouter initialEntries={['/']}><Navbar theme="light" /></MemoryRouter>);
-  expect(screen.getByAltText('AM MOTORS')).toHaveClass('brand-logo-light');
-
-  unmount();
+test('provides a black mobile logo while preserving the white desktop navbar logo', () => {
   render(<MemoryRouter initialEntries={['/cars']}><Navbar theme="light" /></MemoryRouter>);
-  expect(screen.getByAltText('AM MOTORS')).toHaveClass('brand-logo-light');
+
+  expect(screen.getByAltText('AM MOTORS')).toHaveClass('brand-logo-dark');
+  expect(document.querySelector('.brand-logo-picture source')).toHaveAttribute('media', '(max-width: 850px)');
+  expect(document.querySelector('.brand-logo-picture source')).toHaveAttribute('srcset', expect.stringContaining('am-motors-logo-black'));
 });
