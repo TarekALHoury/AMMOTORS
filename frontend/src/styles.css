@@ -1988,6 +1988,10 @@ p {
     background: rgba(8, 11, 13, 0.91);
   }
 
+  .site-shell.theme-light:not(.home-route) .nav-menu {
+    background: transparent;
+  }
+
   .site-shell.theme-light:not(.home-route) .nav-link {
     color: #b8bec2;
   }
