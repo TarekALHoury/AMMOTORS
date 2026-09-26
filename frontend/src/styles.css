@@ -210,7 +210,18 @@ p {
 }
 
 .nav-menu {
+  position: relative;
   gap: 34px;
+}
+
+.nav-active-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  pointer-events: none;
+  transition: transform 280ms ease, width 280ms ease;
 }
 
 .nav-actions {
@@ -248,6 +259,10 @@ p {
 .nav-link.active::after {
   opacity: 1;
   transform: scaleX(1);
+}
+
+@media (min-width: 851px) {
+  .nav-link::after { display: none; }
 }
 
 .icon-button {
@@ -551,6 +566,45 @@ p {
 .about-copy > p:last-of-type {
   margin-bottom: 0;
 }
+
+.latest-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.latest-page-count {
+  color: #dce0e2;
+  font-size: 0.84rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.inventory-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 36px;
+  color: #dce0e2;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.pagination-arrow {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  color: #fff;
+  background: transparent;
+}
+
+.pagination-arrow:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); }
+.pagination-arrow:disabled { cursor: default; opacity: 0.35; }
+.pagination-previous svg { transform: rotate(180deg); }
 
 .text-link {
   display: inline-flex;
@@ -999,8 +1053,17 @@ p {
 .site-select-empty { margin: 0; padding: 24px 12px; color: var(--muted); font-size: .76rem; text-align: center; }
 
 .result-count {
-  margin-bottom: 20px;
+  margin-bottom: 0;
   font-size: 0.76rem;
+}
+
+.inventory-results-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  scroll-margin-top: calc(var(--nav-height) + 18px);
 }
 
 .empty-state,
@@ -1302,7 +1365,8 @@ p {
   }
   .nav-menu.open { display: flex; }
   .nav-link { padding: 15px 4px; border-bottom: 1px solid var(--line); }
-  .nav-link::after { display: none; }
+  .nav-link::after { right: 4px; bottom: -1px; left: 4px; }
+  .nav-active-indicator { display: none; }
   .nav-actions { margin: 16px 0 0; }
   .nav-actions .button { flex: 1; }
   .hero { height: clamp(600px, calc(100svh - var(--nav-height)), 680px); }
@@ -1352,6 +1416,7 @@ p {
   .benefit:last-child { border-bottom: 0; }
   .latest-section { padding-top: 68px; }
   .section-heading-row { align-items: start; flex-direction: column; }
+  .latest-heading-actions { width: 100%; justify-content: space-between; }
   .car-grid { grid-template-columns: 1fr; }
   .about-layout { gap: 40px; }
   .about-visual { min-height: 240px; padding: 24px; }
@@ -1388,36 +1453,239 @@ p {
   .hero-benefits .benefit { border: 0; }
 }
 
+.mobile-cinematic-hero { display: none; }
+.mobile-tree-filter { position: absolute; width: 0; height: 0; overflow: hidden; }
+
 @media (max-width: 767px) {
   .hero {
-    height: clamp(620px, calc(100svh - var(--nav-height) - 100px), 660px);
-    background-position: 72% 56%;
+    display: block;
+    height: 300svh;
+    min-height: 1680px;
+    overflow: clip;
+    background: #080b0d;
   }
-  .hero-shade {
-    background: linear-gradient(90deg, rgba(3, 5, 6, 0.84) 0%, rgba(3, 5, 6, 0.58) 45%, rgba(3, 5, 6, 0.12) 100%),
-      linear-gradient(0deg, rgba(3, 5, 6, 0.7), transparent 30%);
-  }
-  .hero-content {
-    width: calc(100% - 24px);
+  .hero > .hero-shade,
+  .hero > .hero-content { display: none; }
+  .mobile-cinematic-hero {
+    display: block;
     height: 100%;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 1fr auto;
-    gap: 24px;
-    padding: 30px 0 28px;
   }
-  .hero-copy-block { width: 100%; min-width: 0; align-self: center; }
-  .hero h1 { font-size: clamp(42px, 13vw, 56px); }
-  .hero-vehicle { display: none; }
-  .hero-benefits { width: 100%; }
-  .hero-benefits-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
-  .hero-benefits .benefit { flex-direction: row; align-items: center; gap: 8px; border: 0; }
-  .hero-benefits .benefit-icon { width: 34px; height: 34px; }
+  .mobile-cinematic-frame {
+    position: sticky;
+    top: var(--nav-height);
+    height: calc(100svh - var(--nav-height));
+    min-height: 560px;
+    overflow: hidden;
+    isolation: isolate;
+    background: #101519;
+  }
+  .mobile-cinematic-photo,
+  .mobile-cinematic-tree {
+    position: absolute;
+    inset: 0;
+    background-image: var(--mobile-hero-image);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    transform: translate3d(0, var(--mobile-car-shift, 0px), 0) scale(var(--mobile-car-scale, 1));
+    transform-origin: 50% 63%;
+    will-change: transform;
+  }
+  .mobile-cinematic-photo { z-index: 1; }
+  .mobile-cinematic-tree {
+    z-index: 4;
+    background-position: center calc(50% + 40px);
+    clip-path: polygon(10% 18%, 21% 17%, 27% 19%, 24% 23%, 16% 24%, 11% 22%);
+    filter: url(#mobile-tree-key);
+    mask-image: radial-gradient(ellipse 31% 9% at 7% 22%, #000 40%, transparent 100%);
+    pointer-events: none;
+  }
+  .mobile-cinematic-shade {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(3, 5, 6, 0.62), transparent 34%);
+    pointer-events: none;
+  }
+  .mobile-cinematic-intro {
+    position: absolute;
+    z-index: 3;
+    top: clamp(54px, 9svh, 90px);
+    right: max(14px, env(safe-area-inset-right));
+    left: max(14px, env(safe-area-inset-left));
+    opacity: var(--mobile-intro, 1);
+    text-align: center;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
+    transform: translate3d(0, var(--mobile-intro-y, 0), 0);
+    will-change: opacity, transform;
+  }
+  .mobile-cinematic-intro .eyebrow {
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.94);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 0 12px rgba(0, 0, 0, 0.8);
+  }
+  .mobile-cinematic-intro .eyebrow::after {
+    display: block;
+    width: 32px;
+    height: 1px;
+    margin: 13px auto 0;
+    background: rgba(255, 255, 255, 0.68);
+    content: '';
+  }
+  .mobile-cinematic-intro h1 {
+    max-width: 100%;
+    margin-bottom: 21px;
+    font-size: clamp(50px, 16vw, 74px);
+    line-height: 0.9;
+    white-space: nowrap;
+  }
+  .mobile-cinematic-intro .hero-copy {
+    max-width: min(90vw, 350px);
+    margin: 0 auto;
+    color: rgba(245, 247, 248, 0.92);
+    font-size: clamp(0.82rem, 3.5vw, 0.96rem);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  }
+  .mobile-cinematic-details {
+    position: absolute;
+    z-index: 5;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    right: max(14px, env(safe-area-inset-right));
+    left: max(14px, env(safe-area-inset-left));
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(104px, 0.72fr);
+    align-items: end;
+    gap: clamp(12px, 4vw, 24px);
+    opacity: var(--mobile-details, 0);
+    pointer-events: none;
+    transform: translate3d(0, var(--mobile-details-y, 26px), 0);
+    visibility: hidden;
+    will-change: opacity, transform;
+  }
+  .hero[data-details-visible="true"] .mobile-cinematic-details {
+    pointer-events: auto;
+    visibility: visible;
+  }
+  .mobile-cinematic-actions {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 9px;
+    transform: translate3d(var(--mobile-actions-x, -28px), 0, 0);
+  }
+  .mobile-cinematic-actions .button {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    height: 42px;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 8px;
+    font-size: clamp(0.68rem, 2.8vw, 0.78rem);
+    white-space: nowrap;
+  }
+  .mobile-cinematic-actions .hero-contact {
+    border-color: rgba(255, 255, 255, 0.64);
+    background: rgba(5, 8, 10, 0.64);
+    backdrop-filter: blur(3px);
+  }
+  .mobile-cinematic-details .hero-vehicle {
+    display: block;
+    width: 100%;
+    animation: none;
+    opacity: 1;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.98), 0 0 16px rgba(0, 0, 0, 0.9);
+    transform: translate3d(var(--mobile-vehicle-x, 28px), 0, 0);
+  }
+  .mobile-cinematic-details .hero-vehicle p {
+    gap: 8px;
+    margin-bottom: 5px;
+    font-size: clamp(0.65rem, 2.8vw, 0.78rem);
+  }
+  .mobile-cinematic-details .hero-vehicle p::before { width: clamp(18px, 6vw, 27px); }
+  .mobile-cinematic-details .hero-vehicle h2 {
+    margin-bottom: 8px;
+    font-size: clamp(1.2rem, 5.6vw, 1.55rem);
+    line-height: 1;
+  }
+  .mobile-cinematic-details .hero-vehicle span {
+    font-size: clamp(0.55rem, 2.3vw, 0.66rem);
+    line-height: 1.55;
+  }
+  .mobile-cinematic-benefits {
+    position: absolute;
+    z-index: 5;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: max(14px, env(safe-area-inset-left));
+    display: grid;
+    gap: 9px;
+    opacity: var(--mobile-features, 1);
+    pointer-events: none;
+    transform: translate3d(0, var(--mobile-features-y, 0px), 0);
+    will-change: opacity, transform;
+  }
+  .mobile-cinematic-benefits .hero-benefits { width: 100%; animation: none; }
+  .mobile-cinematic-benefits .hero-benefits-grid {
+    width: 100%;
+    margin-inline: auto;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+  }
+  .mobile-cinematic-benefits .benefit {
+    min-width: 0;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    border: 0;
+    opacity: 1;
+    text-align: center;
+    transform: none;
+  }
+  .mobile-cinematic-benefits .benefit:not(:last-child)::after {
+    position: absolute;
+    top: 10px;
+    right: 0;
+    width: 1px;
+    height: 38px;
+    background: rgba(255, 255, 255, 0.28);
+    content: '';
+  }
+  .mobile-cinematic-benefits .hero-benefits .benefit-icon { width: 32px; height: 32px; }
+  .mobile-cinematic-benefits .hero-benefits .benefit-icon svg { width: 32px; height: 32px; }
+  .mobile-cinematic-benefits .hero-benefits .benefit strong { margin-bottom: 0; }
+  .mobile-cinematic-benefits .hero-benefits .benefit strong { font-size: clamp(0.56rem, 2.45vw, 0.68rem); }
+  .mobile-cinematic-benefits .hero-benefits .benefit small {
+    overflow-wrap: anywhere;
+    font-size: clamp(0.48rem, 1.9vw, 0.59rem);
+  }
+  .mobile-scroll-cue {
+    display: grid;
+    justify-items: center;
+    justify-self: center;
+    gap: 2px;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.85);
+  }
+  .mobile-scroll-cue img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+  }
+  .mobile-scroll-cue small {
+    font-size: 0.52rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
 }
 
-@media (min-width: 601px) and (max-width: 767px) {
-  .hero h1 { font-size: clamp(56px, 8vw, 62px); }
-  .hero-actions { flex-direction: row; }
-  .hero-actions .button { width: auto; }
+@media (max-width: 350px) {
+  .mobile-cinematic-intro .hero-copy { max-width: 88vw; }
 }
 
 .hero-copy-block { animation: public-rise-in 700ms cubic-bezier(.2,.75,.25,1) both; }
@@ -1446,6 +1714,25 @@ p {
 @keyframes public-card-in { from { opacity: 0; transform: translateY(28px) rotateX(-5deg); } to { opacity: 1; transform: translateY(0) rotateX(0); } }
 @keyframes hero-vehicle-in { from { opacity: 0; transform: translateX(calc(var(--hero-vehicle-offset) + 24px)) rotateY(-8deg); } to { opacity: 1; transform: translateX(var(--hero-vehicle-offset)) rotateY(0); } }
 @media (max-width: 720px) { .car-card:hover, .benefit:hover { transform: translateY(-3px); } .about-visual:hover { transform: none; } }
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .hero { height: max(900px, calc(100svh - var(--nav-height))); min-height: 0; }
+  .mobile-cinematic-frame { position: relative; top: 0; height: 100%; }
+  .mobile-cinematic-photo,
+  .mobile-cinematic-tree { transform: none; }
+  .mobile-cinematic-intro { opacity: 1; transform: none; }
+  .mobile-cinematic-details {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+    visibility: visible;
+  }
+  .mobile-cinematic-actions,
+  .mobile-cinematic-details .hero-vehicle,
+  .mobile-cinematic-benefits .benefit { opacity: 1; transform: none; }
+  .mobile-cinematic-details { bottom: 140px; }
+  .mobile-cinematic-benefits { opacity: 1; transform: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,
