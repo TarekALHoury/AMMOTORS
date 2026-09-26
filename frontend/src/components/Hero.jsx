@@ -13,6 +13,12 @@ function Hero() {
   useEffect(() => {
     const mobileHero = mobileHeroRef.current;
     if (!mobileHero) return undefined;
+    const frame = mobileHero.querySelector('.mobile-cinematic-frame');
+    const photo = mobileHero.querySelector('.mobile-cinematic-photo');
+    const introLayer = mobileHero.querySelector('.mobile-cinematic-intro');
+    const featuresLayer = mobileHero.querySelector('.mobile-cinematic-benefits');
+    const detailsLayer = mobileHero.querySelector('.mobile-cinematic-details');
+    const navHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-height')) || 76;
 
     const reducedMotion = window.matchMedia
       ? window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -25,33 +31,32 @@ function Hero() {
       const progress = Math.min(Math.max((value - start) / (end - start), 0), 1);
       return progress * progress * (3 - (2 * progress));
     };
+    const setVariable = (element, name, value) => {
+      if (element.style.getPropertyValue(name) !== value) element.style.setProperty(name, value);
+    };
 
     const update = () => {
       frameId = 0;
       if (window.innerWidth >= 768 || reducedMotion.matches) return;
 
       const bounds = mobileHero.getBoundingClientRect();
-      const scrollRange = Math.max(bounds.height - window.innerHeight, 1);
+      const viewportHeight = frame.offsetHeight + navHeight;
+      const scrollRange = Math.max(mobileHero.offsetHeight - viewportHeight, 1);
       const progress = Math.min(Math.max(-bounds.top / scrollRange, 0), 1);
-      if (Math.abs(progress - lastProgress) < 0.001 && lastViewportHeight === window.innerHeight) return;
+      if (Math.abs(progress - lastProgress) < 0.001 && lastViewportHeight === viewportHeight) return;
       lastProgress = progress;
-      lastViewportHeight = window.innerHeight;
+      lastViewportHeight = viewportHeight;
       const intro = 1 - smoothstep(0.17, 0.4, progress);
       const features = 1 - smoothstep(0.18, 0.4, progress);
       const details = smoothstep(0.43, 0.68, progress);
       const zoom = smoothstep(0.12, 0.92, progress);
 
-      mobileHero.style.setProperty('--mobile-intro', intro.toFixed(4));
-      mobileHero.style.setProperty('--mobile-intro-y', `${((1 - intro) * -22).toFixed(2)}px`);
-      mobileHero.style.setProperty('--mobile-car-scale', (1 + (zoom * 0.31)).toFixed(4));
-      mobileHero.style.setProperty('--mobile-car-shift', `${(-window.innerHeight * zoom * 0.025).toFixed(2)}px`);
-      mobileHero.style.setProperty('--mobile-features', features.toFixed(4));
-      mobileHero.style.setProperty('--mobile-features-y', `${((1 - features) * 18).toFixed(2)}px`);
-      mobileHero.style.setProperty('--mobile-details', details.toFixed(4));
-      mobileHero.style.setProperty('--mobile-details-y', `${((1 - details) * 26).toFixed(2)}px`);
-      mobileHero.style.setProperty('--mobile-actions-x', `${((1 - details) * -28).toFixed(2)}px`);
-      mobileHero.style.setProperty('--mobile-vehicle-x', `${((1 - details) * 28).toFixed(2)}px`);
-      mobileHero.dataset.detailsVisible = details > 0.08 ? 'true' : 'false';
+      setVariable(introLayer, '--mobile-intro', intro.toFixed(4));
+      setVariable(photo, '--mobile-car-scale', (1 + (zoom * 0.31)).toFixed(4));
+      setVariable(featuresLayer, '--mobile-features', features.toFixed(4));
+      setVariable(detailsLayer, '--mobile-details', details.toFixed(4));
+      const detailsVisible = details > 0.08 ? 'true' : 'false';
+      if (mobileHero.dataset.detailsVisible !== detailsVisible) mobileHero.dataset.detailsVisible = detailsVisible;
     };
 
     const requestUpdate = () => {
@@ -72,7 +77,7 @@ function Hero() {
   }, []);
 
   return (
-    <section className="hero" ref={mobileHeroRef} style={{ '--hero-image': `url(${heroImage})`, '--mobile-hero-image': `url(${mobileHeroImage})` }}>
+    <section className="hero" ref={mobileHeroRef} style={{ '--hero-image': `url(${heroImage})` }}>
       <div className="hero-shade" />
       <div className="page-width hero-content">
         <div className="hero-copy-block">
@@ -96,7 +101,7 @@ function Hero() {
 
       <div className="mobile-cinematic-hero">
         <div className="mobile-cinematic-frame">
-          <div className="mobile-cinematic-photo" aria-hidden="true" />
+          <img className="mobile-cinematic-photo" src={mobileHeroImage} alt="" aria-hidden="true" fetchPriority="high" decoding="async" />
           <div className="mobile-cinematic-shade" aria-hidden="true" />
 
           <div className="mobile-cinematic-intro">

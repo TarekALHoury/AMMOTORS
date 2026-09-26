@@ -1461,7 +1461,7 @@ p {
     display: block;
     height: 300svh;
     min-height: 1680px;
-    overflow: clip;
+    overflow: visible;
     background: #080b0d;
   }
   .hero > .hero-shade,
@@ -1482,11 +1482,12 @@ p {
   .mobile-cinematic-photo {
     position: absolute;
     inset: 0;
-    background-image: var(--mobile-hero-image);
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    transform: translate3d(0, var(--mobile-car-shift, 0px), 0) scale(var(--mobile-car-scale, 1));
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    transform: scale(var(--mobile-car-scale, 1));
     transform-origin: 50% 63%;
     will-change: transform;
   }
@@ -1507,8 +1508,7 @@ p {
     opacity: var(--mobile-intro, 1);
     text-align: center;
     text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
-    transform: translate3d(0, var(--mobile-intro-y, 0), 0);
-    will-change: opacity, transform;
+    will-change: opacity;
   }
   .mobile-cinematic-intro .eyebrow {
     margin-bottom: 20px;
@@ -1549,9 +1549,8 @@ p {
     gap: clamp(12px, 4vw, 24px);
     opacity: var(--mobile-details, 0);
     pointer-events: none;
-    transform: translate3d(0, var(--mobile-details-y, 26px), 0);
     visibility: hidden;
-    will-change: opacity, transform;
+    will-change: opacity;
   }
   .hero[data-details-visible="true"] .mobile-cinematic-details {
     pointer-events: auto;
@@ -1562,7 +1561,6 @@ p {
     min-width: 0;
     flex-direction: column;
     gap: 9px;
-    transform: translate3d(var(--mobile-actions-x, -28px), 0, 0);
   }
   .mobile-cinematic-actions .button {
     width: 100%;
@@ -1586,7 +1584,7 @@ p {
     animation: none;
     opacity: 1;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.98), 0 0 16px rgba(0, 0, 0, 0.9);
-    transform: translate3d(var(--mobile-vehicle-x, 28px), 0, 0);
+    transform: none;
   }
   .mobile-cinematic-details .hero-vehicle p {
     gap: 8px;
@@ -1613,8 +1611,7 @@ p {
     gap: 9px;
     opacity: var(--mobile-features, 1);
     pointer-events: none;
-    transform: translate3d(0, var(--mobile-features-y, 0px), 0);
-    will-change: opacity, transform;
+    will-change: opacity;
   }
   .mobile-cinematic-benefits .hero-benefits { width: 100%; animation: none; }
   .mobile-cinematic-benefits .hero-benefits-grid {
@@ -1633,7 +1630,12 @@ p {
     opacity: 1;
     text-align: center;
     transform: none;
+    transform-style: flat;
+    transition: none;
   }
+  .mobile-cinematic-benefits .benefit:hover { background: transparent; box-shadow: none; transform: none; }
+  .mobile-cinematic-benefits .benefit-icon,
+  .mobile-cinematic-benefits .benefit > div { transform: none; }
   .mobile-cinematic-benefits .benefit:not(:last-child)::after {
     position: absolute;
     top: 10px;
