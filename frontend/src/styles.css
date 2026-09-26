@@ -1937,6 +1937,10 @@ p {
   color: #fff;
 }
 
+.site-shell.theme-light:not(.home-route) .hero .eyebrow {
+  color: #d7dcdf;
+}
+
 .site-shell.theme-light:not(.home-route) .hero .icon-image {
   filter: brightness(0) invert(1);
 }
