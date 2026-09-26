@@ -1,6 +1,7 @@
 import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc } from '@firebase/firestore';
 import { firebaseAuth } from './firebaseAuth.js';
 import { firestore } from './firestore.js';
+import { deleteCarImages, uploadCarImages } from './adminImages.js';
 
 function requireAdminUid() {
   const uid = firebaseAuth.currentUser?.uid;
@@ -30,25 +31,34 @@ function toCarDocument(car) {
   };
 }
 
-export async function createAdminCar(car) {
+export async function createAdminCar(car, files = []) {
   const uid = requireAdminUid();
   const reference = await addDoc(collection(firestore, 'cars'), {
     ...toCarDocument(car), createdAt: serverTimestamp(), createdBy: uid,
     updatedAt: serverTimestamp(), updatedBy: uid,
   });
-  return { ...car, id: reference.id };
+  try {
+    const uploadedImages = await uploadCarImages(reference.id, files);
+    const images = [...car.images, ...uploadedImages];
+    if (uploadedImages.length) await updateDoc(reference, { images, updatedAt: serverTimestamp(), updatedBy: uid });
+    return { ...car, images, id: reference.id };
+  } catch (error) {
+    await deleteDoc(reference).catch(() => {});
+    throw error;
+  }
 }
 
-export async function updateAdminCar(id, car) {
+export async function updateAdminCar(id, car, files = []) {
   const uid = requireAdminUid();
-  await updateDoc(doc(firestore, 'cars', id), {
-    ...toCarDocument(car), updatedAt: serverTimestamp(), updatedBy: uid,
-  });
-  return { ...car, id };
+  const uploadedImages = await uploadCarImages(id, files);
+  const updated = { ...car, images: [...car.images, ...uploadedImages] };
+  await updateDoc(doc(firestore, 'cars', id), { ...toCarDocument(updated), updatedAt: serverTimestamp(), updatedBy: uid });
+  return { ...updated, id };
 }
 
 export async function deleteAdminCar(id) {
   requireAdminUid();
+  await deleteCarImages(id);
   await deleteDoc(doc(firestore, 'cars', id));
 }
 

@@ -367,6 +367,7 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
   const [car, setCar] = useState(() => ({ ...emptyCar, ...initialCar, images: [...(initialCar?.images || [])] }));
   const [errors, setErrors] = useState({});
   const [imageUrl, setImageUrl] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [saving, setSaving] = useState(false);
   const firstErrorRef = useRef(null);
 
@@ -394,10 +395,21 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
       setErrors({ ...errors, images: undefined });
     } catch { setErrors({ ...errors, images: 'Enter a valid HTTPS image URL.' }); }
   }
-  function selectFiles(event) {
-    const previews = [...event.target.files].filter((file) => /^image\/(jpeg|png|webp)$/.test(file.type) && file.size < 10 * 1024 * 1024).map((file) => URL.createObjectURL(file));
-    setCar({ ...car, images: [...car.images, ...previews].slice(0, 20) });
-    if (previews.length !== event.target.files.length) setErrors({ ...errors, images: 'Only JPEG, PNG, or WebP files under 10 MB are previewed.' });
+  async function selectFiles(event) {
+    const remaining = Math.max(0, 20 - car.images.length);
+    const candidates = [...event.target.files].slice(0, remaining).filter((file) => /^image\/(jpeg|png|webp)$/.test(file.type) && file.size > 0 && file.size < 10 * 1024 * 1024);
+    const accepted = [];
+    for (const file of candidates) {
+      try {
+        const bitmap = await createImageBitmap(file);
+        const validDimensions = bitmap.width >= 320 && bitmap.height >= 180 && bitmap.width <= 8000 && bitmap.height <= 8000;
+        bitmap.close();
+        if (validDimensions) accepted.push({ file, preview: URL.createObjectURL(file) });
+      } catch { /* Invalid image data is ignored. */ }
+    }
+    setSelectedFiles((current) => [...current, ...accepted]);
+    setCar((current) => ({ ...current, images: [...current.images, ...accepted.map((item) => item.preview)].slice(0, 20) }));
+    setErrors((current) => ({ ...current, images: accepted.length === event.target.files.length ? undefined : 'Images must be JPEG, PNG, or WebP, under 10 MB, and between 320×180 and 8000×8000 pixels.' }));
   }
   async function submit(event) {
     event.preventDefault();
@@ -407,13 +419,9 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
       window.requestAnimationFrame(() => document.querySelector('.admin-field [aria-invalid="true"]')?.focus());
       return;
     }
-    if (car.images.some((image) => image.startsWith('blob:'))) {
-      setErrors({ images: 'Local image previews cannot be saved yet. Remove them or add hosted HTTPS image URLs.' });
-      return;
-    }
     setSaving(true);
     try {
-      await onSave({ ...car, year: Number(car.year), price: Number(car.price), mileage: Number(car.mileage), horsepower: Number(car.horsepower) });
+      await onSave({ ...car, images: car.images.filter((image) => !image.startsWith('blob:')), year: Number(car.year), price: Number(car.price), mileage: Number(car.mileage), horsepower: Number(car.horsepower) }, selectedFiles.map((item) => item.file));
     } catch {
       setErrors({ form: 'The vehicle could not be saved. Check your connection and administrator access, then try again.' });
       setSaving(false);
@@ -423,7 +431,7 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
   return <div className="admin-view"><div className="admin-page-heading"><div><button className="admin-back-button" onClick={onCancel}><ArrowLeft size={16} aria-hidden="true" /> Back to inventory</button><p className="admin-kicker">{mode === 'add' ? 'New listing' : 'Update listing'}</p><h1>{mode === 'add' ? 'Add vehicle' : `Edit ${initialCar.make} ${initialCar.model}`}</h1><p>Fields marked required are needed before this listing can be saved.</p></div></div><form className="admin-car-form" onSubmit={submit} noValidate ref={firstErrorRef}>{errors.form && <div className="admin-form-error" role="alert">{errors.form}</div>}
     <section className="admin-form-section admin-vehicle-detail-fields"><div className="admin-form-section-heading"><span>01</span><div><h2>Vehicle details</h2><p>Core listing and availability information.</p></div></div><div className="admin-form-grid"><SelectField label="Make *" name="make" value={car.make} error={errors.make} onChange={changeMake} options={vehicleMakes} placeholder="Select a make" leadingIcon={CarFront} /><SelectField label="Model *" name="model" value={car.model} error={errors.model} onChange={changeModel} options={modelOptions} placeholder={car.make ? 'Select a model' : 'Select a make first'} disabled={!car.make} leadingIcon={Tags} /><SelectField label="Year *" name="year" value={String(car.year)} error={errors.year} onChange={change} options={yearOptions} placeholder="Select a year" leadingIcon={CalendarDays} /><Field label="Price (USD) *" name="price" type="number" value={car.price} error={errors.price} onChange={change} leadingIcon={CircleDollarSign} /><SelectField label="Status *" name="status" value={car.status} onChange={change} options={['available', 'reserved', 'sold']} leadingIcon={BadgeCheck} /><label className="admin-field admin-field-wide"><span>Description</span><div className="admin-textarea-with-icon"><FileText size={18} aria-hidden="true" /><textarea name="description" rows="5" value={car.description} onChange={change} aria-label="Description" aria-invalid={Boolean(errors.description)} /></div><small>{car.description.length}/5000</small>{errors.description && <small className="admin-field-error">{errors.description}</small>}</label></div></section>
     <section className="admin-form-section admin-specification-fields"><div className="admin-form-section-heading"><span>02</span><div><h2>Specifications</h2><p>Technical and appearance information.</p></div></div><div className="admin-form-grid"><Field label="Mileage (km) *" name="mileage" type="number" inputMode="numeric" min="0" step="1" value={car.mileage} error={errors.mileage} onChange={changeMileage} onKeyDown={preventInvalidMileageKey} onPaste={preventInvalidMileagePaste} leadingIconSrc={roadIcon} leadingIconName="road" /><SelectField label="Engine *" name="engine" value={car.engine} error={errors.engine} onChange={change} options={engineOptions} placeholder={car.model ? 'Select an engine' : 'Select a model first'} disabled={!car.model} leadingIconSrc={engineIcon} leadingIconName="engine" /><Field label="Horsepower *" name="horsepower" type="number" value={car.horsepower} error={errors.horsepower} onChange={change} leadingIcon={Gauge} /><SelectField label="Transmission *" name="transmission" value={car.transmission} error={errors.transmission} onChange={change} options={transmissionOptions} optionLabels={vehicleOptionLabels} leadingIconSrc={transmissionIcon} leadingIconName="transmission" /><SelectField label="Drivetrain *" name="drivetrain" value={car.drivetrain} error={errors.drivetrain} onChange={change} options={drivetrainOptions} leadingIconSrc={drivetrainIcon} leadingIconName="drivetrain" /><SelectField label="Fuel type *" name="fuel" value={car.fuel} error={errors.fuel} onChange={change} options={fuelOptions} optionLabels={vehicleOptionLabels} leadingIcon={Fuel} /><Field label="Exterior color *" name="exteriorColor" value={car.exteriorColor} error={errors.exteriorColor} onChange={change} leadingIcon={Palette} /><Field label="Interior color *" name="interiorColor" value={car.interiorColor} error={errors.interiorColor} onChange={change} leadingIcon={Palette} /></div></section>
-    <section className="admin-form-section"><div className="admin-form-section-heading"><span>03</span><div><h2>Vehicle images</h2><p>Add hosted HTTPS image URLs. Local files can be previewed but require Storage upload before publishing.</p></div></div><div className="admin-image-controls"><label className="admin-upload-zone"><AdminIcon name="upload" /><strong>Select images</strong><span>JPEG, PNG, or WebP · max 10 MB each</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={selectFiles} /></label><div className="admin-url-input"><label htmlFor="image-url">Hosted image URL</label><div><input id="image-url" type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://…" /><button type="button" onClick={addImageUrl}>Add URL</button></div>{errors.images && <small className="admin-field-error">{errors.images}</small>}</div></div>{car.images.length > 0 && <div className="admin-image-previews" aria-label="Selected image previews">{car.images.map((image, index) => <div key={`${image}-${index}`}><VehicleImage src={image} alt={`Vehicle preview ${index + 1}`} /><button type="button" aria-label={`Remove image ${index + 1}`} onClick={() => setCar({ ...car, images: car.images.filter((_, imageIndex) => imageIndex !== index) })}><X size={16} aria-hidden="true" /></button>{index === 0 && <span>Cover</span>}</div>)}</div>}</section>
+    <section className="admin-form-section"><div className="admin-form-section-heading"><span>03</span><div><h2>Vehicle images</h2><p>Select images to upload securely to Firebase Storage, or add hosted HTTPS URLs.</p></div></div><div className="admin-image-controls"><label className="admin-upload-zone"><AdminIcon name="upload" /><strong>Select images</strong><span>JPEG, PNG, or WebP · 320×180 to 8000×8000 · max 10 MB</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={selectFiles} /></label><div className="admin-url-input"><label htmlFor="image-url">Hosted image URL</label><div><input id="image-url" type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://…" /><button type="button" onClick={addImageUrl}>Add URL</button></div>{errors.images && <small className="admin-field-error">{errors.images}</small>}</div></div>{car.images.length > 0 && <div className="admin-image-previews" aria-label="Selected image previews">{car.images.map((image, index) => <div key={`${image}-${index}`}><VehicleImage src={image} alt={`Vehicle preview ${index + 1}`} /><button type="button" aria-label={`Remove image ${index + 1}`} onClick={() => { const removed = car.images[index]; setCar({ ...car, images: car.images.filter((_, imageIndex) => imageIndex !== index) }); setSelectedFiles((current) => current.filter((item) => item.preview !== removed)); if (removed.startsWith('blob:')) URL.revokeObjectURL(removed); }}><X size={16} aria-hidden="true" /></button>{index === 0 && <span>Cover</span>}</div>)}</div>}</section>
     <div className="admin-form-actions"><button className="button button-outline" type="button" onClick={onCancel}>Cancel</button><button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : mode === 'add' ? 'Add vehicle' : 'Save changes'}</button></div>
   </form></div>;
 }
@@ -465,12 +473,12 @@ function AdminWorkspace({ email, onSignOut }) {
     else { setView('inventory'); storeAdminLocation('inventory'); }
   }, [cars, initialLocation.selectedId, selectedCar, view]);
   function navigate(nextView, car = null) { setView(nextView); setSelectedCar(car); storeAdminLocation(nextView, car?.id); setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'auto' }); }
-  async function saveCar(car) {
+  async function saveCar(car, files) {
     if (view === 'add') {
-      const created = await createAdminCar(car);
+      const created = await createAdminCar(car, files);
       setCars((current) => [created, ...current]); setNotice('Vehicle published successfully.');
     } else {
-      const updated = await updateAdminCar(selectedCar.id, car);
+      const updated = await updateAdminCar(selectedCar.id, car, files);
       setCars((current) => current.map((item) => item.id === selectedCar.id ? updated : item)); setNotice('Vehicle changes published successfully.');
     }
     navigate('inventory'); window.setTimeout(() => setNotice(''), 3500);

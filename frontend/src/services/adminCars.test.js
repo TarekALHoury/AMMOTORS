@@ -1,16 +1,17 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({ addDoc: vi.fn(), updateDoc: vi.fn(), deleteDoc: vi.fn(), collection: vi.fn(), doc: vi.fn(), serverTimestamp: vi.fn(() => 'timestamp') }));
+const mocks = vi.hoisted(() => ({ addDoc: vi.fn(), updateDoc: vi.fn(), deleteDoc: vi.fn(), collection: vi.fn(), doc: vi.fn(), serverTimestamp: vi.fn(() => 'timestamp'), uploadCarImages: vi.fn(), deleteCarImages: vi.fn() }));
 vi.mock('@firebase/firestore', () => mocks);
 vi.mock('./firebaseAuth.js', () => ({ firebaseAuth: { currentUser: { uid: 'admin-1' } } }));
 vi.mock('./firestore.js', () => ({ firestore: {} }));
+vi.mock('./adminImages.js', () => ({ uploadCarImages: mocks.uploadCarImages, deleteCarImages: mocks.deleteCarImages }));
 
 import { createAdminCar, deleteAdminCar, toCarDocument, updateAdminCar } from './adminCars.js';
 
 const car = { make: 'BMW', model: 'M4', year: 2024, price: 80000, description: 'Clean', status: 'available', mileage: 12000, engine: '3.0L', horsepower: 503, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Petrol', exteriorColor: 'Black', interiorColor: 'Black', images: [] };
 
 describe('admin car persistence', () => {
-  beforeEach(() => { vi.clearAllMocks(); mocks.addDoc.mockResolvedValue({ id: 'new-id' }); });
+  beforeEach(() => { vi.clearAllMocks(); mocks.addDoc.mockResolvedValue({ id: 'new-id' }); mocks.uploadCarImages.mockResolvedValue([]); mocks.deleteCarImages.mockResolvedValue(); });
 
   test('maps the public form shape to the Firestore document contract', () => {
     expect(toCarDocument(car).specifications.mileage).toBe(12000);
@@ -23,10 +24,20 @@ describe('admin car persistence', () => {
     expect(mocks.addDoc.mock.calls[0][1]).toMatchObject({ createdBy: 'admin-1', updatedBy: 'admin-1' });
   });
 
+  test('stores uploaded image URLs on the created car', async () => {
+    const file = new File(['image'], 'car.jpg', { type: 'image/jpeg' });
+    mocks.uploadCarImages.mockResolvedValue(['https://storage.example/car.jpg']);
+    const created = await createAdminCar(car, [file]);
+    expect(mocks.uploadCarImages).toHaveBeenCalledWith('new-id', [file]);
+    expect(mocks.updateDoc).toHaveBeenCalledWith(expect.objectContaining({ id: 'new-id' }), expect.objectContaining({ images: ['https://storage.example/car.jpg'] }));
+    expect(created.images).toEqual(['https://storage.example/car.jpg']);
+  });
+
   test('updates and deletes the requested Firestore car', async () => {
     await updateAdminCar('car-1', car);
     await deleteAdminCar('car-1');
     expect(mocks.updateDoc).toHaveBeenCalledOnce();
     expect(mocks.deleteDoc).toHaveBeenCalledOnce();
+    expect(mocks.deleteCarImages).toHaveBeenCalledWith('car-1');
   });
 });
