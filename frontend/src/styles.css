@@ -1757,6 +1757,10 @@ p {
   background: rgba(255, 255, 255, 0.94);
 }
 
+.site-shell.theme-light:not(.home-route) .menu-toggle {
+  color: #0b0f12;
+}
+
 .site-shell.theme-light:not(.home-route) .nav-menu {
   background: #fff;
 }
