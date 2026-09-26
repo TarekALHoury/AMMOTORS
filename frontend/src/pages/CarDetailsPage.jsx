@@ -37,9 +37,8 @@ function CarDetailsPage() {
           <CarGallery images={car.images} name={carName} />
           <aside className="vehicle-summary">
             <span className="status-pill inline-status">{car.status}</span>
-            <p className="vehicle-year">{car.year}</p>
             <h1>{carName}</h1>
-            <p className="vehicle-meta">{car.year} <span>•</span> {formatMileage(car.mileage)}</p>
+            <p className="vehicle-meta">{car.year} <span aria-hidden="true">|</span> {formatMileage(car.mileage)}</p>
             <p className="detail-price">{formatPrice(car.price)}</p>
             <WhatsAppButton car={car} className="full-width" />
             <p className="response-note">Contact us directly for availability and more details.</p>

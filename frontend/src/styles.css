@@ -1174,16 +1174,9 @@ p {
 
 .inline-status {
   position: static;
-  display: inline-block;
-  margin-bottom: 26px;
-}
-
-.vehicle-year {
-  margin-bottom: 4px;
-  color: #8f989d;
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  display: block;
+  width: fit-content;
+  margin-bottom: 14px;
 }
 
 .vehicle-summary h1 {
@@ -1407,7 +1400,12 @@ p {
   .site-select-options button { min-height: 48px; padding-inline: 14px; font-size: 1rem; }
   .details-page > .page-width { padding-top: 24px; }
   .details-layout { gap: 16px; }
-  .vehicle-summary,
+  .vehicle-summary { padding: 20px 18px; }
+  .vehicle-summary .inline-status { margin-bottom: 8px; }
+  .vehicle-summary h1 { margin-bottom: 6px; }
+  .vehicle-summary .vehicle-meta { margin-bottom: 20px; }
+  .vehicle-summary .detail-price { margin-bottom: 18px; }
+  .vehicle-summary .response-note { margin-top: 10px; }
   .details-section { padding: 24px 19px; }
   .gallery-main { aspect-ratio: 4 / 3; }
   .spec-grid { grid-template-columns: 1fr; }
