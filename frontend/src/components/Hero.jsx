@@ -82,7 +82,7 @@ function Hero() {
       <div className="page-width hero-content">
         <div className="hero-copy-block">
           <p className="eyebrow">Premium vehicles</p>
-          <h1>Find your<br /><span>next drive.</span></h1>
+          <h1>Find your<br /><span>next drive</span></h1>
           <p className="hero-copy">Explore our latest selection of quality vehicles.</p>
           <div className="hero-actions">
             <Link className="button hero-primary" to="/cars">View Available Cars <Icon name="arrow" size={18} /></Link>
