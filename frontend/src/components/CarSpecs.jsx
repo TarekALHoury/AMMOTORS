@@ -8,6 +8,7 @@ import fuelIcon from '../assets/icons/fuel.svg';
 import gearshiftIcon from '../assets/icons/gearshifter.png';
 import roadIcon from '../assets/icons/road.svg';
 import speedIcon from '../assets/icons/speed.svg';
+import tagIcon from '../assets/icons/tag.svg';
 
 const iconAssets = {
   calendar: calendarIcon,
@@ -19,10 +20,12 @@ const iconAssets = {
   gearshift: gearshiftIcon,
   road: roadIcon,
   speed: speedIcon,
+  tag: tagIcon,
 };
 
 function CarSpecs({ car }) {
   const specs = [
+    ['tag', 'Model', car.model],
     ['calendar', 'Year', car.year],
     ['engine', 'Engine', car.engine],
     ['speed', 'Horsepower', car.horsepower ? `${car.horsepower} hp` : null],

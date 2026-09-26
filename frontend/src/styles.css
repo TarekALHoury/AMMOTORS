@@ -1408,8 +1408,12 @@ p {
   .vehicle-summary .response-note { margin-top: 10px; }
   .details-section { padding: 24px 19px; }
   .gallery-main { aspect-ratio: 4 / 3; }
-  .spec-grid { grid-template-columns: 1fr; }
-  .spec { min-height: 86px; }
+  .spec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .spec { min-width: 0; min-height: 88px; gap: 9px; padding: 13px 11px; }
+  .spec > div { min-width: 0; }
+  .spec-icon { width: 21px; height: 21px; }
+  .spec span { font-size: 0.57rem; letter-spacing: 0.06em; }
+  .spec strong { overflow-wrap: anywhere; font-size: 0.76rem; }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
