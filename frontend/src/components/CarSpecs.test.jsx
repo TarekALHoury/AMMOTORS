@@ -16,4 +16,17 @@ describe('CarSpecs', () => {
     expect(engineIcon).toHaveAttribute('data-icon', 'engine');
     expect(engineIcon.getAttribute('src')).toContain('lucide-engine');
   });
+
+  test('renders vehicle specifications in the dealership order', () => {
+    const { container } = render(<CarSpecs car={{
+      model: 'Yukon', year: 2024, mileage: 100000, engine: '5.7L V8', horsepower: 900,
+      transmission: 'Automatic', drivetrain: 'AWD', fuel: 'Petrol',
+      exteriorColor: 'Black', interiorColor: 'White',
+    }} />);
+
+    expect([...container.querySelectorAll('.spec span')].map((label) => label.textContent)).toEqual([
+      'Model', 'Year', 'Mileage', 'Engine', 'Horsepower', 'Transmission',
+      'Drivetrain', 'Fuel type', 'Exterior color', 'Interior color',
+    ]);
+  });
 });
