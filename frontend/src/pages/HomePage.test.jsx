@@ -20,6 +20,8 @@ test('shows six cars per page and keeps both page counts in sync', async () => {
   getCars.mockResolvedValueOnce(Array.from({ length: 13 }, (_, index) => ({ id: `car-${index + 1}` })));
   render(<MemoryRouter><HomePage /></MemoryRouter>);
 
+  expect(screen.getByRole('heading', { name: 'Featured Cars' })).toBeInTheDocument();
+  expect(screen.queryByText('Explore our latest available vehicles.')).not.toBeInTheDocument();
   expect(await screen.findAllByText('Page 1 of 3')).toHaveLength(2);
   expect(within(screen.getByTestId('cars')).getAllByText(/^car-/)).toHaveLength(6);
   expect(screen.getByRole('button', { name: 'Previous page' })).toBeDisabled();

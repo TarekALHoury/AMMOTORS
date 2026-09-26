@@ -37,7 +37,7 @@ function HomePage() {
       <section className="section latest-section" id="latest-cars">
         <div className="page-width">
           <div className="section-heading-row">
-            <div><p className="eyebrow">Our inventory</p><h2>Latest Cars</h2><p>Explore our latest available vehicles.</p></div>
+            <h2>Featured Cars</h2>
             <div className="latest-heading-actions">
               <Link className="text-link" to="/cars">View All Cars <Icon name="arrow" size={18} /></Link>
               {showPagination && <span className="latest-page-count">Page {page} of {totalPages}</span>}

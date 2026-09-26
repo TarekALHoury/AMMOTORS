@@ -561,6 +561,10 @@ p {
   text-transform: uppercase;
 }
 
+.latest-section .section-heading-row h2 {
+  margin-bottom: 0;
+}
+
 .section-heading-row p:last-child,
 .contact-panel p,
 .about-copy > p:last-of-type {
@@ -1426,6 +1430,7 @@ p {
 
 @media (max-width: 767px) {
   .navbar { background: #080b0d; backdrop-filter: none; }
+  .latest-section { padding-top: 0; }
   .hero {
     display: block;
     height: 300svh;
