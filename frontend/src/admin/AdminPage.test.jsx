@@ -5,12 +5,16 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import AdminPage, { demoCars } from './AdminPage.jsx';
 import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
+import { createAdminCar, deleteAdminCar, updateAdminCar } from '../services/adminCars.js';
 
 vi.mock('../services/carsApi.js', () => ({ getCars: vi.fn() }));
 vi.mock('../services/adminAuth.js', () => ({
   observeAdminAuth: vi.fn(),
   signInAdmin: vi.fn(),
   signOutAdmin: vi.fn(),
+}));
+vi.mock('../services/adminCars.js', () => ({
+  createAdminCar: vi.fn(), updateAdminCar: vi.fn(), deleteAdminCar: vi.fn(),
 }));
 
 function renderAdmin() {
@@ -39,6 +43,9 @@ describe('admin dashboard UI', () => {
     });
     signInAdmin.mockResolvedValue({ email: 'admin@example.com' });
     signOutAdmin.mockResolvedValue();
+    createAdminCar.mockImplementation(async (car) => ({ ...car, id: 'created-car' }));
+    updateAdminCar.mockImplementation(async (id, car) => ({ ...car, id }));
+    deleteAdminCar.mockResolvedValue();
   });
 
   test('shows accessible sign-in validation before authentication', async () => {
@@ -256,5 +263,16 @@ describe('admin dashboard UI', () => {
     expect(within(dialog).getByText('Delete this vehicle?')).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
     expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
+  });
+
+  test('deletes confirmed vehicles from Firestore before removing them from the UI', async () => {
+    const user = userEvent.setup();
+    renderAdmin();
+    await signIn(user);
+    await user.click(screen.getByRole('button', { name: /Inventory 3/i }));
+    await user.click(screen.getByRole('button', { name: 'Delete BMW M4 Competition' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete vehicle' }));
+    expect(deleteAdminCar).toHaveBeenCalledWith('demo-001');
+    expect(await screen.findByText('Vehicle deleted successfully.')).toBeInTheDocument();
   });
 });

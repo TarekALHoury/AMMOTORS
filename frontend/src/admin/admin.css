@@ -223,6 +223,7 @@
 .admin-error-state > div { display: flex; gap: 10px; }
 
 .admin-car-form { display: grid; gap: 20px; }
+.admin-form-error { padding: 14px 16px; border: 1px solid rgba(235,82,73,.38); border-radius: 7px; background: rgba(214,69,61,.1); color: #ffaaa5; font-size: .78rem; line-height: 1.5; }
 .admin-form-section { padding: 28px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
 .admin-form-section-heading { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 25px; }
 .admin-form-section-heading > span { display: grid; width: 35px; height: 35px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: rgba(214,69,61,.12); color: #f07972; font-size: .68rem; font-weight: 800; }
