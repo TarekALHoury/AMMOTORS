@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import heroImage from '../assets/gmc-hero-final.jpg';
-import mobileHeroImage from '../assets/gmc-hero-mobile.png';
+import mobileHeroImage from '../assets/gmc-hero-mobile.jpg';
 import scrollImage from '../assets/icons/scroll.png';
 import { dealership } from '../config/dealership.js';
 import Benefits from './Benefits.jsx';
@@ -18,6 +18,8 @@ function Hero() {
       ? window.matchMedia('(prefers-reduced-motion: reduce)')
       : { matches: false, addEventListener() {}, removeEventListener() {} };
     let frameId = 0;
+    let lastProgress = -1;
+    let lastViewportHeight = 0;
 
     const smoothstep = (start, end, value) => {
       const progress = Math.min(Math.max((value - start) / (end - start), 0), 1);
@@ -31,6 +33,9 @@ function Hero() {
       const bounds = mobileHero.getBoundingClientRect();
       const scrollRange = Math.max(bounds.height - window.innerHeight, 1);
       const progress = Math.min(Math.max(-bounds.top / scrollRange, 0), 1);
+      if (Math.abs(progress - lastProgress) < 0.001 && lastViewportHeight === window.innerHeight) return;
+      lastProgress = progress;
+      lastViewportHeight = window.innerHeight;
       const intro = 1 - smoothstep(0.17, 0.4, progress);
       const features = 1 - smoothstep(0.18, 0.4, progress);
       const details = smoothstep(0.43, 0.68, progress);
@@ -90,11 +95,6 @@ function Hero() {
       </div>
 
       <div className="mobile-cinematic-hero">
-        <svg className="mobile-tree-filter" aria-hidden="true" focusable="false">
-          <filter id="mobile-tree-key" colorInterpolationFilters="sRGB">
-            <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 -2 0 1.4" />
-          </filter>
-        </svg>
         <div className="mobile-cinematic-frame">
           <div className="mobile-cinematic-photo" aria-hidden="true" />
           <div className="mobile-cinematic-shade" aria-hidden="true" />
@@ -104,7 +104,6 @@ function Hero() {
             <h1>Find your<br /><span>next drive</span></h1>
             <p className="hero-copy">Explore our latest selection<br />of quality vehicles.</p>
           </div>
-          <div className="mobile-cinematic-tree" aria-hidden="true" />
           <div className="mobile-cinematic-details">
             <div className="mobile-cinematic-actions">
               <Link className="button hero-primary" to="/cars">View Available Cars <Icon name="arrow" size={16} /></Link>

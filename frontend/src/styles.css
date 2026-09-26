@@ -1454,9 +1454,9 @@ p {
 }
 
 .mobile-cinematic-hero { display: none; }
-.mobile-tree-filter { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 @media (max-width: 767px) {
+  .navbar { background: #080b0d; backdrop-filter: none; }
   .hero {
     display: block;
     height: 300svh;
@@ -1479,8 +1479,7 @@ p {
     isolation: isolate;
     background: #101519;
   }
-  .mobile-cinematic-photo,
-  .mobile-cinematic-tree {
+  .mobile-cinematic-photo {
     position: absolute;
     inset: 0;
     background-image: var(--mobile-hero-image);
@@ -1492,14 +1491,6 @@ p {
     will-change: transform;
   }
   .mobile-cinematic-photo { z-index: 1; }
-  .mobile-cinematic-tree {
-    z-index: 4;
-    background-position: center calc(50% + 40px);
-    clip-path: polygon(10% 18%, 21% 17%, 27% 19%, 24% 23%, 16% 24%, 11% 22%);
-    filter: url(#mobile-tree-key);
-    mask-image: radial-gradient(ellipse 31% 9% at 7% 22%, #000 40%, transparent 100%);
-    pointer-events: none;
-  }
   .mobile-cinematic-shade {
     position: absolute;
     z-index: 2;
@@ -1510,7 +1501,7 @@ p {
   .mobile-cinematic-intro {
     position: absolute;
     z-index: 3;
-    top: clamp(54px, 9svh, 90px);
+    top: clamp(78px, 12svh, 112px);
     right: max(14px, env(safe-area-inset-right));
     left: max(14px, env(safe-area-inset-left));
     opacity: var(--mobile-intro, 1);
@@ -1588,7 +1579,6 @@ p {
   .mobile-cinematic-actions .hero-contact {
     border-color: rgba(255, 255, 255, 0.64);
     background: rgba(5, 8, 10, 0.64);
-    backdrop-filter: blur(3px);
   }
   .mobile-cinematic-details .hero-vehicle {
     display: block;
@@ -1718,8 +1708,7 @@ p {
 @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
   .hero { height: max(900px, calc(100svh - var(--nav-height))); min-height: 0; }
   .mobile-cinematic-frame { position: relative; top: 0; height: 100%; }
-  .mobile-cinematic-photo,
-  .mobile-cinematic-tree { transform: none; }
+  .mobile-cinematic-photo { transform: none; }
   .mobile-cinematic-intro { opacity: 1; transform: none; }
   .mobile-cinematic-details {
     opacity: 1;

@@ -11,7 +11,7 @@ describe('Hero', () => {
     expect(container.querySelectorAll('.mobile-cinematic-hero .benefit[data-tilt="5"]')).toHaveLength(4);
     expect(container.querySelector('.mobile-cinematic-frame')).toBeInTheDocument();
     expect(container.querySelector('.mobile-cinematic-photo')).toHaveAttribute('aria-hidden', 'true');
-    expect(container.querySelector('.mobile-cinematic-tree')).toHaveAttribute('aria-hidden', 'true');
+    expect(container.querySelector('.mobile-cinematic-tree')).toBeNull();
     expect(container.querySelector('.mobile-cinematic-intro h1')).toHaveTextContent('Find yournext drive');
   });
 });
