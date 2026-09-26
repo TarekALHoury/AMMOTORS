@@ -1422,8 +1422,7 @@ p {
   .about-visual { min-height: 240px; padding: 24px; }
   .about-brand-mark { width: min(72%, 250px); }
   .contact-panel { gap: 34px; padding: 28px 20px; }
-  .contact-actions { grid-template-columns: 1fr; }
-  .contact-actions > * { grid-column: auto; }
+  .contact-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer-main { grid-template-columns: 1fr 1fr; }
   .footer-main > div:first-child { grid-column: 1 / -1; }
   .page-heading { padding-top: 64px; padding-bottom: 42px; }
