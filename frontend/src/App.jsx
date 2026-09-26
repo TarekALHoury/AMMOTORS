@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
@@ -33,16 +33,24 @@ function ScrollManager() {
 
 function App() {
   const location = useLocation();
+  const [theme, setTheme] = useState(() => localStorage.getItem('ammotors.theme') === 'light' ? 'light' : 'dark');
   useInteractiveDepth();
+
+  useEffect(() => {
+    localStorage.setItem('ammotors.theme', theme);
+  }, [theme]);
 
   if (location.pathname.startsWith('/admin')) {
     return <><ScrollManager /><Suspense fallback={<RouteLoading admin />}><Routes><Route path="/admin/*" element={<AdminPage />} /></Routes></Suspense></>;
   }
 
+  const isHome = location.pathname === '/';
+  const visibleTheme = isHome ? 'dark' : theme;
+
   return (
-    <div className="site-shell">
+    <div className={`site-shell theme-${visibleTheme} ${isHome ? 'home-route' : ''}`}>
       <ScrollManager />
-      <Navbar />
+      <Navbar theme={theme} onToggleTheme={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')} />
       <Suspense fallback={<RouteLoading />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -51,7 +59,7 @@ function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
-      <Footer />
+      <Footer theme={visibleTheme} />
     </div>
   );
 }

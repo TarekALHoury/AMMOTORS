@@ -209,6 +209,15 @@ p {
   align-items: center;
 }
 
+.nav-right,
+.nav-controls {
+  display: flex;
+  align-items: center;
+}
+
+.nav-right { gap: 14px; }
+.nav-controls { gap: 9px; }
+
 .nav-menu {
   position: relative;
   gap: 34px;
@@ -292,6 +301,27 @@ p {
   color: #fff;
   background: transparent;
 }
+
+.theme-toggle {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--text);
+  background: transparent;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+}
+
+.theme-toggle:hover {
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.brand-logo { transition: filter 180ms ease; }
+.brand-logo-light { filter: brightness(0); }
 
 .hero {
   position: relative;
@@ -1707,4 +1737,195 @@ p {
   }
   .hero-copy-block, .hero-vehicle, .hero-benefits, .car-card { animation: none !important; }
   .car-card:hover, .benefit:hover { transform: none; }
+}
+
+/* Public light theme. The approved homepage remains dark via .home-route. */
+.site-shell.theme-light:not(.home-route) {
+  color-scheme: light;
+  color: #0b0f12;
+  background: #f5f6f6;
+  --bg: #f5f6f6;
+  --panel: #ffffff;
+  --panel-light: #edf0f1;
+  --line: rgba(8, 11, 13, 0.13);
+  --line-strong: rgba(8, 11, 13, 0.25);
+  --text: #0b0f12;
+  --muted: #596267;
+}
+
+.site-shell.theme-light:not(.home-route) .navbar {
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.site-shell.theme-light:not(.home-route) .nav-menu {
+  background: #fff;
+}
+
+.site-shell.theme-light:not(.home-route) .nav-link,
+.site-shell.theme-light:not(.home-route) .icon-button,
+.site-shell.theme-light:not(.home-route) .button-small,
+.site-shell.theme-light:not(.home-route) .back-link,
+.site-shell.theme-light:not(.home-route) .footer-main nav a,
+.site-shell.theme-light:not(.home-route) .footer-social a {
+  color: #4d575c;
+}
+
+.site-shell.theme-light:not(.home-route) .nav-link:hover,
+.site-shell.theme-light:not(.home-route) .nav-link.active,
+.site-shell.theme-light:not(.home-route) .icon-button:hover,
+.site-shell.theme-light:not(.home-route) .button-small:hover,
+.site-shell.theme-light:not(.home-route) .back-link:hover,
+.site-shell.theme-light:not(.home-route) .footer-main nav a:hover,
+.site-shell.theme-light:not(.home-route) .footer-social a:hover {
+  color: #000;
+}
+
+.site-shell.theme-light:not(.home-route) .theme-toggle:hover,
+.site-shell.theme-light:not(.home-route) .pagination-arrow:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.site-shell.theme-light:not(.home-route) .page-content,
+.site-shell.theme-light:not(.home-route) .route-loading {
+  color: #0b0f12;
+  background: #f5f6f6;
+}
+
+.site-shell.theme-light:not(.home-route) .eyebrow,
+.site-shell.theme-light:not(.home-route) .latest-page-count,
+.site-shell.theme-light:not(.home-route) .inventory-pagination,
+.site-shell.theme-light:not(.home-route) .text-link {
+  color: #283136;
+}
+
+.site-shell.theme-light:not(.home-route) .filters,
+.site-shell.theme-light:not(.home-route) .car-card,
+.site-shell.theme-light:not(.home-route) .vehicle-summary,
+.site-shell.theme-light:not(.home-route) .details-section,
+.site-shell.theme-light:not(.home-route) .empty-state,
+.site-shell.theme-light:not(.home-route) .error-state,
+.site-shell.theme-light:not(.home-route) .gallery-placeholder {
+  background: #fff;
+}
+
+.site-shell.theme-light:not(.home-route) .car-card-image {
+  background: #e9edef;
+}
+
+.site-shell.theme-light:not(.home-route) .car-make,
+.site-shell.theme-light:not(.home-route) .car-meta,
+.site-shell.theme-light:not(.home-route) .filters > label > span,
+.site-shell.theme-light:not(.home-route) .site-select-label,
+.site-shell.theme-light:not(.home-route) .spec span {
+  color: #616b70;
+}
+
+.site-shell.theme-light:not(.home-route) .car-meta span {
+  color: #8b9498;
+}
+
+.site-shell.theme-light:not(.home-route) .car-price,
+.site-shell.theme-light:not(.home-route) .detail-price,
+.site-shell.theme-light:not(.home-route) .spec strong {
+  color: #0b0f12;
+}
+
+.site-shell.theme-light:not(.home-route) .filters input,
+.site-shell.theme-light:not(.home-route) .filters select,
+.site-shell.theme-light:not(.home-route) .site-select-trigger,
+.site-shell.theme-light:not(.home-route) .site-select-search input {
+  color: #0b0f12;
+  background: #fff;
+}
+
+.site-shell.theme-light:not(.home-route) .filters input::placeholder {
+  color: #8a9398;
+}
+
+.site-shell.theme-light:not(.home-route) .site-select-trigger:hover,
+.site-shell.theme-light:not(.home-route) .site-select.is-open .site-select-trigger {
+  border-color: rgba(0, 0, 0, 0.28);
+  background: #f5f6f6;
+}
+
+.site-shell.theme-light:not(.home-route) .site-select-chevron {
+  border-color: #4b555a;
+}
+
+.site-shell.theme-light:not(.home-route) .site-select-menu {
+  border-color: #c6cccf;
+  background: #fff;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.16);
+}
+
+.site-shell.theme-light:not(.home-route) .site-select-options button {
+  color: #172025;
+}
+
+.site-shell.theme-light:not(.home-route) .site-select-options button:hover,
+.site-shell.theme-light:not(.home-route) .site-select-options button.is-active {
+  color: #000;
+  background: #e8ecee;
+}
+
+.site-shell.theme-light:not(.home-route) .site-select-options button[aria-selected="true"] {
+  color: #9d211b;
+  background: rgba(214, 69, 61, 0.12);
+}
+
+.site-shell.theme-light:not(.home-route) .site-select-options button[aria-selected="true"].is-active,
+.site-shell.theme-light:not(.home-route) .site-select-options button[aria-selected="true"]:hover {
+  color: #fff;
+  background: var(--accent);
+}
+
+.site-shell.theme-light:not(.home-route) .button-outline {
+  border-color: var(--line-strong);
+  color: #0b0f12;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.site-shell.theme-light:not(.home-route) .button-outline:hover {
+  border-color: rgba(0, 0, 0, 0.38);
+  background: #fff;
+}
+
+.site-shell.theme-light:not(.home-route) .pagination-arrow {
+  color: #0b0f12;
+}
+
+.site-shell.theme-light:not(.home-route) .spec-grid {
+  background: var(--line);
+}
+
+.site-shell.theme-light:not(.home-route) .spec {
+  color: #404a4f;
+  background: #fff;
+}
+
+.site-shell.theme-light:not(.home-route) .spec-icon {
+  filter: brightness(0);
+}
+
+.site-shell.theme-light:not(.home-route) .loading-ring {
+  border-color: rgba(0, 0, 0, 0.14);
+  border-top-color: #0b0f12;
+}
+
+.site-shell.theme-light:not(.home-route) .footer {
+  background: #fff;
+}
+
+.site-shell.theme-light:not(.home-route) .footer-bottom {
+  color: #697277;
+}
+
+.site-shell.theme-light:not(.home-route) .car-card:hover {
+  border-color: rgba(0, 0, 0, 0.28);
+  box-shadow: -14px 28px 58px rgba(25, 31, 34, 0.16);
+}
+
+@media (max-width: 850px) {
+  .nav-container { gap: 12px; }
+  .nav-right { gap: 0; }
 }

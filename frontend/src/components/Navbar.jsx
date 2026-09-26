@@ -1,10 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import logo from '../assets/am-motors-logo.png';
 import { dealership } from '../config/dealership.js';
+import BrandLogo from './BrandLogo.jsx';
 import Icon from './Icon.jsx';
 
-function Navbar() {
+function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
   const [open, setOpen] = useState(false);
   const [homeSection, setHomeSection] = useState('home');
   const [indicator, setIndicator] = useState(null);
@@ -71,25 +71,31 @@ function Navbar() {
     <header className="navbar">
       <div className="nav-container">
         <Link className="brand" to="/" aria-label="AM MOTORS home">
-          <img src={logo} alt="AM MOTORS" />
+          <BrandLogo theme={location.pathname === '/' ? 'dark' : theme} />
         </Link>
 
-        <button className="menu-toggle" type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label="Toggle navigation">
-          <Icon name={open ? 'close' : 'menu'} size={24} />
-        </button>
-
-        <nav className={`nav-menu ${open ? 'open' : ''}`} aria-label="Main navigation" ref={menuRef}>
-          <Link {...navProps('home')} to="/">Home</Link>
-          <Link {...navProps('cars')} to="/cars">Available Cars</Link>
-          <Link {...navProps('about')} to="/#about">About</Link>
-          <Link {...navProps('contact')} to="/#contact">Contact</Link>
-          <span className="nav-active-indicator" aria-hidden="true" style={indicator ? { width: indicator.width, transform: `translateX(${indicator.left}px)` } : undefined} />
-          <div className="nav-actions">
-            <a className="icon-button" href={dealership.instagram} target="_blank" rel="noreferrer" aria-label="AM MOTORS on Instagram"><Icon name="instagram" size={19} /></a>
-            <a className="icon-button" href={dealership.tiktok} target="_blank" rel="noreferrer" aria-label="AM MOTORS on TikTok"><Icon name="tiktok" size={19} className="tiktok-icon" /></a>
-            <a className="button button-small" href={`https://wa.me/${dealership.whatsapp}`} target="_blank" rel="noreferrer"><Icon name="whatsapp" size={17} /> Contact</a>
+        <div className="nav-right">
+          <nav className={`nav-menu ${open ? 'open' : ''}`} aria-label="Main navigation" ref={menuRef}>
+            <Link {...navProps('home')} to="/">Home</Link>
+            <Link {...navProps('cars')} to="/cars">Available Cars</Link>
+            <Link {...navProps('about')} to="/#about">About</Link>
+            <Link {...navProps('contact')} to="/#contact">Contact</Link>
+            <span className="nav-active-indicator" aria-hidden="true" style={indicator ? { width: indicator.width, transform: `translateX(${indicator.left}px)` } : undefined} />
+            <div className="nav-actions">
+              <a className="icon-button" href={dealership.instagram} target="_blank" rel="noreferrer" aria-label="AM MOTORS on Instagram"><Icon name="instagram" size={19} /></a>
+              <a className="icon-button" href={dealership.tiktok} target="_blank" rel="noreferrer" aria-label="AM MOTORS on TikTok"><Icon name="tiktok" size={19} className="tiktok-icon" /></a>
+              <a className="button button-small" href={`https://wa.me/${dealership.whatsapp}`} target="_blank" rel="noreferrer"><Icon name="whatsapp" size={17} /> Contact</a>
+            </div>
+          </nav>
+          <div className="nav-controls">
+            <button className="theme-toggle" type="button" onClick={onToggleTheme} aria-pressed={theme === 'light'} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
+              <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={21} />
+            </button>
+            <button className="menu-toggle" type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label="Toggle navigation">
+              <Icon name={open ? 'close' : 'menu'} size={24} />
+            </button>
           </div>
-        </nav>
+        </div>
       </div>
     </header>
   );

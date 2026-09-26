@@ -31,3 +31,23 @@ test('tracks the homepage section while scrolling', async () => {
   fireEvent.scroll(window);
   await waitFor(() => expect(document.querySelector('.nav-link[href="/#contact"]')).toHaveAttribute('aria-current', 'location'));
 });
+
+test('toggles the selected color mode', () => {
+  const onToggleTheme = vi.fn();
+  render(<MemoryRouter initialEntries={['/cars']}><Navbar theme="dark" onToggleTheme={onToggleTheme} /></MemoryRouter>);
+
+  const toggle = screen.getByRole('button', { name: 'Switch to light mode' });
+  expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  fireEvent.click(toggle);
+
+  expect(onToggleTheme).toHaveBeenCalledOnce();
+});
+
+test('keeps the white logo on the homepage and reserves the light-page logo variant', () => {
+  const { unmount } = render(<MemoryRouter initialEntries={['/']}><Navbar theme="light" /></MemoryRouter>);
+  expect(screen.getByAltText('AM MOTORS')).toHaveClass('brand-logo-dark');
+
+  unmount();
+  render(<MemoryRouter initialEntries={['/cars']}><Navbar theme="light" /></MemoryRouter>);
+  expect(screen.getByAltText('AM MOTORS')).toHaveClass('brand-logo-light');
+});
