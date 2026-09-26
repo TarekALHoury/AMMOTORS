@@ -52,10 +52,16 @@ function toPublicCar(snapshot) {
   };
 }
 
+function newestFirst(left, right) {
+  const leftCreated = left.data().createdAt?.toMillis?.() || 0;
+  const rightCreated = right.data().createdAt?.toMillis?.() || 0;
+  return rightCreated - leftCreated || left.id.localeCompare(right.id);
+}
+
 export async function getCars() {
   try {
     const snapshot = await getDocs(collection(firestore, 'cars'));
-    const cars = snapshot.docs.map(toPublicCar).sort((left, right) => left.id.localeCompare(right.id));
+    const cars = [...snapshot.docs].sort(newestFirst).map(toPublicCar);
     cacheCars(cars);
     return cars;
   } catch {

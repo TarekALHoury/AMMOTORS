@@ -43,6 +43,15 @@ describe('offline car data cache', () => {
     expect(await getCarById('car-1')).toEqual(expect.objectContaining({ model: 'M4' }));
   });
 
+  test('orders newly created Firestore cars first for the homepage latest section', async () => {
+    firestoreMocks.getDocs.mockResolvedValue({ docs: [
+      snapshot('older', { ...carData, createdAt: { toMillis: () => 100 } }),
+      snapshot('newest', { ...carData, model: 'Newest', createdAt: { toMillis: () => 200 } }),
+    ] });
+    const cars = await getCars();
+    expect(cars.map((car) => car.id)).toEqual(['newest', 'older']);
+  });
+
   test('still reports an error when offline data has never been cached', async () => {
     firestoreMocks.getDocs.mockRejectedValueOnce(new Error('offline'));
     await expect(getCars()).rejects.toMatchObject({ status: 0 });
