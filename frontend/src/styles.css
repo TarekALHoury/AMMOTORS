@@ -764,49 +764,18 @@ p {
 }
 
 .about-visual {
-  position: relative;
-  display: flex;
   min-height: 370px;
-  align-items: end;
-  justify-content: space-between;
   overflow: hidden;
-  padding: 34px;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: radial-gradient(circle at 70% 25%, rgba(119, 132, 139, 0.25), transparent 42%), linear-gradient(135deg, #171d21, #0c1013);
+  background: #171d21;
 }
 
-.about-visual::before,
-.about-visual::after {
-  position: absolute;
-  width: 280px;
-  height: 280px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 50%;
-  content: "";
-}
-
-.about-visual::before { top: -80px; right: -60px; }
-.about-visual::after { top: -28px; right: -112px; }
-
-.about-brand-mark {
-  position: relative;
-  z-index: 1;
-  width: clamp(190px, 68%, 310px);
-  height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.42));
-}
-
-.about-visual small {
-  position: relative;
-  z-index: 1;
-  color: #b8c0c4;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  writing-mode: vertical-rl;
+.about-visual iframe {
+  display: block;
+  width: 100%;
+  height: 370px;
+  border: 0;
 }
 
 .about-copy > p:last-of-type {
@@ -1419,8 +1388,8 @@ p {
   .latest-heading-actions { width: 100%; justify-content: space-between; }
   .car-grid { grid-template-columns: 1fr; }
   .about-layout { gap: 40px; }
-  .about-visual { min-height: 240px; padding: 24px; }
-  .about-brand-mark { width: min(72%, 250px); }
+  .about-visual { min-height: 240px; }
+  .about-visual iframe { height: 240px; }
   .contact-panel { gap: 34px; padding: 28px 20px; }
   .contact-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer-main { grid-template-columns: 1fr 1fr; }
@@ -1696,15 +1665,10 @@ p {
 .car-card-image { transform: translateZ(10px); transition: transform 220ms ease; }
 .car-card:hover .car-card-image { transform: translateZ(28px); }
 .car-card-body { position: relative; z-index: 3; transform: translateZ(20px); }
-.about-visual { transform-style: preserve-3d; transition: transform 160ms ease,box-shadow 240ms ease,border-color 240ms ease; }
-.about-visual:hover { border-color: rgba(255,255,255,.24); box-shadow: -16px 28px 60px rgba(0,0,0,.42); transform: rotateX(var(--tilt-x,1deg)) rotateY(var(--tilt-y,-1deg)) scale(1.018); }
-.about-brand-mark { transform: translateZ(34px); transition: transform 260ms ease; }
-.about-visual:hover .about-brand-mark { transform: translateZ(52px) scale(1.035); }
-.about-visual small { transform: translateZ(24px); }
 @keyframes public-rise-in { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes public-card-in { from { opacity: 0; transform: translateY(28px) rotateX(-5deg); } to { opacity: 1; transform: translateY(0) rotateX(0); } }
 @keyframes hero-vehicle-in { from { opacity: 0; transform: translateX(calc(var(--hero-vehicle-offset) + 24px)) rotateY(-8deg); } to { opacity: 1; transform: translateX(var(--hero-vehicle-offset)) rotateY(0); } }
-@media (max-width: 720px) { .car-card:hover, .benefit:hover { transform: translateY(-3px); } .about-visual:hover { transform: none; } }
+@media (max-width: 720px) { .car-card:hover, .benefit:hover { transform: translateY(-3px); } }
 
 @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
   .hero { height: max(900px, calc(100svh - var(--nav-height))); min-height: 0; }
@@ -1734,5 +1698,5 @@ p {
     transition-duration: 0.01ms !important;
   }
   .hero-copy-block, .hero-vehicle, .hero-benefits, .car-card { animation: none !important; }
-  .car-card:hover, .benefit:hover, .about-visual:hover { transform: none; }
+  .car-card:hover, .benefit:hover { transform: none; }
 }
