@@ -1275,6 +1275,7 @@ p {
 .description-section p:last-child {
   max-width: 800px;
   margin-bottom: 0;
+  overflow-wrap: anywhere;
 }
 
 .state-page {
