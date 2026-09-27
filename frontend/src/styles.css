@@ -1982,3 +1982,9 @@ p {
   .nav-container { gap: 12px; }
   .nav-right { gap: 0; }
 }
+
+@media (min-width: 851px) {
+  .site-shell.theme-light:not(.home-route) .nav-menu {
+    background: transparent;
+  }
+}
