@@ -265,11 +265,11 @@ describe('admin dashboard UI', () => {
       await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
       await user.click(screen.getByRole('combobox', { name: 'Make *' }));
       const menu = screen.getByRole('listbox', { name: 'Make * options' }).parentElement;
-      await waitFor(() => expect(menu).toHaveStyle({ top: '20px', bottom: 'auto', maxHeight: '304px' }));
+      await waitFor(() => expect(menu).toHaveStyle({ top: '126px', bottom: 'auto', maxHeight: '198px' }));
       viewport.height = 260;
       viewport.offsetTop = 20;
       viewport.dispatchEvent(new Event('resize'));
-      await waitFor(() => expect(menu).toHaveStyle({ top: '28px', maxHeight: '244px' }));
+      await waitFor(() => expect(menu).toHaveStyle({ top: '92px', maxHeight: '180px' }));
     } finally {
       if (originalWidth) Object.defineProperty(window, 'innerWidth', originalWidth);
       if (originalViewport) Object.defineProperty(window, 'visualViewport', originalViewport);

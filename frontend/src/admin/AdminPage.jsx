@@ -325,8 +325,9 @@ function SelectField({ label, ariaLabel = label, name, value, error, onChange, o
     const viewport = window.visualViewport;
     function fitMenuToKeyboard() {
       const height = viewport?.height || window.innerHeight;
-      const top = viewport?.offsetTop || 0;
-      setMobileMenuStyle({ top: `${Math.round(top + 8)}px`, bottom: 'auto', maxHeight: `${Math.max(180, Math.round(height - 16))}px` });
+      const menuHeight = Math.min(360, Math.max(180, Math.round(height * 0.62)), Math.max(120, Math.round(height - 16)));
+      const top = (viewport?.offsetTop || 0) + height - menuHeight - 8;
+      setMobileMenuStyle({ top: `${Math.max(8, Math.round(top))}px`, bottom: 'auto', maxHeight: `${menuHeight}px` });
     }
     fitMenuToKeyboard();
     viewport?.addEventListener('resize', fitMenuToKeyboard);
