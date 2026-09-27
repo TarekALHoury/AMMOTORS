@@ -191,6 +191,16 @@ describe('admin dashboard UI', () => {
     expect(screen.getByRole('option', { name: 'Self-charging Hybrid (HEV)' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Plug-in Hybrid (PHEV)' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Fully Electric (BEV)' })).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(screen.getByLabelText('Exterior color *')).toHaveRole('combobox');
+    expect(screen.getByLabelText('Interior color *')).toHaveRole('combobox');
+    await user.click(screen.getByLabelText('Exterior color *'));
+    expect(screen.getByRole('option', { name: 'Silver' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Purple' })).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    await user.click(screen.getByLabelText('Interior color *'));
+    expect(screen.getByRole('option', { name: 'Tan' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Burgundy' })).toBeInTheDocument();
   });
 
   test('restricts mileage to non-negative whole numbers and requests a mobile number keypad', async () => {

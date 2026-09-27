@@ -65,6 +65,8 @@ export const vehicleMakes = Object.keys(vehicleModels).sort((left, right) => lef
 export const drivetrainOptions = ['FWD', 'RWD', 'AWD', '4WD'];
 export const transmissionOptions = ['Automatic', 'Manual', 'CVT', 'Dual-clutch', 'Automated manual'];
 export const fuelOptions = ['Petrol', 'Diesel', 'Hybrid', 'Plug-in Hybrid', 'Electric', 'LPG', 'Hydrogen'];
+export const exteriorColorOptions = ['Black', 'White', 'Silver', 'Gray', 'Blue', 'Red', 'Green', 'Brown', 'Beige', 'Gold', 'Orange', 'Yellow', 'Purple'];
+export const interiorColorOptions = ['Black', 'Gray', 'Beige', 'Brown', 'White', 'Tan', 'Red', 'Blue', 'Burgundy'];
 export const vehicleOptionLabels = {
   'Automated manual': 'Automated Manual Transmission (AMT)',
   Hybrid: 'Self-charging Hybrid (HEV)',
