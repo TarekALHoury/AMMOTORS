@@ -6,7 +6,6 @@ function CarGallery({ images = [], name }) {
   const safeImages = images.filter(Boolean);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [animationDirection, setAnimationDirection] = useState('next');
   const touchStartX = useRef(null);
   const suppressOpen = useRef(false);
   const thumbnailsRef = useRef(null);
@@ -15,7 +14,6 @@ function CarGallery({ images = [], name }) {
   useEffect(() => {
     setActiveIndex(0);
     setIsLightboxOpen(false);
-    setAnimationDirection('next');
   }, [images]);
 
   useEffect(() => {
@@ -51,13 +49,11 @@ function CarGallery({ images = [], name }) {
   if (!safeImages.length) return <div className="gallery-placeholder">Image coming soon</div>;
 
   function move(direction) {
-    setAnimationDirection(direction > 0 ? 'next' : 'previous');
-    setActiveIndex((current) => (current + direction + safeImages.length) % safeImages.length);
+    setActiveIndex((current) => Math.min(Math.max(current + direction, 0), safeImages.length - 1));
   }
 
   function selectImage(index) {
     if (index === activeIndex) return;
-    setAnimationDirection(index > activeIndex ? 'next' : 'previous');
     setActiveIndex(index);
   }
 
@@ -94,13 +90,13 @@ function CarGallery({ images = [], name }) {
           onTouchEnd={(event) => finishSwipe(event, true)}
           aria-label={`Enlarge ${name} image ${activeIndex + 1}`}
         >
-          <VehicleImage
-            key={`main-${safeImages[activeIndex]}`}
-            className={`gallery-active-image gallery-slide-${animationDirection}`}
-            src={safeImages[activeIndex]}
-            alt={`${name} view ${activeIndex + 1}`}
-            loading="eager"
-          />
+          <span className="gallery-image-track" style={{ transform: `translate3d(-${activeIndex * 100}%, 0, 0)` }}>
+            {safeImages.map((image, index) => (
+              <span className="gallery-image-slide" aria-hidden={index !== activeIndex} key={`${image}-${index}`}>
+                <VehicleImage src={image} alt={`${name} view ${index + 1}`} loading={index === 0 ? 'eager' : 'lazy'} />
+              </span>
+            ))}
+          </span>
           <span className="gallery-expand-hint" aria-hidden="true"><Expand size={17} /> View larger</span>
         </button>
       </div>
@@ -128,13 +124,13 @@ function CarGallery({ images = [], name }) {
           <div className="gallery-lightbox-content" onClick={(event) => event.stopPropagation()}>
             <button type="button" className="gallery-lightbox-close" onClick={() => setIsLightboxOpen(false)} aria-label="Close enlarged image"><X /></button>
             <div className="gallery-lightbox-image" onTouchStart={startSwipe} onTouchEnd={finishSwipe}>
-              <VehicleImage
-                key={`lightbox-${safeImages[activeIndex]}`}
-                className={`gallery-active-image gallery-slide-${animationDirection}`}
-                src={safeImages[activeIndex]}
-                alt={`${name} enlarged view ${activeIndex + 1}`}
-                loading="eager"
-              />
+              <div className="gallery-image-track" style={{ transform: `translate3d(-${activeIndex * 100}%, 0, 0)` }}>
+                {safeImages.map((image, index) => (
+                  <div className="gallery-image-slide" aria-hidden={index !== activeIndex} key={`${image}-${index}`}>
+                    <VehicleImage src={image} alt={`${name} enlarged view ${index + 1}`} loading={index === activeIndex ? 'eager' : 'lazy'} />
+                  </div>
+                ))}
+              </div>
             </div>
             <p className="gallery-lightbox-count">{activeIndex + 1} / {safeImages.length}</p>
           </div>
