@@ -31,3 +31,22 @@ test('tracks the homepage section while scrolling', async () => {
   fireEvent.scroll(window);
   await waitFor(() => expect(document.querySelector('.nav-link[href="/#contact"]')).toHaveAttribute('aria-current', 'location'));
 });
+
+test('toggles the selected color mode', () => {
+  const onToggleTheme = vi.fn();
+  render(<MemoryRouter initialEntries={['/cars']}><Navbar theme="dark" onToggleTheme={onToggleTheme} /></MemoryRouter>);
+
+  const toggle = screen.getByRole('button', { name: 'Switch to light mode' });
+  expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  fireEvent.click(toggle);
+
+  expect(onToggleTheme).toHaveBeenCalledOnce();
+});
+
+test('provides a black mobile logo while preserving the white desktop navbar logo', () => {
+  render(<MemoryRouter initialEntries={['/cars']}><Navbar theme="light" /></MemoryRouter>);
+
+  expect(screen.getByAltText('AM MOTORS')).toHaveClass('brand-logo-dark');
+  expect(document.querySelector('.brand-logo-picture source')).toHaveAttribute('media', '(max-width: 850px)');
+  expect(document.querySelector('.brand-logo-picture source')).toHaveAttribute('srcset', expect.stringContaining('am-motors-logo-black'));
+});

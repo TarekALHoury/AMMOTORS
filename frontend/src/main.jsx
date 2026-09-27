@@ -23,7 +23,7 @@ function finishInitialLoader() {
     window.setTimeout(() => {
       initialLoader.classList.add('is-hidden');
       window.setTimeout(() => initialLoader.remove(), 300);
-    }, 220);
+    }, 300);
   }, remainingTime);
 }
 

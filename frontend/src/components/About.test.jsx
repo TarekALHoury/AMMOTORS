@@ -2,11 +2,10 @@ import { render, screen } from '@testing-library/react';
 import { expect, test } from 'vitest';
 import About from './About.jsx';
 
-test('uses the metallic AM logo in the responsive About panel', () => {
+test('shows the dealership map in the About panel', () => {
   const { container } = render(<About />);
-  const logo = screen.getByRole('img', { name: 'AM Motors metallic logo' });
-  expect(logo).toHaveClass('about-brand-mark');
-  expect(logo.getAttribute('src')).toContain('am-mark-metallic.png');
-  expect(container.querySelector('.about-visual')).toContainElement(logo);
-  expect(screen.getByText('Driven by quality')).toBeInTheDocument();
+  const map = screen.getByTitle('AM MOTORS dealership location');
+  expect(map).toHaveAttribute('src', expect.stringContaining('q=33.8359833,35.5650153'));
+  expect(container.querySelector('.about-visual')).toContainElement(map);
+  expect(container.querySelector('.about-visual').children).toHaveLength(1);
 });
