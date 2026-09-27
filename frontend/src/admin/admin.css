@@ -340,6 +340,24 @@
   .admin-filter-panel input, .admin-filter-panel select { min-height: 52px; font-size: 16px; }
   .admin-filter-footer { align-items: stretch; flex-direction: column; }
   .admin-filter-footer button { min-height: 44px; }
+  .admin-table-wrap { overflow: visible; border: 0; background: transparent; }
+  .admin-table { min-width: 0; border-collapse: separate; border-spacing: 0 14px; }
+  .admin-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .admin-table tbody { display: grid; gap: 14px; }
+  .admin-table tr { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); box-shadow: 0 14px 30px rgba(0,0,0,.18); }
+  .admin-table td { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--line); }
+  .admin-table td::before { color: var(--muted); content: attr(data-label); font-size: .63rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .admin-table td:first-child, .admin-table td:last-child { grid-column: 1/-1; }
+  .admin-table td:first-child { padding: 14px; background: linear-gradient(120deg,rgba(255,255,255,.035),transparent); }
+  .admin-table td:first-child::before, .admin-table td:last-child::before { display: none; }
+  .admin-table td:nth-last-child(2) { border-bottom: 0; }
+  .admin-table td:last-child { padding: 9px; border-bottom: 0; border-top: 1px solid var(--line); }
+  .admin-vehicle-cell { width: 100%; min-width: 0; }
+  .admin-vehicle-cell img { width: 84px; height: 60px; border-radius: 6px; }
+  .admin-vehicle-cell span { min-width: 0; }
+  .admin-vehicle-cell strong, .admin-vehicle-cell small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-row-actions { width: 100%; gap: 7px; }
+  .admin-row-actions button { flex: 1; width: auto; border-radius: 6px; background: rgba(255,255,255,.045); }
   .admin-image-previews { grid-template-columns: repeat(2,1fr); }
   .admin-recent-row { grid-template-columns: 62px minmax(0,1fr) auto; gap: 12px; padding-inline: 14px; }
   .admin-recent-row img { width: 62px; height: 46px; }

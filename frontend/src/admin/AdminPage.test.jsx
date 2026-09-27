@@ -87,6 +87,7 @@ describe('admin dashboard UI', () => {
     expect(document.querySelector('.admin-toolbar select')).not.toBeInTheDocument();
     expect(document.querySelector('.admin-toolbar .lucide-badge-check')).toBeInTheDocument();
     expect(document.querySelector('.admin-toolbar .lucide-arrow-up-down')).toBeInTheDocument();
+    expect(document.querySelector('.admin-table td[data-label="Mileage"]')).toHaveTextContent('12,000 km');
     await user.click(screen.getByText(/^Advanced filters/));
     expect(document.querySelector('.lucide-sliders-horizontal')).toBeInTheDocument();
     expect(document.querySelector('.admin-filter-grid .lucide-car-front')).toBeInTheDocument();
