@@ -89,7 +89,7 @@ function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
           </nav>
           <div className="nav-controls">
             <button className="theme-toggle" type="button" onClick={onToggleTheme} aria-pressed={theme === 'light'} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
-              <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={21} />
+              <Icon name={theme === 'dark' ? 'moon' : 'sun'} size={21} />
             </button>
             <button className="menu-toggle" type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label="Toggle navigation">
               <Icon name={open ? 'close' : 'menu'} size={24} />

@@ -38,6 +38,7 @@ test('toggles the selected color mode', () => {
 
   const toggle = screen.getByRole('button', { name: 'Switch to light mode' });
   expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  expect(toggle.querySelector('img')).toHaveAttribute('src', expect.stringContaining('moon'));
   fireEvent.click(toggle);
 
   expect(onToggleTheme).toHaveBeenCalledOnce();
@@ -47,6 +48,7 @@ test('provides a black mobile logo while preserving the white desktop navbar log
   render(<MemoryRouter initialEntries={['/cars']}><Navbar theme="light" /></MemoryRouter>);
 
   expect(screen.getByAltText('AM MOTORS')).toHaveClass('brand-logo-dark');
+  expect(screen.getByRole('button', { name: 'Switch to dark mode' }).querySelector('svg')).toBeInTheDocument();
   expect(document.querySelector('.brand-logo-picture source')).toHaveAttribute('media', '(max-width: 850px)');
   expect(document.querySelector('.brand-logo-picture source')).toHaveAttribute('srcset', expect.stringContaining('am-motors-logo-black'));
 });
