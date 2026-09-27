@@ -1466,7 +1466,7 @@ p {
   .latest-section { padding-top: 0; }
   .hero {
     display: block;
-    height: 300svh;
+    height: var(--stable-mobile-scroll-height, 300lvh);
     min-height: 1680px;
     overflow: visible;
     background: #080b0d;
@@ -1480,7 +1480,7 @@ p {
   .mobile-cinematic-frame {
     position: sticky;
     top: var(--nav-height);
-    height: calc(100svh - var(--nav-height));
+    height: calc(var(--stable-mobile-viewport-height, 100lvh) - var(--nav-height));
     min-height: 560px;
     overflow: hidden;
     isolation: isolate;
@@ -1509,7 +1509,7 @@ p {
   .mobile-cinematic-intro {
     position: absolute;
     z-index: 3;
-    top: clamp(78px, 12svh, 112px);
+    top: max(var(--stable-mobile-intro-offset, clamp(78px, 12lvh, 112px)), calc(env(safe-area-inset-top) + 24px));
     right: max(14px, env(safe-area-inset-right));
     left: max(14px, env(safe-area-inset-left));
     opacity: var(--mobile-intro, 1);
@@ -1710,7 +1710,7 @@ p {
 @media (max-width: 720px) { .car-card:hover, .benefit:hover { transform: translateY(-3px); } }
 
 @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
-  .hero { height: max(900px, calc(100svh - var(--nav-height))); min-height: 0; }
+  .hero { height: max(900px, calc(var(--stable-mobile-viewport-height, 100lvh) - var(--nav-height))); min-height: 0; }
   .mobile-cinematic-frame { position: relative; top: 0; height: 100%; }
   .mobile-cinematic-photo { transform: none; }
   .mobile-cinematic-intro { opacity: 1; transform: none; }

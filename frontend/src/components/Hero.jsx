@@ -13,19 +13,23 @@ function Hero() {
   useEffect(() => {
     const mobileHero = mobileHeroRef.current;
     if (!mobileHero) return undefined;
-    const frame = mobileHero.querySelector('.mobile-cinematic-frame');
     const photo = mobileHero.querySelector('.mobile-cinematic-photo');
     const introLayer = mobileHero.querySelector('.mobile-cinematic-intro');
     const featuresLayer = mobileHero.querySelector('.mobile-cinematic-benefits');
     const detailsLayer = mobileHero.querySelector('.mobile-cinematic-details');
-    const navHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-height')) || 76;
 
     const reducedMotion = window.matchMedia
       ? window.matchMedia('(prefers-reduced-motion: reduce)')
       : { matches: false, addEventListener() {}, removeEventListener() {} };
+    const mobileLayout = window.matchMedia
+      ? window.matchMedia('(max-width: 767px)')
+      : { matches: window.innerWidth < 768 };
     let frameId = 0;
+    let layoutFrameId = 0;
     let lastProgress = -1;
-    let lastViewportHeight = 0;
+    let stableViewportHeight = 0;
+    let stableViewportWidth = document.documentElement.clientWidth || window.innerWidth;
+    let scrollRange = 1;
 
     const smoothstep = (start, end, value) => {
       const progress = Math.min(Math.max((value - start) / (end - start), 0), 1);
@@ -35,17 +39,50 @@ function Hero() {
       if (element.style.getPropertyValue(name) !== value) element.style.setProperty(name, value);
     };
 
+    const readOrientation = () => window.screen?.orientation?.type
+      || ((document.documentElement.clientWidth || window.innerWidth) > stableViewportHeight ? 'landscape' : 'portrait');
+    let stableOrientation = readOrientation();
+
+    const measureLargeViewportHeight = () => {
+      const probe = document.createElement('div');
+      probe.setAttribute('aria-hidden', 'true');
+      probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100lvh;visibility:hidden;pointer-events:none;';
+      document.body.appendChild(probe);
+      const height = probe.getBoundingClientRect().height;
+      probe.remove();
+      return height;
+    };
+
+    const captureStableLayout = () => {
+      if (!mobileLayout.matches) return;
+
+      mobileHero.style.removeProperty('--stable-mobile-viewport-height');
+      mobileHero.style.removeProperty('--stable-mobile-scroll-height');
+      mobileHero.style.removeProperty('--stable-mobile-intro-offset');
+      const largeViewportHeight = Math.round(measureLargeViewportHeight());
+      stableViewportHeight = Math.max(
+        largeViewportHeight,
+        document.documentElement.clientHeight || 0,
+        window.innerHeight || 0,
+        1,
+      );
+      stableViewportWidth = document.documentElement.clientWidth || window.innerWidth;
+      stableOrientation = readOrientation();
+      setVariable(mobileHero, '--stable-mobile-viewport-height', `${stableViewportHeight}px`);
+      setVariable(mobileHero, '--stable-mobile-scroll-height', `${stableViewportHeight * 3}px`);
+      setVariable(mobileHero, '--stable-mobile-intro-offset', `${Math.min(Math.max(stableViewportHeight * 0.12, 78), 112)}px`);
+      scrollRange = Math.max(mobileHero.offsetHeight - stableViewportHeight, 1);
+      lastProgress = -1;
+    };
+
     const update = () => {
       frameId = 0;
-      if (window.innerWidth >= 768 || reducedMotion.matches) return;
+      if (!mobileLayout.matches || reducedMotion.matches) return;
 
       const bounds = mobileHero.getBoundingClientRect();
-      const viewportHeight = frame.offsetHeight + navHeight;
-      const scrollRange = Math.max(mobileHero.offsetHeight - viewportHeight, 1);
       const progress = Math.min(Math.max(-bounds.top / scrollRange, 0), 1);
-      if (Math.abs(progress - lastProgress) < 0.001 && lastViewportHeight === viewportHeight) return;
+      if (Math.abs(progress - lastProgress) < 0.001) return;
       lastProgress = progress;
-      lastViewportHeight = viewportHeight;
       const intro = 1 - smoothstep(0.17, 0.4, progress);
       const features = 1 - smoothstep(0.18, 0.4, progress);
       const details = smoothstep(0.43, 0.68, progress);
@@ -63,16 +100,42 @@ function Hero() {
       if (!frameId) frameId = window.requestAnimationFrame(update);
     };
 
+    const recaptureLayout = () => {
+      layoutFrameId = 0;
+      captureStableLayout();
+      requestUpdate();
+    };
+
+    const requestLayoutRecapture = () => {
+      if (!layoutFrameId) layoutFrameId = window.requestAnimationFrame(recaptureLayout);
+    };
+
+    const handleResize = () => {
+      const currentWidth = document.documentElement.clientWidth || window.innerWidth;
+      const widthDelta = Math.abs(currentWidth - stableViewportWidth);
+      const meaningfulWidthChange = widthDelta >= Math.max(48, stableViewportWidth * 0.08);
+      const orientationChanged = readOrientation() !== stableOrientation;
+      if (meaningfulWidthChange || orientationChanged) requestLayoutRecapture();
+    };
+
+    const handleOrientationChange = () => requestLayoutRecapture();
+
+    captureStableLayout();
     window.addEventListener('scroll', requestUpdate, { passive: true });
-    window.addEventListener('resize', requestUpdate);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    window.screen?.orientation?.addEventListener?.('change', handleOrientationChange);
     reducedMotion.addEventListener('change', requestUpdate);
     update();
 
     return () => {
       window.removeEventListener('scroll', requestUpdate);
-      window.removeEventListener('resize', requestUpdate);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      window.screen?.orientation?.removeEventListener?.('change', handleOrientationChange);
       reducedMotion.removeEventListener('change', requestUpdate);
       if (frameId) window.cancelAnimationFrame(frameId);
+      if (layoutFrameId) window.cancelAnimationFrame(layoutFrameId);
     };
   }, []);
 
