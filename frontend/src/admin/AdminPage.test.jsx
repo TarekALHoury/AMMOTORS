@@ -78,11 +78,12 @@ describe('admin dashboard UI', () => {
     renderAdmin();
     await signIn(user);
     await user.click(screen.getByRole('button', { name: /Inventory 3/i }));
-    const search = screen.getByPlaceholderText('Search all vehicle details');
+    const search = screen.getByPlaceholderText('Search make, model, year, specs…');
     await user.type(search, 'refined practical');
     expect(screen.getByText('Audi Q5 Premium Plus')).toBeInTheDocument();
     expect(screen.queryByText('BMW M4 Competition')).not.toBeInTheDocument();
-    await user.clear(search);
+    await user.click(screen.getByRole('button', { name: 'Clear inventory search' }));
+    expect(search).toHaveValue('');
     expect(document.querySelector('.admin-toolbar select')).not.toBeInTheDocument();
     expect(document.querySelector('.admin-toolbar .lucide-badge-check')).toBeInTheDocument();
     expect(document.querySelector('.admin-toolbar .lucide-arrow-up-down')).toBeInTheDocument();
