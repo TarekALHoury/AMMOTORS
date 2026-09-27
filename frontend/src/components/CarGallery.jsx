@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Expand, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Expand, X } from 'lucide-react';
 import VehicleImage from './VehicleImage.jsx';
 
 function CarGallery({ images = [], name }) {
   const safeImages = images.filter(Boolean);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const touchStartX = useRef(null);
+  const suppressOpen = useRef(false);
 
   useEffect(() => {
     setActiveIndex(0);
@@ -41,24 +43,42 @@ function CarGallery({ images = [], name }) {
     setActiveIndex((current) => (current + direction + safeImages.length) % safeImages.length);
   }
 
+  function startSwipe(event) {
+    touchStartX.current = event.touches[0]?.clientX ?? null;
+  }
+
+  function finishSwipe(event, preventOpen = false) {
+    if (touchStartX.current === null || safeImages.length < 2) return;
+    const distance = touchStartX.current - (event.changedTouches[0]?.clientX ?? touchStartX.current);
+    touchStartX.current = null;
+
+    if (Math.abs(distance) < 45) return;
+    if (preventOpen) suppressOpen.current = true;
+    move(distance > 0 ? 1 : -1);
+  }
+
+  function openLightbox() {
+    if (suppressOpen.current) {
+      suppressOpen.current = false;
+      return;
+    }
+    setIsLightboxOpen(true);
+  }
+
   return (
     <div className="gallery">
       <div className="gallery-main">
         <button
           type="button"
           className="gallery-expand-trigger"
-          onClick={() => setIsLightboxOpen(true)}
+          onClick={openLightbox}
+          onTouchStart={startSwipe}
+          onTouchEnd={(event) => finishSwipe(event, true)}
           aria-label={`Enlarge ${name} image ${activeIndex + 1}`}
         >
           <VehicleImage src={safeImages[activeIndex]} alt={`${name} view ${activeIndex + 1}`} loading="eager" />
           <span className="gallery-expand-hint" aria-hidden="true"><Expand size={17} /> View larger</span>
         </button>
-        {safeImages.length > 1 && (
-          <>
-            <button type="button" className="gallery-control previous" onClick={() => move(-1)} aria-label="Previous image"><ChevronLeft /></button>
-            <button type="button" className="gallery-control next" onClick={() => move(1)} aria-label="Next image"><ChevronRight /></button>
-          </>
-        )}
       </div>
 
       {safeImages.length > 1 && (
@@ -82,14 +102,8 @@ function CarGallery({ images = [], name }) {
         <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={`${name} enlarged image`} onClick={() => setIsLightboxOpen(false)}>
           <div className="gallery-lightbox-content" onClick={(event) => event.stopPropagation()}>
             <button type="button" className="gallery-lightbox-close" onClick={() => setIsLightboxOpen(false)} aria-label="Close enlarged image"><X /></button>
-            <div className="gallery-lightbox-image">
+            <div className="gallery-lightbox-image" onTouchStart={startSwipe} onTouchEnd={finishSwipe}>
               <VehicleImage src={safeImages[activeIndex]} alt={`${name} enlarged view ${activeIndex + 1}`} loading="eager" />
-              {safeImages.length > 1 && (
-                <>
-                  <button type="button" className="gallery-lightbox-control previous" onClick={() => move(-1)} aria-label="Previous enlarged image"><ChevronLeft /></button>
-                  <button type="button" className="gallery-lightbox-control next" onClick={() => move(1)} aria-label="Next enlarged image"><ChevronRight /></button>
-                </>
-              )}
             </div>
             <p className="gallery-lightbox-count">{activeIndex + 1} / {safeImages.length}</p>
           </div>
