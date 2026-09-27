@@ -295,6 +295,7 @@ function SelectField({ label, ariaLabel = label, name, value, error, onChange, o
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(Math.max(0, resolvedOptions.indexOf(value)));
+  const [mobileMenuStyle, setMobileMenuStyle] = useState(undefined);
   const rootRef = useRef(null);
   const triggerRef = useRef(null);
   const searchRef = useRef(null);
@@ -314,6 +315,29 @@ function SelectField({ label, ariaLabel = label, name, value, error, onChange, o
     if (open && searchable) window.requestAnimationFrame(() => searchRef.current?.focus());
   }, [open, searchable]);
   useEffect(() => { setActiveIndex(0); }, [query]);
+  useEffect(() => {
+    if (!open) {
+      setMobileMenuStyle(undefined);
+      return undefined;
+    }
+    const usesMobileMenu = window.innerWidth <= 600 || window.matchMedia?.('(max-device-width: 600px) and (hover: none) and (pointer: coarse)').matches;
+    if (!usesMobileMenu) return undefined;
+    const viewport = window.visualViewport;
+    function fitMenuToKeyboard() {
+      const height = viewport?.height || window.innerHeight;
+      const top = viewport?.offsetTop || 0;
+      setMobileMenuStyle({ top: `${Math.round(top + 8)}px`, bottom: 'auto', maxHeight: `${Math.max(180, Math.round(height - 16))}px` });
+    }
+    fitMenuToKeyboard();
+    viewport?.addEventListener('resize', fitMenuToKeyboard);
+    viewport?.addEventListener('scroll', fitMenuToKeyboard);
+    window.addEventListener('orientationchange', fitMenuToKeyboard);
+    return () => {
+      viewport?.removeEventListener('resize', fitMenuToKeyboard);
+      viewport?.removeEventListener('scroll', fitMenuToKeyboard);
+      window.removeEventListener('orientationchange', fitMenuToKeyboard);
+    };
+  }, [open]);
 
   function choose(nextValue) {
     onChange({ target: { name, value: nextValue } });
@@ -358,7 +382,7 @@ function SelectField({ label, ariaLabel = label, name, value, error, onChange, o
     <button ref={triggerRef} id={`${id}-trigger`} className="admin-select-trigger" type="button" role="combobox" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-listbox`} aria-activedescendant={open && visibleOptions[activeIndex] ? `${id}-option-${activeIndex}` : undefined} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} disabled={disabled} onClick={() => { setQuery(''); setOpen((current) => !current); }} onKeyDown={handleKeyDown}>
       {LeadingIcon && <LeadingIcon className="admin-select-leading-icon" size={18} aria-hidden="true" />}{leadingIconSrc && <img className="admin-select-leading-image" src={leadingIconSrc} alt="" aria-hidden="true" data-icon={leadingIconName} />}<span className={`admin-select-value ${value ? '' : 'placeholder'}`}>{value ? optionLabels[value] || value : placeholder}</span><span className="admin-select-chevron" aria-hidden="true" />
     </button>
-    {open && <div className="admin-select-menu">{searchable && <label className="admin-select-search"><span className="sr-only">Search {label.replace(' *', '')}</span><AdminIcon name="search" /><input ref={searchRef} type="search" aria-label={`Search ${label.replace(' *', '')}`} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleSearchKeyDown} placeholder={`Search ${label.replace(' *', '').toLowerCase()}s`} /></label>}<div className="admin-select-options" id={`${id}-listbox`} role="listbox" aria-label={`${label} options`}>{visibleOptions.map((option, index) => <button id={`${id}-option-${index}`} type="button" role="option" aria-selected={option === value} className={index === activeIndex ? 'is-active' : ''} key={option} onPointerMove={() => setActiveIndex(index)} onClick={() => choose(option)}>{optionLabels[option] || option}{hasUnsupportedValue && option === value ? ' (Other)' : ''}{option === value && <Check size={16} aria-hidden="true" />}</button>)}{!visibleOptions.length && <p className="admin-select-empty">No matching makes found.</p>}</div></div>}
+    {open && <div className="admin-select-menu" style={mobileMenuStyle}>{searchable && <label className="admin-select-search"><span className="sr-only">Search {label.replace(' *', '')}</span><AdminIcon name="search" /><input ref={searchRef} type="search" aria-label={`Search ${label.replace(' *', '')}`} value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleSearchKeyDown} placeholder={`Search ${label.replace(' *', '').toLowerCase()}s`} /></label>}<div className="admin-select-options" id={`${id}-listbox`} role="listbox" aria-label={`${label} options`}>{visibleOptions.map((option, index) => <button id={`${id}-option-${index}`} type="button" role="option" aria-selected={option === value} className={index === activeIndex ? 'is-active' : ''} key={option} onPointerMove={() => setActiveIndex(index)} onClick={() => choose(option)}>{optionLabels[option] || option}{hasUnsupportedValue && option === value ? ' (Other)' : ''}{option === value && <Check size={16} aria-hidden="true" />}</button>)}{!visibleOptions.length && <p className="admin-select-empty">No matching makes found.</p>}</div></div>}
     {error && <small id={errorId} className="admin-field-error">{error}</small>}
   </div>;
 }

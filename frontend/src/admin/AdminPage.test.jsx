@@ -1,5 +1,5 @@
 import { MemoryRouter } from 'react-router-dom';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import AdminPage, { demoCars } from './AdminPage.jsx';
@@ -249,6 +249,32 @@ describe('admin dashboard UI', () => {
     await user.click(screen.getByRole('option', { name: 'Land Rover' }));
     expect(make).toHaveTextContent('Land Rover');
     expect(make).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('keeps the searchable make menu inside the mobile keyboard viewport', async () => {
+    const originalWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth');
+    const originalViewport = Object.getOwnPropertyDescriptor(window, 'visualViewport');
+    const viewport = new EventTarget();
+    Object.defineProperties(viewport, { height: { value: 320, writable: true }, offsetTop: { value: 12, writable: true } });
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 });
+    Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
+    try {
+      const user = userEvent.setup();
+      renderAdmin();
+      await signIn(user);
+      await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
+      await user.click(screen.getByRole('combobox', { name: 'Make *' }));
+      const menu = screen.getByRole('listbox', { name: 'Make * options' }).parentElement;
+      await waitFor(() => expect(menu).toHaveStyle({ top: '20px', bottom: 'auto', maxHeight: '304px' }));
+      viewport.height = 260;
+      viewport.offsetTop = 20;
+      viewport.dispatchEvent(new Event('resize'));
+      await waitFor(() => expect(menu).toHaveStyle({ top: '28px', maxHeight: '244px' }));
+    } finally {
+      if (originalWidth) Object.defineProperty(window, 'innerWidth', originalWidth);
+      if (originalViewport) Object.defineProperty(window, 'visualViewport', originalViewport);
+      else delete window.visualViewport;
+    }
   });
 
   test('exposes a keyboard-operable mobile navigation drawer', async () => {
