@@ -80,9 +80,9 @@
 .admin-sidebar-user small { margin-top: 4px; color: var(--muted); font-size: .66rem; }
 .admin-sidebar-user button, .admin-mobile-header button { display: grid; border: 0; background: none; color: var(--muted); place-items: center; }
 .admin-sidebar-user button:hover { color: #fff; }
-.admin-main { min-height: 100vh; margin-left: var(--sidebar-width); }
+.admin-main { min-width: 0; min-height: 100vh; margin-left: var(--sidebar-width); }
 .admin-mobile-header { display: none; }
-.admin-view { width: min(1380px, calc(100% - 72px)); margin-inline: auto; padding: 58px 0 80px; }
+.admin-view { width: min(1380px, calc(100% - 72px)); min-width: 0; margin-inline: auto; padding: 58px 0 80px; }
 .admin-page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; margin-bottom: 36px; }
 .admin-page-heading h1 { margin-bottom: 8px; font-size: clamp(2rem, 4vw, 3.35rem); }
 .admin-page-heading p:last-child { margin-bottom: 0; }
@@ -297,7 +297,7 @@
   .admin-image-controls { grid-template-columns: 1fr; }
   .admin-image-previews { grid-template-columns: repeat(3,1fr); }
 }
-@media (max-width: 800px) {
+@media (max-width: 800px), (max-device-width: 800px) and (hover: none) and (pointer: coarse) {
   .admin-app { --sidebar-width: min(280px, calc(100vw - 40px)); padding-top: calc(66px + env(safe-area-inset-top)); }
   .admin-sidebar { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); transform: translateX(-101%); transition: transform 180ms ease; }
   .admin-sidebar.open { transform: translateX(0); }
@@ -317,7 +317,7 @@
   .admin-row-actions button { width: 44px; height: 44px; }
   .admin-image-previews button { width: 44px; height: 44px; }
 }
-@media (max-width: 600px) {
+@media (max-width: 600px), (max-device-width: 600px) and (hover: none) and (pointer: coarse) {
   .admin-signin-card { padding: 30px 22px; }
   .admin-summary-grid, .admin-toolbar, .admin-form-grid, .admin-inventory-grid { grid-template-columns: 1fr; }
   .admin-search { grid-column: auto; }
@@ -372,7 +372,7 @@
   .admin-detail-gallery > div { grid-template-columns: repeat(2,1fr); }
   .admin-toast { right: 12px; left: 12px; top: 76px; }
 }
-@media (max-width: 380px) {
+@media (max-width: 380px), (max-device-width: 380px) and (hover: none) and (pointer: coarse) {
   .admin-mobile-header { padding-inline: 12px; }
   .admin-mobile-header img { width: 108px; }
   .admin-mobile-header span { font-size: .62rem; }
