@@ -19,15 +19,6 @@
   <a href="https://www.instagram.com/a.m_motors_1">Instagram</a>
   &nbsp;&middot;&nbsp;
   <a href="https://www.tiktok.com/@a.mmotors.1">TikTok</a>
-  &nbsp;&middot;&nbsp;
-  <a href="https://wa.me/96176787479">WhatsApp</a>
-</p>
-
-<p align="center">
-  <img alt="React" src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white">
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white">
-  <img alt="Firebase" src="https://img.shields.io/badge/Firebase-Hosting%20%7C%20Firestore-FFCA28?logo=firebase&logoColor=111">
-  <img alt="Tests" src="https://img.shields.io/badge/Tests-94%20passing-22C55E">
 </p>
 
 ---
