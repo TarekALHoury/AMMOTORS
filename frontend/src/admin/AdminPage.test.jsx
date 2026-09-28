@@ -6,6 +6,7 @@ import AdminPage, { demoCars } from './AdminPage.jsx';
 import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 import { createAdminCar, deleteAdminCar, updateAdminCar } from '../services/adminCars.js';
+import { getInternetModelsForMake } from '../services/vehicleCatalogApi.js';
 
 vi.mock('../services/carsApi.js', () => ({ getCars: vi.fn() }));
 vi.mock('../services/adminAuth.js', () => ({
@@ -16,6 +17,7 @@ vi.mock('../services/adminAuth.js', () => ({
 vi.mock('../services/adminCars.js', () => ({
   createAdminCar: vi.fn(), updateAdminCar: vi.fn(), deleteAdminCar: vi.fn(),
 }));
+vi.mock('../services/vehicleCatalogApi.js', () => ({ getInternetModelsForMake: vi.fn() }));
 
 function renderAdmin() {
   return render(<MemoryRouter><AdminPage /></MemoryRouter>);
@@ -46,6 +48,7 @@ describe('admin dashboard UI', () => {
     createAdminCar.mockImplementation(async (car) => ({ ...car, id: 'created-car' }));
     updateAdminCar.mockImplementation(async (id, car) => ({ ...car, id }));
     deleteAdminCar.mockResolvedValue();
+    getInternetModelsForMake.mockResolvedValue([]);
   });
 
   test('shows accessible sign-in validation before authentication', async () => {
@@ -165,6 +168,8 @@ describe('admin dashboard UI', () => {
     await user.click(screen.getByRole('option', { name: 'BMW' }));
     expect(model).toBeEnabled();
     await user.click(model);
+    expect(screen.getByRole('option', { name: '8 Series' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'M8' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'M4 Competition' })).toBeInTheDocument();
     expect(screen.queryByRole('option', { name: 'C300' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('option', { name: 'M4 Competition' }));
@@ -256,6 +261,20 @@ describe('admin dashboard UI', () => {
     await user.click(screen.getByRole('option', { name: 'Land Rover' }));
     expect(make).toHaveTextContent('Land Rover');
     expect(make).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('merges internet catalog models with the offline make list', async () => {
+    getInternetModelsForMake.mockResolvedValue(['1600 GT', 'Neue Klasse']);
+    const user = userEvent.setup();
+    renderAdmin();
+    await signIn(user);
+    await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
+    await chooseFormOption(user, 'Make *', 'BMW');
+    await waitFor(() => expect(getInternetModelsForMake).toHaveBeenCalledWith('BMW', expect.objectContaining({ signal: expect.any(AbortSignal) })));
+    await user.click(screen.getByRole('combobox', { name: 'Model *' }));
+    expect(await screen.findByRole('option', { name: '1600 GT' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Neue Klasse' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'M8' })).toBeInTheDocument();
   });
 
   test('keeps the searchable make menu inside the mobile keyboard viewport', async () => {

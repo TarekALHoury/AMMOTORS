@@ -3,7 +3,7 @@ export const vehicleModels = {
   'Alfa Romeo': ['Giulia', 'Stelvio', 'Tonale'], 'Aston Martin': ['DB12', 'DBX', 'Vantage'],
   Audi: ['A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'Q3', 'Q5', 'Q5 Premium Plus', 'Q7', 'Q8', 'e-tron'],
   Bentley: ['Bentayga', 'Continental GT', 'Flying Spur'],
-  BMW: ['2 Series', '3 Series', '4 Series', '5 Series', '7 Series', 'M2', 'M3', 'M4 Competition', 'M5', 'X1', 'X3', 'X5', 'X6', 'X7', 'i4', 'i5', 'i7', 'iX'],
+  BMW: ['02 Series', '1 Series', '1 Series M Coupe', '2 Series', '3 Series', '4 Series', '5 Series', '6 Series', '7 Series', '8 Series', '2000 CS', '2002', '2500', '2800', 'ActiveHybrid 3', 'ActiveHybrid 5', 'ActiveHybrid 7', 'Bavaria', 'M1', 'M2', 'M3', 'M4', 'M4 Competition', 'M5', 'M6', 'M8', 'X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 'XM', 'Z1', 'Z3', 'Z4', 'Z8', 'i3', 'i4', 'i5', 'i7', 'i8', 'iX', 'iX1', 'iX2', 'iX3'],
   Bugatti: ['Chiron', 'Divo', 'Mistral', 'Tourbillon'], Buick: ['Enclave', 'Encore', 'Envision'],
   BYD: ['Atto 3', 'Dolphin', 'Han', 'Seal', 'Song Plus', 'Tang'],
   Cadillac: ['CT4', 'CT5', 'Escalade', 'Lyriq', 'XT4', 'XT5', 'XT6'],

@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUpDown, BadgeCheck, CalendarDays, CarFront, Check, Chev
 import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 import { createAdminCar, deleteAdminCar, updateAdminCar } from '../services/adminCars.js';
+import { getInternetModelsForMake } from '../services/vehicleCatalogApi.js';
 import VehicleImage from '../components/VehicleImage.jsx';
 import logo from '../assets/am-motors-logo.png';
 import drivetrainIcon from '../assets/icons/drivetrain.png';
@@ -406,6 +407,7 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
   const [imageUrl, setImageUrl] = useState('');
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [internetModels, setInternetModels] = useState([]);
   const firstErrorRef = useRef(null);
   const selectedFilesRef = useRef([]);
 
@@ -413,11 +415,20 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
   useEffect(() => () => {
     selectedFilesRef.current.forEach(({ preview }) => URL.revokeObjectURL?.(preview));
   }, []);
+  useEffect(() => {
+    if (!car.make) return undefined;
+    const controller = new AbortController();
+    getInternetModelsForMake(car.make, { signal: controller.signal })
+      .then(setInternetModels)
+      .catch((error) => { if (error?.name !== 'AbortError') setInternetModels([]); });
+    return () => controller.abort();
+  }, [car.make]);
 
-  const modelOptions = vehicleModels[car.make] || [];
+  const modelOptions = useMemo(() => [...new Set([...(vehicleModels[car.make] || []), ...internetModels])]
+    .sort((left, right) => left.localeCompare(right, undefined, { numeric: true })), [car.make, internetModels]);
   const engineOptions = getEngineOptions(car.make, car.model);
   function change(event) { setCar({ ...car, [event.target.name]: event.target.value }); }
-  function changeMake(event) { setCar({ ...car, make: event.target.value, model: '', engine: '' }); }
+  function changeMake(event) { setInternetModels([]); setCar({ ...car, make: event.target.value, model: '', engine: '' }); }
   function changeModel(event) { setCar({ ...car, model: event.target.value, engine: '' }); }
   function changeMileage(event) {
     const nextValue = event.target.value;
