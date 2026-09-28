@@ -8,7 +8,7 @@ function WhatsAppButton({ car, children = 'Inquire on WhatsApp', className = '' 
     : `Hello ${dealership.name},\n\nI'd like to learn more about your available vehicles.`;
   const href = `https://wa.me/${dealership.whatsapp}?text=${encodeURIComponent(message)}`;
 
-  return <a className={`button whatsapp-button ${className}`} href={href} target="_blank" rel="noreferrer"><Icon name="whatsapp" size={21} />{children}</a>;
+  return <a className={`button whatsapp-button ${className}`} href={href} target="_blank" rel="noreferrer" aria-label={`${children} via WhatsApp`}><Icon name="whatsapp" size={21} />{children}</a>;
 }
 
 export default WhatsAppButton;

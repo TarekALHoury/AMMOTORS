@@ -120,6 +120,7 @@ test('admin routes require a bearer token', async () => {
   const response = await fetch(`${baseUrl}/api/admin/cars`, { method: 'POST' });
   assert.equal(response.status, 401);
   assert.deepEqual(await response.json(), { message: 'Authentication required.' });
+  assert.equal(response.headers.get('www-authenticate'), 'Bearer realm="AMMOTORS Admin"');
 });
 
 test('admin routes reject invalid tokens', async () => {
@@ -127,6 +128,17 @@ test('admin routes reject invalid tokens', async () => {
     method: 'POST', headers: { Authorization: 'Bearer invalid' }, body: '{}',
   });
   assert.equal(response.status, 401);
+  assert.match(response.headers.get('www-authenticate'), /invalid_token/);
+});
+
+test('authenticated writes require a JSON content type', async () => {
+  const response = await fetch(`${baseUrl}/api/admin/cars`, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer admin-token' },
+    body: 'not-json',
+  });
+  assert.equal(response.status, 415);
+  assert.deepEqual(await response.json(), { message: 'Content-Type must be application/json.' });
 });
 
 test('admin routes reject authenticated non-admin users', async () => {

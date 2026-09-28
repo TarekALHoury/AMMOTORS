@@ -6,6 +6,7 @@ import About from '../components/About.jsx';
 import Contact from '../components/Contact.jsx';
 import Icon from '../components/Icon.jsx';
 import { getCars } from '../services/carsApi.js';
+import { usePageMetadata } from '../utils/usePageMetadata.js';
 
 const CARS_PER_PAGE = 6;
 
@@ -15,8 +16,18 @@ function HomePage() {
   const [error, setError] = useState(false);
   const [page, setPage] = useState(1);
 
+  usePageMetadata({
+    title: 'AM MOTORS | Premium Cars in Lebanon',
+    description: 'Explore carefully selected quality vehicles from AM MOTORS in Lebanon, with transparent specifications, pricing, and direct personal service.',
+  });
+
   useEffect(() => {
-    getCars().then(setCars).catch(() => setError(true)).finally(() => setLoading(false));
+    let ignore = false;
+    getCars()
+      .then((nextCars) => { if (!ignore) setCars(nextCars); })
+      .catch(() => { if (!ignore) setError(true); })
+      .finally(() => { if (!ignore) setLoading(false); });
+    return () => { ignore = true; };
   }, []);
 
   const totalPages = Math.ceil(cars.length / CARS_PER_PAGE);

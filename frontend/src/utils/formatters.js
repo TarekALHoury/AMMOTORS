@@ -7,5 +7,6 @@ export function formatPrice(price) {
 }
 
 export function formatMileage(mileage) {
+  if (mileage == null || !Number.isFinite(Number(mileage))) return 'N/A';
   return `${new Intl.NumberFormat('en-US').format(mileage)} km`;
 }

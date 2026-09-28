@@ -75,7 +75,7 @@ function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
         </Link>
 
         <div className="nav-right">
-          <nav className={`nav-menu ${open ? 'open' : ''}`} aria-label="Main navigation" ref={menuRef}>
+          <nav id="main-nav" className={`nav-menu ${open ? 'open' : ''}`} aria-label="Main navigation" ref={menuRef}>
             <Link {...navProps('home')} to="/">Home</Link>
             <Link {...navProps('cars')} to="/cars">Available Cars</Link>
             <Link {...navProps('about')} to="/#about">About</Link>
@@ -84,14 +84,14 @@ function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
             <div className="nav-actions">
               <a className="icon-button" href={dealership.instagram} target="_blank" rel="noreferrer" aria-label="AM MOTORS on Instagram"><Icon name="instagram" size={19} /></a>
               <a className="icon-button" href={dealership.tiktok} target="_blank" rel="noreferrer" aria-label="AM MOTORS on TikTok"><Icon name="tiktok" size={19} className="tiktok-icon" /></a>
-              <a className="button button-small" href={`https://wa.me/${dealership.whatsapp}`} target="_blank" rel="noreferrer"><Icon name="whatsapp" size={17} /> Contact</a>
+              <a className="button button-small" href={`https://wa.me/${dealership.whatsapp}`} target="_blank" rel="noreferrer" aria-label="Contact AM MOTORS via WhatsApp"><Icon name="whatsapp" size={17} /> Contact</a>
             </div>
           </nav>
           <div className="nav-controls">
             <button className="theme-toggle" type="button" onClick={onToggleTheme} aria-pressed={theme === 'light'} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
               <Icon name={theme === 'dark' ? 'moon' : 'sun'} size={21} />
             </button>
-            <button className="menu-toggle" type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label="Toggle navigation">
+            <button className="menu-toggle" type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-controls="main-nav" aria-label="Toggle navigation">
               <Icon name={open ? 'close' : 'menu'} size={24} />
             </button>
           </div>

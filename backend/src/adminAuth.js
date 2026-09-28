@@ -7,6 +7,7 @@ function createRequireAdmin(adminAuth) {
     const authorization = request.get('authorization') || '';
     const match = authorization.match(/^Bearer\s+(.+)$/i);
     if (!match) {
+      response.set('WWW-Authenticate', 'Bearer realm="AMMOTORS Admin"');
       return response.status(401).json({ message: 'Authentication required.' });
     }
 
@@ -18,6 +19,7 @@ function createRequireAdmin(adminAuth) {
       request.adminUser = user;
       return next();
     } catch {
+      response.set('WWW-Authenticate', 'Bearer realm="AMMOTORS Admin", error="invalid_token"');
       return response.status(401).json({ message: 'Invalid or expired authentication token.' });
     }
   };

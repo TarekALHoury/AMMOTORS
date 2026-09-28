@@ -9,6 +9,7 @@ import drivetrainIcon from '../assets/icons/drivetrain.png';
 import engineIcon from '../assets/icons/engine.svg';
 import roadIcon from '../assets/icons/road.svg';
 import transmissionIcon from '../assets/icons/gearshifter.png';
+import { usePageMetadata } from '../utils/usePageMetadata.js';
 import { drivetrainOptions, exteriorColorOptions, fuelOptions, getEngineOptions, interiorColorOptions, transmissionOptions, vehicleMakes, vehicleModels, vehicleOptionLabels, yearOptions } from './vehicleCatalog.js';
 import './admin.css';
 
@@ -395,6 +396,12 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [saving, setSaving] = useState(false);
   const firstErrorRef = useRef(null);
+  const selectedFilesRef = useRef([]);
+
+  useEffect(() => { selectedFilesRef.current = selectedFiles; }, [selectedFiles]);
+  useEffect(() => () => {
+    selectedFilesRef.current.forEach(({ preview }) => URL.revokeObjectURL?.(preview));
+  }, []);
 
   const modelOptions = vehicleModels[car.make] || [];
   const engineOptions = getEngineOptions(car.make, car.model);
@@ -485,12 +492,20 @@ function AdminWorkspace({ email, onSignOut }) {
   const [loadError, setLoadError] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notice, setNotice] = useState('');
+  const loadRequestRef = useRef(0);
 
   function loadInventory() {
+    const requestId = ++loadRequestRef.current;
     setLoading(true); setLoadError(false);
-    getCars().then(setCars).catch(() => setLoadError(true)).finally(() => setLoading(false));
+    getCars()
+      .then((nextCars) => { if (requestId === loadRequestRef.current) setCars(nextCars); })
+      .catch(() => { if (requestId === loadRequestRef.current) setLoadError(true); })
+      .finally(() => { if (requestId === loadRequestRef.current) setLoading(false); });
   }
-  useEffect(loadInventory, []);
+  useEffect(() => {
+    loadInventory();
+    return () => { loadRequestRef.current += 1; };
+  }, []);
   useEffect(() => {
     if (!cars.length || selectedCar || !['edit', 'details'].includes(view)) return;
     const restoredCar = cars.find((car) => car.id === initialLocation.selectedId);
@@ -517,11 +532,18 @@ function AdminWorkspace({ email, onSignOut }) {
     }
   }
 
-  return <div className="admin-app"><aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}><a className="admin-sidebar-logo" href="/"><img src={logo} alt="AM MOTORS" /></a><nav aria-label="Admin navigation"><button className={view === 'dashboard' ? 'active' : ''} onClick={() => navigate('dashboard')}><AdminIcon name="dashboard" /> Dashboard</button><button className={['inventory', 'details', 'edit'].includes(view) ? 'active' : ''} onClick={() => navigate('inventory')}><AdminIcon name="cars" /> Inventory <span>{cars.length}</span></button><button className={view === 'add' ? 'active' : ''} onClick={() => navigate('add')}><AdminIcon name="plus" /> Add vehicle</button></nav><div className="admin-sidebar-user"><span>{email.charAt(0).toUpperCase()}</span><div><strong>Administrator</strong><small>{email}</small></div><button aria-label="Sign out" onClick={onSignOut}><AdminIcon name="logout" /></button></div></aside><div className="admin-main"><header className="admin-mobile-header"><button aria-label="Toggle admin navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><AdminIcon name={menuOpen ? 'close' : 'menu'} /></button><img src={logo} alt="AM MOTORS" /><span>Admin</span></header>{menuOpen && <button className="admin-menu-scrim" aria-label="Close admin navigation" onClick={() => setMenuOpen(false)} />}{notice && <div className="admin-toast" role="status"><span>✓</span>{notice}</div>}{loading ? <LoadingState /> : loadError ? <div className="admin-error-state" role="alert"><h1>Unable to load inventory</h1><p>Start the existing backend and try again, or continue with demo data to review the interface.</p><div><button className="button button-outline" onClick={loadInventory}>Try again</button><button className="button button-primary" onClick={() => { setCars(demoCars); setLoadError(false); }}>Use demo inventory</button></div></div> : <>{view === 'dashboard' && <Summary cars={cars} onNavigate={navigate} />}{view === 'inventory' && <Inventory cars={cars} onNavigate={navigate} onDelete={setDeleteCar} />}{view === 'add' && <CarForm mode="add" onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'edit' && selectedCar && <CarForm mode="edit" initialCar={selectedCar} onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'details' && selectedCar && <Details car={cars.find((car) => car.id === selectedCar.id) || selectedCar} onBack={() => navigate('inventory')} onEdit={() => navigate('edit', selectedCar)} onDelete={() => setDeleteCar(selectedCar)} />}</>}</div>{deleteCar && <DeleteDialog car={deleteCar} onCancel={() => setDeleteCar(null)} onConfirm={confirmDelete} />}</div>;
+  return <div className="admin-app"><aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}><a className="admin-sidebar-logo" href="/"><img src={logo} alt="AM MOTORS" /></a><nav aria-label="Admin navigation"><button className={view === 'dashboard' ? 'active' : ''} onClick={() => navigate('dashboard')}><AdminIcon name="dashboard" /> Dashboard</button><button className={['inventory', 'details', 'edit'].includes(view) ? 'active' : ''} onClick={() => navigate('inventory')}><AdminIcon name="cars" /> Inventory <span>{cars.length}</span></button><button className={view === 'add' ? 'active' : ''} onClick={() => navigate('add')}><AdminIcon name="plus" /> Add vehicle</button></nav><div className="admin-sidebar-user"><span>{email.charAt(0).toUpperCase()}</span><div><strong>Administrator</strong><small>{email}</small></div><button aria-label="Sign out" onClick={onSignOut}><AdminIcon name="logout" /></button></div></aside><div className="admin-main"><header className="admin-mobile-header"><button aria-label="Toggle admin navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><AdminIcon name={menuOpen ? 'close' : 'menu'} /></button><img src={logo} alt="AM MOTORS" /><span>Admin</span></header>{menuOpen && <button className="admin-menu-scrim" aria-label="Close admin navigation" onClick={() => setMenuOpen(false)} />}{notice && <div className="admin-toast" role="status"><span>✓</span>{notice}</div>}{loading ? <LoadingState /> : loadError ? <div className="admin-error-state" role="alert"><h1>Unable to load inventory</h1><p>Start the existing backend and try again, or continue with demo data to review the interface.</p><div><button className="button button-outline" onClick={loadInventory}>Try again</button><button className="button button-primary" onClick={() => { setCars(demoCars); setLoadError(false); }}>Use demo inventory</button></div></div> : <>{view === 'dashboard' && <Summary cars={cars} onNavigate={navigate} />}{view === 'inventory' && <Inventory cars={cars} onNavigate={navigate} onDelete={setDeleteCar} />}{view === 'add' && <CarForm key="add" mode="add" onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'edit' && selectedCar && <CarForm key={selectedCar.id} mode="edit" initialCar={selectedCar} onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'details' && selectedCar && <Details car={cars.find((car) => car.id === selectedCar.id) || selectedCar} onBack={() => navigate('inventory')} onEdit={() => navigate('edit', selectedCar)} onDelete={() => setDeleteCar(selectedCar)} />}</>}</div>{deleteCar && <DeleteDialog car={deleteCar} onCancel={() => setDeleteCar(null)} onConfirm={confirmDelete} />}</div>;
 }
 
 function AdminPage() {
   const [authState, setAuthState] = useState({ loading: true, user: null });
+
+  usePageMetadata({
+    title: 'Administration | AM MOTORS',
+    description: 'AM MOTORS inventory administration.',
+    path: '/admin',
+    robots: 'noindex, nofollow',
+  });
 
   useEffect(() => observeAdminAuth(
     (user) => setAuthState({ loading: false, user }),

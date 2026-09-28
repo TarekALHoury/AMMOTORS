@@ -8,20 +8,21 @@ class CarNotFoundError extends Error {
 function toPublicCar(snapshot) {
   if (!snapshot.exists) return null;
   const data = snapshot.data();
+  const specifications = data.specifications || {};
   return {
     id: snapshot.id,
     make: data.make,
     model: data.model,
     year: data.year,
     price: data.price,
-    mileage: data.specifications.mileage,
-    engine: data.specifications.engine,
-    horsepower: data.specifications.horsepower,
-    transmission: data.specifications.transmission,
-    drivetrain: data.specifications.drivetrain,
-    fuel: data.specifications.fuel,
-    exteriorColor: data.specifications.exteriorColor,
-    interiorColor: data.specifications.interiorColor,
+    mileage: specifications.mileage,
+    engine: specifications.engine,
+    horsepower: specifications.horsepower,
+    transmission: specifications.transmission,
+    drivetrain: specifications.drivetrain,
+    fuel: specifications.fuel,
+    exteriorColor: specifications.exteriorColor,
+    interiorColor: specifications.interiorColor,
     description: data.description,
     status: data.status,
     images: data.images,
@@ -73,10 +74,7 @@ function createFirestoreCarsRepository({ firestore, FieldValue }) {
   }
 
   async function remove(id) {
-    const reference = collection.doc(id);
-    const snapshot = await reference.get();
-    if (!snapshot.exists) throw new CarNotFoundError();
-    await reference.delete();
+    await collection.doc(id).delete();
   }
 
   return { create, getAll, getById, remove, update };

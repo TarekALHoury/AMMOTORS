@@ -19,6 +19,13 @@ function validateCarId(request, response, next) {
   return next();
 }
 
+function requireJson(request, response, next) {
+  if (!request.is('application/json')) {
+    return response.status(415).json({ message: 'Content-Type must be application/json.' });
+  }
+  return next();
+}
+
 function createApp({
   carsFile = defaultCarsFile,
   carsRepository = createCarsRepository({ carsFile }),
@@ -27,11 +34,13 @@ function createApp({
   readinessCheck = null,
   rateLimits = {},
   allowedOrigins = '*',
+  trustProxy = false,
   logger = console,
 } = {}) {
   const app = express();
 
   app.disable('x-powered-by');
+  if (trustProxy !== false) app.set('trust proxy', trustProxy);
   app.use(cors({
     exposedHeaders: ['X-Request-Id'],
     origin(origin, callback) {
@@ -66,12 +75,16 @@ function createApp({
     response.json({ status: 'ok' });
   });
 
-  app.get('/api/ready', async (_request, response) => {
+  app.get('/api/ready', async (request, response) => {
     response.set('Cache-Control', 'no-store');
     try {
       if (readinessCheck) await readinessCheck();
       return response.json({ status: 'ready' });
-    } catch {
+    } catch (error) {
+      logger.error({
+        event: 'readiness_failed', requestId: request.requestId,
+        errorName: error.name, errorMessage: error.message,
+      });
       return response.status(503).json({ status: 'not_ready' });
     }
   });
@@ -120,7 +133,7 @@ function createApp({
     }
   });
 
-  app.post('/api/admin/cars', requireAdmin, async (request, response, next) => {
+  app.post('/api/admin/cars', requireAdmin, requireJson, async (request, response, next) => {
     try {
       const car = normalizeCarInput(request.body);
       const created = await carsRepository.create(car, request.adminUser.uid);
@@ -130,7 +143,7 @@ function createApp({
     }
   });
 
-  app.put('/api/admin/cars/:id', validateCarId, requireAdmin, async (request, response, next) => {
+  app.put('/api/admin/cars/:id', validateCarId, requireAdmin, requireJson, async (request, response, next) => {
     try {
       const car = normalizeCarInput(request.body);
       const updated = await carsRepository.update(request.params.id, car, request.adminUser.uid);
@@ -140,7 +153,7 @@ function createApp({
     }
   });
 
-  app.patch('/api/admin/cars/:id', validateCarId, requireAdmin, async (request, response, next) => {
+  app.patch('/api/admin/cars/:id', validateCarId, requireAdmin, requireJson, async (request, response, next) => {
     try {
       const changes = normalizeCarInput(request.body, { partial: true });
       const updated = await carsRepository.update(
@@ -190,7 +203,8 @@ function createApp({
     }
     logger.error({
       event: 'request_failed', requestId: request.requestId, method: request.method,
-      path: request.originalUrl, errorName: error.name,
+      path: request.originalUrl, errorName: error.name, errorMessage: error.message,
+      ...(process.env.NODE_ENV !== 'production' && { stack: error.stack }),
     });
     return response.status(500).json({
       message: error.publicMessage || 'Internal server error.',

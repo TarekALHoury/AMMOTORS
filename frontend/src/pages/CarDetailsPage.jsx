@@ -5,6 +5,7 @@ import CarSpecs from '../components/CarSpecs.jsx';
 import WhatsAppButton from '../components/WhatsAppButton.jsx';
 import { getCarById } from '../services/carsApi.js';
 import { formatMileage, formatPrice } from '../utils/formatters.js';
+import { usePageMetadata } from '../utils/usePageMetadata.js';
 
 function CarDetailsPage() {
   const { id } = useParams();
@@ -13,13 +14,28 @@ function CarDetailsPage() {
   const [errorStatus, setErrorStatus] = useState(null);
 
   useEffect(() => {
+    let ignore = false;
     setLoading(true);
+    setCar(null);
     setErrorStatus(null);
-    getCarById(id).then(setCar).catch((error) => setErrorStatus(error.status || 500)).finally(() => setLoading(false));
+    getCarById(id)
+      .then((nextCar) => { if (!ignore) setCar(nextCar); })
+      .catch((error) => { if (!ignore) setErrorStatus(error.status || 500); })
+      .finally(() => { if (!ignore) setLoading(false); });
+    return () => { ignore = true; };
   }, [id]);
 
+  usePageMetadata({
+    title: car ? `${car.year} ${car.make} ${car.model} | AM MOTORS` : 'Vehicle Details | AM MOTORS',
+    description: car
+      ? `View photos, price, mileage, and specifications for this ${car.year} ${car.make} ${car.model} from AM MOTORS in Lebanon.`
+      : 'View vehicle photos, specifications, mileage, and pricing from AM MOTORS in Lebanon.',
+    path: `/cars/${id}`,
+    robots: errorStatus === 404 ? 'noindex, follow' : 'index, follow',
+  });
+
   if (loading) {
-    return <main className="state-page page-content"><div className="loading-ring" /><p>Loading vehicle...</p></main>;
+    return <main className="state-page page-content" role="status" aria-label="Loading vehicle"><div className="loading-ring" aria-hidden="true" /><p>Loading vehicle...</p></main>;
   }
 
   if (errorStatus) {
@@ -35,7 +51,7 @@ function CarDetailsPage() {
         <Link className="back-link" to="/cars">← Back to available cars</Link>
         <div className="details-layout">
           <CarGallery images={car.images} name={carName} />
-          <aside className="vehicle-summary">
+          <aside className="vehicle-summary" aria-label="Vehicle summary">
             <span className="status-pill inline-status">{car.status}</span>
             <h1>{carName}</h1>
             <p className="vehicle-meta">{car.year} <span aria-hidden="true">|</span> {formatMileage(car.mileage)}</p>

@@ -3,6 +3,7 @@ import CarFilters from '../components/CarFilters.jsx';
 import CarGrid, { CarGridSkeleton } from '../components/CarGrid.jsx';
 import Icon from '../components/Icon.jsx';
 import { getCars } from '../services/carsApi.js';
+import { usePageMetadata } from '../utils/usePageMetadata.js';
 
 const initialFilters = { search: '', make: '', model: '', price: '' };
 const CARS_PER_PAGE = 6;
@@ -13,10 +14,24 @@ function CarsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [page, setPage] = useState(1);
+  const [retryKey, setRetryKey] = useState(0);
+
+  usePageMetadata({
+    title: 'Available Cars | AM MOTORS',
+    description: 'Browse the latest vehicles available from AM MOTORS in Lebanon, including specifications, mileage, pricing, and photos.',
+    path: '/cars',
+  });
 
   useEffect(() => {
-    getCars().then(setCars).catch(() => setError(true)).finally(() => setLoading(false));
-  }, []);
+    let ignore = false;
+    setLoading(true);
+    setError(false);
+    getCars()
+      .then((nextCars) => { if (!ignore) setCars(nextCars); })
+      .catch(() => { if (!ignore) setError(true); })
+      .finally(() => { if (!ignore) setLoading(false); });
+    return () => { ignore = true; };
+  }, [retryKey]);
 
   const filteredCars = useMemo(() => cars.filter((car) => {
     const searchText = `${car.make} ${car.model} ${car.year}`.toLowerCase();
@@ -58,7 +73,7 @@ function CarsPage() {
           </div>
         )}
         {loading && <CarGridSkeleton count={CARS_PER_PAGE} />}
-        {error && <div className="error-state"><h2>Unable to load vehicles.</h2><p>Please try again.</p><button className="button button-outline" type="button" onClick={() => window.location.reload()}>Try again</button></div>}
+        {error && <div className="error-state"><h2>Unable to load vehicles.</h2><p>Please try again.</p><button className="button button-outline" type="button" onClick={() => setRetryKey((current) => current + 1)}>Try again</button></div>}
         {!loading && !error && <CarGrid cars={visibleCars} />}
         {showPagination && (
           <nav className="inventory-pagination" aria-label="Available cars pages">

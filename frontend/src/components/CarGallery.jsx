@@ -10,6 +10,9 @@ function CarGallery({ images = [], name }) {
   const suppressOpen = useRef(false);
   const thumbnailsRef = useRef(null);
   const thumbnailRefs = useRef([]);
+  const dialogRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const returnFocusRef = useRef(null);
 
   useEffect(() => {
     setActiveIndex(0);
@@ -32,17 +35,33 @@ function CarGallery({ images = [], name }) {
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    window.requestAnimationFrame(() => closeButtonRef.current?.focus());
 
     function handleKeyDown(event) {
       if (event.key === 'Escape') setIsLightboxOpen(false);
       if (event.key === 'ArrowLeft') move(-1);
       if (event.key === 'ArrowRight') move(1);
+      if (event.key === 'Tab') {
+        const focusable = [...(dialogRef.current?.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])') || [])]
+          .filter((element) => !element.disabled);
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleKeyDown);
+      returnFocusRef.current?.focus?.();
     };
   }, [isLightboxOpen, safeImages.length]);
 
@@ -76,6 +95,7 @@ function CarGallery({ images = [], name }) {
       suppressOpen.current = false;
       return;
     }
+    returnFocusRef.current = document.activeElement;
     setIsLightboxOpen(true);
   }
 
@@ -120,9 +140,9 @@ function CarGallery({ images = [], name }) {
       )}
 
       {isLightboxOpen && (
-        <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={`${name} enlarged image`} onClick={() => setIsLightboxOpen(false)}>
+        <div ref={dialogRef} className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={`${name} enlarged image`} onClick={() => setIsLightboxOpen(false)}>
           <div className="gallery-lightbox-content" onClick={(event) => event.stopPropagation()}>
-            <button type="button" className="gallery-lightbox-close" onClick={() => setIsLightboxOpen(false)} aria-label="Close enlarged image"><X /></button>
+            <button ref={closeButtonRef} type="button" className="gallery-lightbox-close" onClick={() => setIsLightboxOpen(false)} aria-label="Close enlarged image"><X /></button>
             <div className="gallery-lightbox-image" onTouchStart={startSwipe} onTouchEnd={finishSwipe}>
               <div className="gallery-image-track" style={{ transform: `translate3d(-${activeIndex * 100}%, 0, 0)` }}>
                 {safeImages.map((image, index) => (

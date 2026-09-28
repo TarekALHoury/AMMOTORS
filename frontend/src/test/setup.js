@@ -7,6 +7,7 @@ afterEach(() => cleanup());
 window.scrollTo = vi.fn();
 window.requestAnimationFrame = (callback) => window.setTimeout(callback, 0);
 URL.createObjectURL = vi.fn(() => 'blob:vehicle-preview');
+URL.revokeObjectURL = vi.fn();
 
 if (typeof HTMLDialogElement !== 'undefined') {
   HTMLDialogElement.prototype.showModal = function showModal() { this.open = true; };

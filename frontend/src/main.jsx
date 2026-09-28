@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 import { registerOfflineSupport } from './services/offlineSupport.js';
 import './styles.css';
 
@@ -37,7 +38,7 @@ if (document.readyState === 'complete') {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <ErrorBoundary><App /></ErrorBoundary>
     </BrowserRouter>
   </React.StrictMode>,
 );

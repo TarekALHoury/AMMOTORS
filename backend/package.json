@@ -2,6 +2,7 @@
   "name": "ammotors-backend",
   "version": "1.0.0",
   "private": true,
+  "engines": { "node": ">=20.6.0" },
   "description": "Simple Express API for the AMMOTORS website",
   "main": "src/server.js",
   "scripts": {

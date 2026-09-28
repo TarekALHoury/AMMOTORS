@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import placeholder from '../assets/vehicle-placeholder.svg';
 
-function VehicleImage({ src, alt, className = '', loading = 'lazy' }) {
+function VehicleImage({ src, alt, className = '', loading = 'lazy', width = 1200, height = 750 }) {
   const [useFallback, setUseFallback] = useState(!src);
   const timeoutRef = useRef(null);
 
@@ -9,7 +9,7 @@ function VehicleImage({ src, alt, className = '', loading = 'lazy' }) {
     setUseFallback(!src);
     if (!src) return undefined;
 
-    timeoutRef.current = window.setTimeout(() => setUseFallback(true), 5000);
+    timeoutRef.current = window.setTimeout(() => setUseFallback(true), 15000);
     return () => window.clearTimeout(timeoutRef.current);
   }, [src]);
 
@@ -21,8 +21,11 @@ function VehicleImage({ src, alt, className = '', loading = 'lazy' }) {
     <img
       className={className}
       src={useFallback ? placeholder : src}
-      alt={alt}
+      alt={useFallback ? 'Image unavailable' : alt}
       loading={loading}
+      decoding="async"
+      width={width}
+      height={height}
       onLoad={handleLoad}
       onError={() => setUseFallback(true)}
     />
