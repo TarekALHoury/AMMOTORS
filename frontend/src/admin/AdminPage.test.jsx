@@ -180,8 +180,13 @@ describe('admin dashboard UI', () => {
     await chooseFormOption(user, 'Engine *', '3.0L Twin-Turbo');
     expect(screen.getByRole('combobox', { name: 'Engine *' })).toHaveTextContent('3.0L Twin-Turbo');
     await chooseFormOption(user, 'Make *', 'Audi');
-    expect(model).toHaveTextContent('Select a model');
+    expect(model).toHaveTextContent('Select or search for a model');
     expect(screen.getByLabelText('Engine *')).toBeDisabled();
+    await user.click(model);
+    await user.type(screen.getByRole('searchbox', { name: 'Search Model' }), 'Regional Sportback X');
+    await user.click(screen.getByRole('option', { name: 'Use “Regional Sportback X”' }));
+    expect(model).toHaveTextContent('Regional Sportback X');
+    expect(screen.getByLabelText('Engine *')).toBeEnabled();
     expect(screen.getByLabelText('Year *')).toHaveRole('combobox');
     expect(screen.getByLabelText('Fuel type *')).toHaveRole('combobox');
     await user.click(screen.getByLabelText('Transmission *'));
@@ -201,6 +206,8 @@ describe('admin dashboard UI', () => {
     await user.click(screen.getByLabelText('Interior color *'));
     expect(screen.getByRole('option', { name: 'Tan' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Burgundy' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Cognac' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Espresso' })).toBeInTheDocument();
   });
 
   test('restricts mileage to non-negative whole numbers and requests a mobile number keypad', async () => {
@@ -275,8 +282,10 @@ describe('admin dashboard UI', () => {
       viewport.offsetTop = 0;
       await user.click(screen.getByRole('combobox', { name: 'Exterior color *' }));
       const standardMenu = screen.getByRole('listbox', { name: 'Exterior color * options' }).parentElement;
-      expect(standardMenu).not.toHaveClass('is-searchable');
+      expect(standardMenu).toHaveClass('is-searchable');
       await waitFor(() => expect(standardMenu).toHaveStyle({ top: '332px', bottom: 'auto', maxHeight: '300px' }));
+      await user.click(screen.getByRole('searchbox', { name: 'Search Exterior color' }));
+      await waitFor(() => expect(standardMenu).toHaveStyle({ top: '8px', maxHeight: '624px' }));
     } finally {
       if (originalWidth) Object.defineProperty(window, 'innerWidth', originalWidth);
       if (originalViewport) Object.defineProperty(window, 'visualViewport', originalViewport);

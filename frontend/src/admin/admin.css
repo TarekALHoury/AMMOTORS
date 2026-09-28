@@ -56,6 +56,7 @@
 .admin-select-menu button:hover, .admin-select-menu button.is-active { background: #242c31; color: #fff; }
 .admin-select-menu button[aria-selected="true"] { background: rgba(214,69,61,.16); color: #ffaaa5; font-weight: 800; }
 .admin-select-menu button[aria-selected="true"].is-active, .admin-select-menu button[aria-selected="true"]:hover { background: var(--accent); color: #fff; }
+.admin-select-menu .admin-select-custom { border: 1px dashed rgba(214,69,61,.55); background: rgba(214,69,61,.08); color: #ffaaa5; font-weight: 800; }
 .admin-select-menu button span { color: inherit; font-size: .8rem; }
 .admin-signin-card form { display: grid; gap: 18px; }
 .admin-submit { width: 100%; margin-top: 4px; }
