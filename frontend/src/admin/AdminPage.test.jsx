@@ -68,8 +68,9 @@ describe('admin dashboard UI', () => {
     expect(document.querySelector('.admin-dashboard-view')).toBeInTheDocument();
     expect(document.querySelectorAll('.admin-summary-card[data-tilt="10"]')).toHaveLength(4);
     expect(screen.getByText('Total inventory').closest('.admin-summary-card')).toHaveTextContent('3');
-    expect(screen.getByRole('heading', { name: 'Inventory mix' })).toBeInTheDocument();
-    expect(screen.getByLabelText('1 available, 1 reserved, 1 sold')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Inventory mix' })).not.toBeInTheDocument();
+    expect(document.querySelector('.admin-status-panel')).not.toBeInTheDocument();
+    expect(document.querySelector('.admin-recent-panel')).toBeInTheDocument();
     expect(document.querySelectorAll('.admin-summary-icon svg')).toHaveLength(4);
     expect(screen.getAllByText('BMW M4 Competition').length).toBeGreaterThan(0);
     expect(document.querySelector('.lucide-layout-dashboard')).toBeInTheDocument();
