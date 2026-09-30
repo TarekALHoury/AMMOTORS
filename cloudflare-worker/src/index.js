@@ -39,18 +39,17 @@ function validImageBytes(bytes, type) {
 
 async function requireAdmin(request, env) {
   const match = request.headers.get('Authorization')?.match(/^Bearer\s+(.+)$/i);
-  if (!match) throw new Response(JSON.stringify({ message: 'Authentication required.' }), { status: 401 });
+  if (!match) return { status: 401, message: 'Authentication required.' };
   try {
     const { payload } = await jwtVerify(match[1], FIREBASE_JWKS, {
       audience: env.FIREBASE_PROJECT_ID,
       issuer: `https://securetoken.google.com/${env.FIREBASE_PROJECT_ID}`,
       algorithms: ['RS256'],
     });
-    if (payload.admin !== true) throw new Response(JSON.stringify({ message: 'Admin access required.' }), { status: 403 });
-    return payload;
+    if (payload.admin !== true) return { status: 403, message: 'Admin access required.' };
+    return { payload };
   } catch (error) {
-    if (error instanceof Response) throw error;
-    throw new Response(JSON.stringify({ message: 'Invalid or expired authentication token.' }), { status: 401 });
+    return { status: 401, message: 'Invalid or expired authentication token.' };
   }
 }
 
@@ -59,7 +58,8 @@ function imageKey(carId, extension) {
 }
 
 async function uploadImage(request, env) {
-  await requireAdmin(request, env);
+  const authorization = await requireAdmin(request, env);
+  if (authorization.status) return json(request, env, { message: authorization.message }, authorization.status);
   const form = await request.formData();
   const carId = form.get('carId');
   const image = form.get('image');
@@ -84,7 +84,8 @@ async function uploadImage(request, env) {
 }
 
 async function deleteOneImage(request, env) {
-  await requireAdmin(request, env);
+  const authorization = await requireAdmin(request, env);
+  if (authorization.status) return json(request, env, { message: authorization.message }, authorization.status);
   const { carId, key } = await request.json().catch(() => ({}));
   if (!carIdPattern.test(carId || '') || typeof key !== 'string' || !key.startsWith(`cars/${carId}/`)) {
     return json(request, env, { message: 'Invalid car image key.' }, 400);
@@ -94,7 +95,8 @@ async function deleteOneImage(request, env) {
 }
 
 async function deleteCarImages(request, env) {
-  await requireAdmin(request, env);
+  const authorization = await requireAdmin(request, env);
+  if (authorization.status) return json(request, env, { message: authorization.message }, authorization.status);
   const { carId } = await request.json().catch(() => ({}));
   if (!carIdPattern.test(carId || '')) return json(request, env, { message: 'Invalid car ID.' }, 400);
   const prefix = `cars/${carId}/`;
@@ -119,10 +121,6 @@ export default {
       if (request.method === 'DELETE' && url.pathname === '/api/delete-car-images') return deleteCarImages(request, env);
       return json(request, env, { message: 'API route not found.' }, 404);
     } catch (error) {
-      if (error instanceof Response) {
-        const body = await error.text();
-        return new Response(body, { status: error.status, headers: { 'Content-Type': 'application/json', ...corsHeaders(request, env) } });
-      }
       return json(request, env, { message: 'Image service request failed.' }, 500);
     }
   },
