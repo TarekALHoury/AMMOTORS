@@ -24,3 +24,20 @@ test('shows the year once in the compact vehicle summary with a bar separator', 
   expect(summary.querySelectorAll('.vehicle-year')).toHaveLength(0);
   expect(summary.querySelector('.vehicle-meta').textContent).toBe('2024 | 100,000 km');
 });
+
+test('preserves the description line breaks entered in the admin form', async () => {
+  const description = 'NAVIGATION\nCAMERA\nSENSOR\nPANORAMIC\nBLIND SPOT';
+  getCarById.mockResolvedValueOnce({
+    id: 'jaguar-f-pace', make: 'Jaguar', model: 'F-Pace', year: 2018,
+    mileage: 65000, price: 1000, status: 'available', images: [], description,
+  });
+
+  const { container } = render(
+    <MemoryRouter initialEntries={['/cars/jaguar-f-pace']}>
+      <Routes><Route path="/cars/:id" element={<CarDetailsPage />} /></Routes>
+    </MemoryRouter>,
+  );
+
+  await screen.findByRole('heading', { name: 'Jaguar F-Pace' });
+  expect(container.querySelector('.vehicle-description').textContent).toBe(description);
+});

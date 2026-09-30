@@ -243,6 +243,7 @@
 .admin-preview-card > strong { margin: 10px 0 20px; font-size: 1.5rem; }
 .admin-preview-card > span:last-child { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: .72rem; line-height: 1.55; }
 .admin-detail-section { margin-top: 20px; padding: 26px; }
+.admin-detail-section > p:last-child { overflow-wrap: anywhere; white-space: pre-wrap; }
 .admin-detail-section .admin-panel-heading { margin: -26px -26px 25px; }
 .admin-spec-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; margin: 0; background: var(--line); }
 .admin-spec-grid div { padding: 18px; background: var(--panel); }

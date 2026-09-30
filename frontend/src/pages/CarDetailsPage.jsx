@@ -62,7 +62,7 @@ function CarDetailsPage() {
         </div>
 
         <section className="details-section"><p className="eyebrow">Vehicle overview</p><h2>Specifications</h2><CarSpecs car={car} /></section>
-        {car.description && <section className="details-section description-section"><p className="eyebrow">About this vehicle</p><h2>Description</h2><p>{car.description}</p></section>}
+        {car.description && <section className="details-section description-section"><p className="eyebrow">About this vehicle</p><h2>Description</h2><p className="vehicle-description">{car.description}</p></section>}
       </div>
     </main>
   );
