@@ -10,5 +10,5 @@ test('separates the card year and mileage with a bar', () => {
     </MemoryRouter>,
   );
 
-  expect(container.querySelector('.car-meta').textContent).toBe('2024 | 100,000 km | 62,137 mi');
+  expect(container.querySelector('.car-meta').textContent).toBe('2024 | 100,000 km');
 });

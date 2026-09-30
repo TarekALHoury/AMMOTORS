@@ -9,7 +9,7 @@ import gearshiftIcon from '../assets/icons/gearshifter.png';
 import roadIcon from '../assets/icons/road.svg';
 import speedIcon from '../assets/icons/speed.svg';
 import tagIcon from '../assets/icons/tag.svg';
-import { formatMileage } from '../utils/formatters.js';
+import { formatMileageWithMiles } from '../utils/formatters.js';
 
 const iconAssets = {
   calendar: calendarIcon,
@@ -28,7 +28,7 @@ function CarSpecs({ car }) {
   const specs = [
     ['tag', 'Model', car.model],
     ['calendar', 'Year', car.year],
-    ['road', 'Mileage', car.mileage != null ? formatMileage(car.mileage) : null],
+    ['road', 'Mileage', car.mileage != null ? formatMileageWithMiles(car.mileage) : null],
     ['engine', 'Engine', car.engine],
     ['speed', 'Horsepower', car.horsepower ? `${car.horsepower} hp` : null],
     ['gearshift', 'Transmission', car.transmission],
