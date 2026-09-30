@@ -80,6 +80,12 @@ function CarGallery({ images = [], name }) {
     touchStartX.current = event.touches[0]?.clientX ?? null;
   }
 
+  function continueSwipe(event) {
+    if (touchStartX.current === null || safeImages.length < 2) return;
+    const currentX = event.touches[0]?.clientX ?? touchStartX.current;
+    if (Math.abs(touchStartX.current - currentX) > 8) event.preventDefault();
+  }
+
   function finishSwipe(event, preventOpen = false) {
     if (touchStartX.current === null || safeImages.length < 2) return;
     const distance = touchStartX.current - (event.changedTouches[0]?.clientX ?? touchStartX.current);
@@ -107,7 +113,9 @@ function CarGallery({ images = [], name }) {
           className="gallery-expand-trigger"
           onClick={openLightbox}
           onTouchStart={startSwipe}
+          onTouchMove={continueSwipe}
           onTouchEnd={(event) => finishSwipe(event, true)}
+          onTouchCancel={() => { touchStartX.current = null; }}
           aria-label={`Enlarge ${name} image ${activeIndex + 1}`}
         >
           <span className="gallery-image-track" style={{ transform: `translate3d(-${activeIndex * 100}%, 0, 0)` }}>
@@ -143,7 +151,7 @@ function CarGallery({ images = [], name }) {
         <div ref={dialogRef} className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={`${name} enlarged image`} onClick={() => setIsLightboxOpen(false)}>
           <div className="gallery-lightbox-content" onClick={(event) => event.stopPropagation()}>
             <button ref={closeButtonRef} type="button" className="gallery-lightbox-close" onClick={() => setIsLightboxOpen(false)} aria-label="Close enlarged image"><X /></button>
-            <div className="gallery-lightbox-image" onTouchStart={startSwipe} onTouchEnd={finishSwipe}>
+            <div className="gallery-lightbox-image" onTouchStart={startSwipe} onTouchMove={continueSwipe} onTouchEnd={finishSwipe} onTouchCancel={() => { touchStartX.current = null; }}>
               <div className="gallery-image-track" style={{ transform: `translate3d(-${activeIndex * 100}%, 0, 0)` }}>
                 {safeImages.map((image, index) => (
                   <div className="gallery-image-slide" aria-hidden={index !== activeIndex} key={`${image}-${index}`}>

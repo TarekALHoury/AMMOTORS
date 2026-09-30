@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import VehicleImage from './VehicleImage.jsx';
 
 test('adds non-blocking image attributes and preserves the vehicle description', () => {
@@ -15,4 +15,14 @@ test('announces an unavailable image when loading fails', () => {
   render(<VehicleImage src="https://example.com/missing.jpg" alt="BMW M4" />);
   fireEvent.error(screen.getByAltText('BMW M4'));
   expect(screen.getByAltText('Image unavailable')).toBeInTheDocument();
+});
+
+test('does not replace a slow or lazy image on an arbitrary timer', () => {
+  vi.useFakeTimers();
+  render(<VehicleImage src="https://example.com/slow-car.jpg" alt="Slow car" />);
+
+  vi.advanceTimersByTime(30_000);
+
+  expect(screen.getByAltText('Slow car')).toHaveAttribute('src', 'https://example.com/slow-car.jpg');
+  vi.useRealTimers();
 });

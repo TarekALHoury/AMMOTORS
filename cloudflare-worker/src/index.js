@@ -76,7 +76,10 @@ async function uploadImage(request, env) {
   }
   const key = imageKey(carId, IMAGE_TYPES.get(image.type));
   await env.AMMOTORS_IMAGES.put(key, bytes, {
-    httpMetadata: { contentType: image.type },
+    httpMetadata: {
+      contentType: image.type,
+      cacheControl: 'public, max-age=31536000, immutable',
+    },
     customMetadata: { carId },
   });
   const url = `${env.R2_PUBLIC_URL.replace(/\/$/, '')}/${key}`;
