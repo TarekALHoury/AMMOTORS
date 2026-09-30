@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ammotors-shell-v4';
+const CACHE_NAME = 'ammotors-shell-v5';
 const APP_SHELL = ['/', '/index.html'];
 const MAX_STATIC_ENTRIES = 60;
 
@@ -9,7 +9,7 @@ async function trimCache(cache) {
 
 function isCacheableStaticAsset(url) {
   return url.pathname.startsWith('/assets/')
-    || ['/favicon.svg', '/og-am-motors.jpg', '/manifest.webmanifest'].includes(url.pathname);
+    || ['/logo.png', '/og-am-motors.jpg', '/manifest.webmanifest'].includes(url.pathname);
 }
 
 self.addEventListener('install', (event) => {
