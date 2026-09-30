@@ -163,6 +163,7 @@ test('an admin can create a car and public reads retain the existing contract', 
   assert.deepEqual(await publicResponse.json(), created);
 });
 
+
 test('an admin can update car fields and nested specifications', async () => {
   cars.set('car-1', structuredClone(validCarInput));
   const response = await adminRequest('/api/admin/cars/car-1', {

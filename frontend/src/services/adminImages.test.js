@@ -1,36 +1,34 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({ uploadBytes: vi.fn(), getDownloadURL: vi.fn(), deleteObject: vi.fn(), listAll: vi.fn(), ref: vi.fn((_storage, path) => ({ path })) }));
-vi.mock('@firebase/storage', () => mocks);
-vi.mock('./firebaseStorage.js', () => ({ firebaseStorage: {} }));
+const mocks = vi.hoisted(() => ({ adminApiRequest: vi.fn() }));
+vi.mock('./adminApi.js', () => ({ adminApiRequest: mocks.adminApiRequest }));
 
-import { deleteCarImages, uploadCarImages } from './adminImages.js';
+import { deleteCarImage, uploadCarImages } from './adminImages.js';
 
 describe('admin image storage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubGlobal('crypto', { randomUUID: () => 'unique-id' });
-    mocks.uploadBytes.mockResolvedValue();
-    mocks.getDownloadURL.mockResolvedValue('https://storage.example/car.jpg');
+    mocks.adminApiRequest.mockResolvedValue({
+      url: 'https://images.example.com/cars/car-1/image.webp', key: 'cars/car-1/image.webp',
+    });
   });
 
-  test('uploads validated files under the owning car prefix', async () => {
+  test('uploads validated files to the authenticated backend endpoint', async () => {
     const file = new File(['image'], 'car.jpg', { type: 'image/jpeg' });
-    await expect(uploadCarImages('car-1', [file])).resolves.toEqual(['https://storage.example/car.jpg']);
-    expect(mocks.ref).toHaveBeenCalledWith({}, 'cars/car-1/unique-id.jpg');
-    expect(mocks.uploadBytes).toHaveBeenCalledWith(expect.anything(), file, { contentType: 'image/jpeg', customMetadata: { carId: 'car-1' } });
+    await expect(uploadCarImages('car-1', [file])).resolves.toEqual([{
+      url: 'https://images.example.com/cars/car-1/image.webp', key: 'cars/car-1/image.webp',
+    }]);
+    expect(mocks.adminApiRequest).toHaveBeenCalledWith('/api/upload-car-image', expect.objectContaining({ method: 'POST', body: expect.any(FormData) }));
   });
 
-  test('rejects invalid types before uploading', async () => {
+  test('rejects invalid types before they leave the browser', async () => {
     const file = new File(['text'], 'notes.txt', { type: 'text/plain' });
-    await expect(uploadCarImages('car-1', [file])).rejects.toThrow('Invalid vehicle image.');
-    expect(mocks.uploadBytes).not.toHaveBeenCalled();
+    await expect(uploadCarImages('car-1', [file])).rejects.toThrow('Invalid vehicle image');
+    expect(mocks.adminApiRequest).not.toHaveBeenCalled();
   });
 
-  test('deletes every image stored under a car prefix', async () => {
-    const items = [{ path: 'a' }, { path: 'b' }];
-    mocks.listAll.mockResolvedValue({ items });
-    await deleteCarImages('car-1');
-    expect(mocks.deleteObject).toHaveBeenCalledTimes(2);
+  test('removes one image through the protected API', async () => {
+    await deleteCarImage('car-1', 'cars/car-1/image.webp');
+    expect(mocks.adminApiRequest).toHaveBeenCalledWith('/api/delete-car-image', expect.objectContaining({ method: 'DELETE' }));
   });
 });

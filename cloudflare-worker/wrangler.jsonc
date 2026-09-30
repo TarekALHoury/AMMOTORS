@@ -1,0 +1,16 @@
+{
+  "name": "ammotors-image-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-30",
+  "r2_buckets": [
+    {
+      "binding": "AMMOTORS_IMAGES",
+      "bucket_name": "ammotors-images"
+    }
+  ],
+  "vars": {
+    "FIREBASE_PROJECT_ID": "ammotors-lb",
+    "R2_PUBLIC_URL": "https://pub-dff6280b76d14ec38a11ab1cd9e28bb4.r2.dev",
+    "ALLOWED_ORIGIN": "https://ammotors-lb.web.app"
+  }
+}

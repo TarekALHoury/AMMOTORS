@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({ addDoc: vi.fn(), updateDoc: vi.fn(), deleteDoc: vi.fn(), collection: vi.fn(), doc: vi.fn(), serverTimestamp: vi.fn(() => 'timestamp'), uploadCarImages: vi.fn(), deleteCarImages: vi.fn() }));
+const mocks = vi.hoisted(() => ({ addDoc: vi.fn(), updateDoc: vi.fn(), deleteDoc: vi.fn(), collection: vi.fn(), doc: vi.fn(), serverTimestamp: vi.fn(() => 'timestamp'), uploadCarImages: vi.fn(), deleteCarImage: vi.fn(), deleteCarImages: vi.fn() }));
 vi.mock('@firebase/firestore', () => mocks);
 vi.mock('./firebaseAuth.js', () => ({ firebaseAuth: { currentUser: { uid: 'admin-1' } } }));
 vi.mock('./firestore.js', () => ({ firestore: {} }));
-vi.mock('./adminImages.js', () => ({ uploadCarImages: mocks.uploadCarImages, deleteCarImages: mocks.deleteCarImages }));
+vi.mock('./adminImages.js', () => ({ uploadCarImages: mocks.uploadCarImages, deleteCarImage: mocks.deleteCarImage, deleteCarImages: mocks.deleteCarImages }));
 
 import { createAdminCar, deleteAdminCar, toCarDocument, updateAdminCar } from './adminCars.js';
 
@@ -18,26 +18,29 @@ describe('admin car persistence', () => {
     expect(toCarDocument(car)).not.toHaveProperty('id');
   });
 
-  test('creates cars with immutable creator metadata', async () => {
+  test('creates cars in Firestore before uploading images to the Worker', async () => {
     await expect(createAdminCar(car)).resolves.toMatchObject({ id: 'new-id', make: 'BMW' });
     expect(mocks.addDoc).toHaveBeenCalledOnce();
     expect(mocks.addDoc.mock.calls[0][1]).toMatchObject({ createdBy: 'admin-1', updatedBy: 'admin-1' });
   });
 
-  test('stores uploaded image URLs on the created car', async () => {
+  test('stores Worker image URL and R2 key in Firestore', async () => {
     const file = new File(['image'], 'car.jpg', { type: 'image/jpeg' });
-    mocks.uploadCarImages.mockResolvedValue(['https://storage.example/car.jpg']);
-    const created = await createAdminCar(car, [file]);
-    expect(mocks.uploadCarImages).toHaveBeenCalledWith('new-id', [file]);
-    expect(mocks.updateDoc).toHaveBeenCalledWith(expect.objectContaining({ id: 'new-id' }), expect.objectContaining({ images: ['https://storage.example/car.jpg'] }));
-    expect(created.images).toEqual(['https://storage.example/car.jpg']);
+    mocks.uploadCarImages.mockResolvedValue([{ url: 'https://images.example/car.webp', key: 'cars/new-id/car.webp' }]);
+    await createAdminCar(car, [file]);
+    expect(mocks.updateDoc.mock.calls[0][1].images).toEqual([{ url: 'https://images.example/car.webp', key: 'cars/new-id/car.webp' }]);
   });
 
-  test('updates and deletes the requested Firestore car', async () => {
-    await updateAdminCar('car-1', car);
-    await deleteAdminCar('car-1');
+  test('removes the matching R2 key before replacing Firestore car data', async () => {
+    const previous = [{ url: 'https://images.example/old.webp', key: 'cars/car-1/old.webp' }];
+    await updateAdminCar('car-1', car, [], previous);
+    expect(mocks.deleteCarImage).toHaveBeenCalledWith('car-1', previous[0].key);
     expect(mocks.updateDoc).toHaveBeenCalledOnce();
-    expect(mocks.deleteDoc).toHaveBeenCalledOnce();
+  });
+
+  test('deletes a vehicle R2 prefix before its Firestore document', async () => {
+    await deleteAdminCar('car-1');
     expect(mocks.deleteCarImages).toHaveBeenCalledWith('car-1');
+    expect(mocks.deleteDoc).toHaveBeenCalledOnce();
   });
 });

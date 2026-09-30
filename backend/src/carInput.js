@@ -23,6 +23,7 @@ const carFields = new Set([
   'year',
   'price',
   'description',
+  'condition',
   'status',
   'specifications',
   'images',
@@ -92,12 +93,14 @@ function normalizeImages(value, errors) {
   }
 
   const images = value.map((image) => {
-    if (typeof image !== 'string' || image.length > 2048) return null;
+    const imageUrl = typeof image === 'string' ? image : image?.url;
+    if (typeof imageUrl !== 'string' || imageUrl.length > 2048) return null;
     try {
-      const url = new URL(image);
-      return url.protocol === 'https:' && !url.username && !url.password && url.hostname
-        ? url.toString()
-        : null;
+      const url = new URL(imageUrl);
+      if (url.protocol !== 'https:' || url.username || url.password || !url.hostname) return null;
+      if (typeof image === 'string') return url.toString();
+      if (!image || typeof image.key !== 'string' || !/^cars\/[A-Za-z0-9_-]{1,128}\/[A-Za-z0-9._-]+\.webp$/.test(image.key)) return null;
+      return { url: url.toString(), key: image.key };
     } catch {
       return null;
     }
@@ -129,6 +132,9 @@ function normalizeCarInput(input, { partial = false } = {}) {
       max: 5000,
       required: false,
     }) || '';
+  }
+  if (Object.hasOwn(input, 'condition')) {
+    result.condition = textValue(input.condition, 'condition', errors, { max: 60, required: false }) || '';
   }
   if (!partial || Object.hasOwn(input, 'year')) {
     result.year = numberValue(input.year, 'year', errors, {

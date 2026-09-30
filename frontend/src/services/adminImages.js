@@ -1,29 +1,35 @@
-import { deleteObject, getDownloadURL, listAll, ref, uploadBytes } from '@firebase/storage';
-import { firebaseStorage } from './firebaseStorage.js';
+import { adminApiRequest } from './adminApi.js';
 
 const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const maxImageBytes = 10 * 1024 * 1024;
 
-export async function uploadCarImages(carId, files = []) {
-  const uploaded = [];
-  try {
-    for (const file of files) {
-      if (!allowedTypes.has(file.type) || file.size <= 0 || file.size >= 10 * 1024 * 1024) {
-        throw new Error('Invalid vehicle image.');
-      }
-      const extension = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1];
-      const path = `cars/${carId}/${crypto.randomUUID()}.${extension}`;
-      const object = ref(firebaseStorage, path);
-      await uploadBytes(object, file, { contentType: file.type, customMetadata: { carId } });
-      uploaded.push(object);
-    }
-    return Promise.all(uploaded.map(getDownloadURL));
-  } catch (error) {
-    await Promise.allSettled(uploaded.map(deleteObject));
-    throw error;
+function validateImageFile(file) {
+  if (!allowedTypes.has(file.type) || file.size <= 0 || file.size > maxImageBytes) {
+    throw new Error('Invalid vehicle image. Use JPEG, PNG, or WebP files up to 10 MB.');
   }
 }
 
-export async function deleteCarImages(carId) {
-  const result = await listAll(ref(firebaseStorage, `cars/${carId}`));
-  await Promise.all(result.items.map(deleteObject));
+export async function uploadCarImages(carId, files = []) {
+  const uploadedUrls = [];
+  for (const file of files) {
+    validateImageFile(file);
+    const formData = new FormData();
+    formData.append('carId', carId);
+    formData.append('image', file, file.name);
+    const image = await adminApiRequest('/api/upload-car-image', { method: 'POST', body: formData });
+    uploadedUrls.push(image);
+  }
+  return uploadedUrls;
+}
+
+export function deleteCarImage(carId, key) {
+  return adminApiRequest('/api/delete-car-image', {
+    method: 'DELETE', body: JSON.stringify({ carId, key }),
+  });
+}
+
+export function deleteCarImages(carId) {
+  return adminApiRequest('/api/delete-car-images', {
+    method: 'DELETE', body: JSON.stringify({ carId }),
+  });
 }

@@ -62,6 +62,7 @@ components:
         model: { type: string }
         year: { type: integer }
         price: { type: number }
+        condition: { type: string, maxLength: 60 }
         mileage: { type: number }
         engine: { type: string }
         horsepower: { type: number }

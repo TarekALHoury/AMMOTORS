@@ -11,7 +11,6 @@ const allowedOrigins = process.env.CORS_ORIGINS
   : '*';
 const firebaseServices = createFirebaseServices({
   projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
 });
 const app = createApp({ allowedOrigins, trustProxy: isProduction ? 1 : false, ...(firebaseServices || {}) });
 

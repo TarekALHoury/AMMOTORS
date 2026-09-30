@@ -31,6 +31,11 @@ export class CarsApiError extends Error {
 function toPublicCar(snapshot) {
   const data = snapshot.data();
   const specifications = data.specifications || {};
+  const imageEntries = (Array.isArray(data.images) ? data.images : [])
+    .map((image) => typeof image === 'string'
+      ? { url: image, key: null }
+      : { url: image?.url, key: image?.key || null })
+    .filter((image) => typeof image.url === 'string');
 
   return {
     id: snapshot.id,
@@ -38,6 +43,7 @@ function toPublicCar(snapshot) {
     model: data.model,
     year: data.year,
     price: data.price,
+    condition: data.condition || '',
     mileage: specifications.mileage,
     engine: specifications.engine,
     horsepower: specifications.horsepower,
@@ -48,7 +54,8 @@ function toPublicCar(snapshot) {
     interiorColor: specifications.interiorColor,
     description: data.description,
     status: data.status,
-    images: data.images || [],
+    images: imageEntries.map((image) => image.url),
+    imageEntries,
   };
 }
 

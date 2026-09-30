@@ -1,0 +1,4 @@
+# Do not commit .dev.vars. This file has only non-secret development values.
+FIREBASE_PROJECT_ID=ammotors-lb
+R2_PUBLIC_URL=https://pub-dff6280b76d14ec38a11ab1cd9e28bb4.r2.dev
+ALLOWED_ORIGIN=http://localhost:5173

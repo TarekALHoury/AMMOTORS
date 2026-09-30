@@ -1,7 +1,8 @@
 # AMMOTORS backend
 
 The Express API uses Firebase Authentication for admin identity and Cloud Firestore for the
-car catalog. Cloud Storage is optional and can be enabled later for vehicle-image uploads.
+car catalog. Cloudflare R2 image handling lives in the separate, Worker-compatible
+[`../cloudflare-worker`](../cloudflare-worker) project.
 When Firebase environment variables are absent, public reads continue to use `data/cars.json`;
 admin routes return `503`. This keeps the existing local frontend contract working while making
 incomplete production setup fail closed for writes.
@@ -17,7 +18,6 @@ same values through the platform environment instead.
 | `PORT` | No | API port, default `5000`. |
 | `CORS_ORIGINS` | Production | Comma-separated exact frontend origins. |
 | `FIREBASE_PROJECT_ID` | Firebase mode | Firebase project ID. |
-| `FIREBASE_STORAGE_BUCKET` | Optional | Storage bucket name, needed only when Firebase Storage uploads are enabled. |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Local production access only | Absolute path to a service-account JSON file stored outside the repository. Do not use this on Google-managed hosting, which supplies Application Default Credentials. |
 
 Never prefix backend credentials with `VITE_`, embed a service account in frontend code, or
@@ -49,6 +49,7 @@ The complete machine-readable contract is in [`openapi.yaml`](openapi.yaml).
   "model": "M4 Competition",
   "year": 2024,
   "price": 80000,
+  "condition": "Used",
   "mileage": 12000,
   "engine": "3.0L Twin-Turbo",
   "horsepower": 503,
@@ -72,8 +73,7 @@ contain the custom claim `admin: true`. Responses are `401` for missing/invalid 
 - `POST /api/admin/cars` — create; returns `201` and the public car.
 - `PUT /api/admin/cars/:id` — full replacement; returns the public car.
 - `PATCH /api/admin/cars/:id` — partial update; returns the public car.
-- `DELETE /api/admin/cars/:id` — deletes Storage objects under `cars/{id}/`, then the car;
-  returns `204`.
+- `DELETE /api/admin/cars/:id` — removes a car document and returns `204`.
 
 Create/PUT body (PATCH accepts any non-empty subset):
 
@@ -95,7 +95,10 @@ Create/PUT body (PATCH accepts any non-empty subset):
     "exteriorColor": "Black",
     "interiorColor": "Black"
   },
-  "images": ["https://firebasestorage.googleapis.com/..."]
+  "images": [{
+    "url": "https://images.example.com/cars/car-id/image-123.webp",
+    "key": "cars/car-id/image-123.webp"
+  }]
 }
 ```
 
@@ -104,18 +107,12 @@ are non-negative; status is `available`, `reserved`, or `sold`; at most 20 HTTPS
 unknown fields are rejected. Text is trimmed, control characters and HTML tags are removed.
 Validation failures return `400 { "message": "Invalid car data.", "errors": { ... } }`.
 
-## Frontend image workflow
+## R2 image workflow
 
-1. Sign in with Firebase Authentication and obtain an ID token.
-2. Create the car with `images: []`; retain the returned car ID.
-3. Upload JPEG, PNG, or WebP files (under 10 MiB each) with the Firebase Storage browser SDK
-   to `cars/{carId}/{uniqueFileName}`. Storage rules require the admin custom claim.
-4. Obtain each download URL and `PATCH /api/admin/cars/{carId}` with the complete `images`
-   URL array.
-5. Refresh the ID token after an administrator grants or removes a custom claim.
-
-Use collision-resistant filenames and client-side file-type/size checks for user feedback;
-the Storage rules remain the enforcement boundary.
+The Cloudflare Worker at [`../cloudflare-worker`](../cloudflare-worker) owns R2 upload and
+deletion. It verifies Firebase admin ID tokens, writes objects through an R2 binding, and returns
+`{ url, key }`. The frontend writes that record into the existing Firestore car document and has
+no R2 credentials.
 
 ## Tests and emulators
 
