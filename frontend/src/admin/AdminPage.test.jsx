@@ -75,7 +75,9 @@ describe('admin dashboard UI', () => {
     expect(document.querySelector('.admin-status-panel')).not.toBeInTheDocument();
     expect(document.querySelector('.admin-recent-panel')).toBeInTheDocument();
     expect(document.querySelectorAll('.admin-summary-icon svg')).toHaveLength(4);
-    expect(screen.getByRole('heading', { name: 'Data Usage' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Available storage' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Available storage' }).closest('.admin-panel')).toHaveTextContent('/ 3 GB');
+    expect(screen.queryByText(/Cloudflare R2/i)).not.toBeInTheDocument();
     expect(screen.getByRole('progressbar', { name: 'Known image storage used' })).toHaveAttribute('aria-valuemax', '100');
     expect(screen.getAllByText('BMW M4 Competition').length).toBeGreaterThan(0);
     expect(document.querySelector('.lucide-layout-dashboard')).toBeInTheDocument();

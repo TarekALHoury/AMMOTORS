@@ -1,4 +1,4 @@
-export const CLOUDFLARE_STORAGE_LIMIT_BYTES = 5 * 1024 * 1024 * 1024;
+export const CLOUDFLARE_STORAGE_LIMIT_BYTES = 3 * 1024 * 1024 * 1024;
 
 export function vehicleImageUsage(car) {
   const entries = Array.isArray(car?.imageEntries) ? car.imageEntries : [];

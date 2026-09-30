@@ -172,7 +172,7 @@ function Summary({ cars, onNavigate }) {
         {cards.map(({ label, value, note, icon: CardIcon, tone }) => <article className={`admin-summary-card admin-summary-${tone}`} data-tilt="10" key={label}><div className="admin-summary-card-top"><span>{label}</span><span className="admin-summary-icon"><CardIcon size={20} strokeWidth={1.8} aria-hidden="true" /></span></div><strong>{value}</strong><small>{note}</small></article>)}
       </section>
       <section className="admin-panel admin-data-usage" aria-labelledby="data-usage-title">
-        <div className="admin-panel-heading"><div><p className="admin-kicker">Cloudflare R2 image storage</p><h2 id="data-usage-title">Data Usage</h2></div><strong>{formatBytes(usage.knownBytes)} / 5 GB</strong></div>
+        <div className="admin-panel-heading"><h2 id="data-usage-title">Available storage</h2><strong>{formatBytes(usage.knownBytes)} / 3 GB</strong></div>
         <div className="admin-usage-track" role="progressbar" aria-label="Known image storage used" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Number(usagePercent.toFixed(2))}><span style={{ width: `${usagePercent}%` }} /></div>
         <div className="admin-usage-meta"><span>{formatBytes(remainingBytes)} remaining</span><span>{usage.unknownImages ? `${usage.unknownImages} legacy image${usage.unknownImages === 1 ? '' : 's'} not included` : 'All image sizes tracked'}</span></div>
       </section>

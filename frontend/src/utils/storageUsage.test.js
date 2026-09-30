@@ -11,9 +11,9 @@ describe('image storage usage', () => {
     expect(inventoryImageUsage([car, { images: [], imageEntries: [] }])).toEqual({ knownBytes: 1_500_000, unknownImages: 1 });
   });
 
-  test('formats usage and defines the requested five-gigabyte limit', () => {
-    expect(CLOUDFLARE_STORAGE_LIMIT_BYTES).toBe(5 * 1024 ** 3);
+  test('formats usage and defines the requested three-gigabyte limit', () => {
+    expect(CLOUDFLARE_STORAGE_LIMIT_BYTES).toBe(3 * 1024 ** 3);
     expect(formatBytes(4.8 * 1024 ** 2)).toBe('4.8 MB');
-    expect(formatBytes(5 * 1024 ** 3)).toBe('5.00 GB');
+    expect(formatBytes(3 * 1024 ** 3)).toBe('3.00 GB');
   });
 });
