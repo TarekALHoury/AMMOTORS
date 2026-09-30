@@ -22,6 +22,18 @@ export async function uploadCarImages(carId, files = []) {
   return uploadedUrls;
 }
 
+export async function getCarImageSizes(images = []) {
+  if (!images.length) return [];
+  const sizes = [];
+  for (let offset = 0; offset < images.length; offset += 200) {
+    const response = await adminApiRequest('/api/car-image-sizes', {
+      method: 'POST', body: JSON.stringify({ images: images.slice(offset, offset + 200) }),
+    });
+    if (Array.isArray(response.images)) sizes.push(...response.images);
+  }
+  return sizes;
+}
+
 export function deleteCarImage(carId, key) {
   return adminApiRequest('/api/delete-car-image', {
     method: 'DELETE', body: JSON.stringify({ carId, key }),

@@ -120,6 +120,25 @@ describe('admin dashboard UI', () => {
     expect(document.querySelector('.admin-filter-panel select')).not.toBeInTheDocument();
   });
 
+  test('shows each vehicle image count and R2 storage usage in the inventory table', async () => {
+    const user = userEvent.setup();
+    getCars.mockResolvedValue([{
+      ...demoCars[0],
+      images: ['https://images.example/front.webp', 'https://images.example/rear.webp'],
+      imageEntries: [
+        { url: 'https://images.example/front.webp', key: 'cars/demo-001/front.webp', sizeBytes: 1572864 },
+        { url: 'https://images.example/rear.webp', key: 'cars/demo-001/rear.webp', sizeBytes: 524288 },
+      ],
+    }]);
+    renderAdmin();
+    await signIn(user);
+    await user.click(screen.getByRole('button', { name: /Inventory 1/i }));
+
+    expect(screen.getByRole('columnheader', { name: 'Image storage' })).toBeInTheDocument();
+    expect(document.querySelector('.admin-table td[data-label="Images"]')).toHaveTextContent('2.00 MB');
+    expect(document.querySelector('.admin-table td[data-label="Images"]')).toHaveTextContent('2 images');
+  });
+
   test('restores the current admin section after a refresh without storing credentials', async () => {
     const user = userEvent.setup();
     const firstRender = renderAdmin();

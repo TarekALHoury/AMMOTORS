@@ -26,9 +26,9 @@ describe('admin car persistence', () => {
 
   test('stores Worker image URL and R2 key in Firestore', async () => {
     const file = new File(['image'], 'car.jpg', { type: 'image/jpeg' });
-    mocks.uploadCarImages.mockResolvedValue([{ url: 'https://images.example/car.webp', key: 'cars/new-id/car.webp' }]);
+    mocks.uploadCarImages.mockResolvedValue([{ url: 'https://images.example/car.webp', key: 'cars/new-id/car.webp', sizeBytes: 5242880 }]);
     await createAdminCar(car, [file]);
-    expect(mocks.updateDoc.mock.calls[0][1].images).toEqual([{ url: 'https://images.example/car.webp', key: 'cars/new-id/car.webp' }]);
+    expect(mocks.updateDoc.mock.calls[0][1].images).toEqual([{ url: 'https://images.example/car.webp', key: 'cars/new-id/car.webp', sizeBytes: 5242880 }]);
   });
 
   test('removes the matching R2 key before replacing Firestore car data', async () => {

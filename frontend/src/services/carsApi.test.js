@@ -52,6 +52,15 @@ describe('offline car data cache', () => {
     expect(cars.map((car) => car.id)).toEqual(['newest', 'older']);
   });
 
+  test('preserves stored R2 image sizes for the admin inventory', async () => {
+    firestoreMocks.getDocs.mockResolvedValue({ docs: [snapshot('sized', {
+      ...carData,
+      images: [{ url: 'https://images.example/car.webp', key: 'cars/sized/car.webp', sizeBytes: 5242880 }],
+    })] });
+    const [car] = await getCars();
+    expect(car.imageEntries).toEqual([{ url: 'https://images.example/car.webp', key: 'cars/sized/car.webp', sizeBytes: 5242880 }]);
+  });
+
   test('still reports an error when offline data has never been cached', async () => {
     firestoreMocks.getDocs.mockRejectedValueOnce(new Error('offline'));
     await expect(getCars()).rejects.toMatchObject({ status: 0 });

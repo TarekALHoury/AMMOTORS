@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUpDown, BadgeCheck, CalendarDays, CarFront, Check, Chev
 import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 import { createAdminCar, deleteAdminCar, updateAdminCar } from '../services/adminCars.js';
+import { getCarImageSizes } from '../services/adminImages.js';
 import { getInternetModelsForMake } from '../services/vehicleCatalogApi.js';
 import VehicleImage from '../components/VehicleImage.jsx';
 import logo from '../assets/am-motors-logo.png';
@@ -48,6 +49,33 @@ const demoCars = [
 
 function money(value) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value || 0);
+}
+
+function formatMegabytes(bytes) {
+  const megabytes = bytes / (1024 * 1024);
+  return `${megabytes > 0 && megabytes < 0.01 ? '<0.01' : megabytes.toFixed(2)} MB`;
+}
+
+function getImageStorage(car, measuredSizes) {
+  const count = car.images?.length || 0;
+  if (!count) return { size: '0 MB', count: 'No images' };
+
+  const r2Images = (car.imageEntries || []).filter((image) => image.key);
+  if (!r2Images.length) return { size: 'External', count: `${count} image${count === 1 ? '' : 's'}` };
+
+  const sizes = r2Images.map((image) => {
+    if (image.sizeBytes != null && Number.isFinite(Number(image.sizeBytes))) return Number(image.sizeBytes);
+    return Object.prototype.hasOwnProperty.call(measuredSizes, image.key) ? measuredSizes[image.key] : undefined;
+  });
+  if (sizes.some((size) => size === undefined)) return { size: 'Checking…', count: `${count} image${count === 1 ? '' : 's'}` };
+
+  const knownSizes = sizes.filter(Number.isFinite);
+  if (!knownSizes.length) return { size: 'Unavailable', count: `${count} image${count === 1 ? '' : 's'}` };
+  const incomplete = knownSizes.length !== r2Images.length || r2Images.length !== count;
+  return {
+    size: `${formatMegabytes(knownSizes.reduce((total, size) => total + size, 0))}${incomplete ? '+' : ''}`,
+    count: `${count} image${count === 1 ? '' : 's'}`,
+  };
 }
 
 function AdminIcon({ name }) {
@@ -170,6 +198,24 @@ function Inventory({ cars, onNavigate, onDelete }) {
   const [filters, setFilters] = useState(defaultInventoryFilters);
   const [sort, setSort] = useState('newest');
   const [view, setView] = useState('table');
+  const [measuredImageSizes, setMeasuredImageSizes] = useState({});
+  useEffect(() => {
+    const imagesToMeasure = cars.flatMap((car) => (car.imageEntries || [])
+      .filter((image) => image.key && !(image.sizeBytes != null && Number.isFinite(Number(image.sizeBytes))))
+      .map((image) => ({ carId: car.id, key: image.key })));
+    if (!imagesToMeasure.length) return undefined;
+
+    let cancelled = false;
+    getCarImageSizes(imagesToMeasure).then((images) => {
+      if (cancelled) return;
+      const sizes = Object.fromEntries(images.map((image) => [image.key, image.sizeBytes != null && Number.isFinite(Number(image.sizeBytes)) ? Number(image.sizeBytes) : null]));
+      imagesToMeasure.forEach(({ key }) => { if (!Object.prototype.hasOwnProperty.call(sizes, key)) sizes[key] = null; });
+      setMeasuredImageSizes((current) => ({ ...current, ...sizes }));
+    }).catch(() => {
+      if (!cancelled) setMeasuredImageSizes((current) => ({ ...current, ...Object.fromEntries(imagesToMeasure.map(({ key }) => [key, null])) }));
+    });
+    return () => { cancelled = true; };
+  }, [cars]);
   const options = useMemo(() => ({
     makes: uniqueCarValues(cars, 'make'),
     models: uniqueCarValues(cars.filter((car) => filters.make === 'all' || car.make === filters.make), 'model'),
@@ -248,7 +294,7 @@ function Inventory({ cars, onNavigate, onDelete }) {
         <div className="admin-filter-footer"><span>{filtered.length} matching vehicle{filtered.length === 1 ? '' : 's'}</span><button type="button" onClick={resetFilters} disabled={!search && !activeFilterCount}>Clear all filters</button></div>
       </details>
       {!filtered.length ? <EmptyState onAction={cars.length ? resetFilters : () => onNavigate('add')} actionLabel={cars.length ? 'Clear all filters' : 'Add first vehicle'} /> : view === 'table' ? (
-        <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Vehicle</th><th>Status</th><th>Year</th><th>Mileage</th><th>Price</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{filtered.map((car) => <tr key={car.id}><td data-label="Vehicle"><div className="admin-vehicle-cell"><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.engine}</small></span></div></td><td data-label="Status"><span className={`admin-status status-${car.status}`}>{car.status}</span></td><td data-label="Year">{car.year}</td><td data-label="Mileage">{Number(car.mileage || 0).toLocaleString()} km</td><td data-label="Price"><strong>{money(car.price)}</strong></td><td data-label="Actions"><div className="admin-row-actions"><button aria-label={`View ${car.make} ${car.model}`} onClick={() => onNavigate('details', car)}><AdminIcon name="eye" /></button><button aria-label={`Edit ${car.make} ${car.model}`} onClick={() => onNavigate('edit', car)}><AdminIcon name="edit" /></button><button className="danger" aria-label={`Delete ${car.make} ${car.model}`} onClick={() => onDelete(car)}><AdminIcon name="trash" /></button></div></td></tr>)}</tbody></table></div>
+        <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Vehicle</th><th>Status</th><th>Year</th><th>Mileage</th><th>Price</th><th>Image storage</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{filtered.map((car) => { const storage = getImageStorage(car, measuredImageSizes); return <tr key={car.id}><td data-label="Vehicle"><div className="admin-vehicle-cell"><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.engine}</small></span></div></td><td data-label="Status"><span className={`admin-status status-${car.status}`}>{car.status}</span></td><td data-label="Year">{car.year}</td><td data-label="Mileage">{Number(car.mileage || 0).toLocaleString()} km</td><td data-label="Price"><strong>{money(car.price)}</strong></td><td data-label="Images"><span className="admin-image-storage"><strong>{storage.size}</strong><small>{storage.count}</small></span></td><td data-label="Actions"><div className="admin-row-actions"><button aria-label={`View ${car.make} ${car.model}`} onClick={() => onNavigate('details', car)}><AdminIcon name="eye" /></button><button aria-label={`Edit ${car.make} ${car.model}`} onClick={() => onNavigate('edit', car)}><AdminIcon name="edit" /></button><button className="danger" aria-label={`Delete ${car.make} ${car.model}`} onClick={() => onDelete(car)}><AdminIcon name="trash" /></button></div></td></tr>; })}</tbody></table></div>
       ) : <div className="admin-inventory-grid">{filtered.map((car) => <article className="admin-inventory-card" data-tilt="7" key={car.id}><VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model}`} /><div><span className={`admin-status status-${car.status}`}>{car.status}</span><h2>{car.make} {car.model}</h2><p>{car.year} · {Number(car.mileage || 0).toLocaleString()} km</p><strong>{money(car.price)}</strong><div className="admin-card-actions"><button onClick={() => onNavigate('details', car)}>View</button><button onClick={() => onNavigate('edit', car)}>Edit</button><button className="danger" onClick={() => onDelete(car)}>Delete</button></div></div></article>)}</div>}
     </div>
   );
