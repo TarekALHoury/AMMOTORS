@@ -139,6 +139,9 @@ describe('admin dashboard UI', () => {
     renderAdmin();
     await signIn(user);
     await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
+    expect(screen.getByText('Select images')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Hosted image URL')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add URL' })).not.toBeInTheDocument();
     const form = document.querySelector('.admin-car-form');
     await user.click(within(form).getByRole('button', { name: 'Add vehicle' }));
     expect(await screen.findAllByText('Required.')).not.toHaveLength(0);
