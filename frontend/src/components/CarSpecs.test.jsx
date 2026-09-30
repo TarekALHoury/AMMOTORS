@@ -28,5 +28,6 @@ describe('CarSpecs', () => {
       'Model', 'Year', 'Mileage', 'Engine', 'Horsepower', 'Transmission',
       'Drivetrain', 'Fuel type', 'Exterior color', 'Interior color',
     ]);
+    expect(screen.getByText('Mileage').closest('.spec')).toHaveTextContent('100,000 km | 62,137 mi');
   });
 });
