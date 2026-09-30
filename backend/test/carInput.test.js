@@ -79,11 +79,12 @@ test('partial updates reject empty bodies', () => {
   );
 });
 
-test('complete cars require all public specification fields', () => {
-  assert.throws(
-    () => normalizeCarInput(validInput({ specifications: { mileage: 100 } })),
-    CarValidationError,
+test('complete cars allow optional specification fields to be omitted', () => {
+  assert.deepEqual(
+    normalizeCarInput(validInput({ specifications: { mileage: 100 } })).specifications,
+    { mileage: 100 },
   );
+  assert.deepEqual(normalizeCarInput(validInput({ specifications: undefined })).specifications, {});
 });
 
 module.exports = { validInput };

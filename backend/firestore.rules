@@ -18,18 +18,14 @@ service cloud.firestore {
           'mileage', 'engine', 'horsepower', 'transmission', 'drivetrain',
           'fuel', 'exteriorColor', 'interiorColor'
         ])
-        && specifications.keys().hasAll([
-          'mileage', 'engine', 'horsepower', 'transmission', 'drivetrain',
-          'fuel', 'exteriorColor', 'interiorColor'
-        ])
-        && specifications.mileage is number && specifications.mileage >= 0
-        && specifications.horsepower is number && specifications.horsepower >= 0
-        && validString(specifications.engine, 120)
-        && validString(specifications.transmission, 120)
-        && validString(specifications.drivetrain, 120)
-        && validString(specifications.fuel, 120)
-        && validString(specifications.exteriorColor, 120)
-        && validString(specifications.interiorColor, 120);
+        && (!('mileage' in specifications) || (specifications.mileage is number && specifications.mileage >= 0))
+        && (!('horsepower' in specifications) || (specifications.horsepower is number && specifications.horsepower >= 0))
+        && (!('engine' in specifications) || validString(specifications.engine, 120))
+        && (!('transmission' in specifications) || validString(specifications.transmission, 120))
+        && (!('drivetrain' in specifications) || validString(specifications.drivetrain, 120))
+        && (!('fuel' in specifications) || validString(specifications.fuel, 120))
+        && (!('exteriorColor' in specifications) || validString(specifications.exteriorColor, 120))
+        && (!('interiorColor' in specifications) || validString(specifications.interiorColor, 120));
     }
 
     function validCar(data) {

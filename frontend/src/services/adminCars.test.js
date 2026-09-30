@@ -18,6 +18,11 @@ describe('admin car persistence', () => {
     expect(toCarDocument(car)).not.toHaveProperty('id');
   });
 
+  test('omits optional specifications when the admin leaves them blank', () => {
+    const optional = { ...car, mileage: undefined, engine: '', horsepower: undefined, transmission: '', drivetrain: '', fuel: '', exteriorColor: '', interiorColor: '' };
+    expect(toCarDocument(optional).specifications).toEqual({});
+  });
+
   test('creates cars in Firestore before uploading images to the Worker', async () => {
     await expect(createAdminCar(car)).resolves.toMatchObject({ id: 'new-id', make: 'BMW' });
     expect(mocks.addDoc).toHaveBeenCalledOnce();

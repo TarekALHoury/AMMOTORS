@@ -59,6 +59,7 @@ function numberValue(value, field, errors, { min = 0, max = Number.MAX_SAFE_INTE
 }
 
 function normalizeSpecifications(value, errors, partial) {
+  if (value == null && !partial) return {};
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     errors.specifications = 'Must be an object.';
     return undefined;
@@ -72,14 +73,15 @@ function normalizeSpecifications(value, errors, partial) {
     'engine', 'transmission', 'drivetrain', 'fuel', 'exteriorColor', 'interiorColor',
   ];
   for (const field of stringFields) {
-    if (!partial || Object.hasOwn(value, field)) {
-      result[field] = textValue(value[field], `specifications.${field}`, errors);
+    if (Object.hasOwn(value, field)) {
+      const normalized = textValue(value[field], `specifications.${field}`, errors, { required: false });
+      if (normalized) result[field] = normalized;
     }
   }
-  if (!partial || Object.hasOwn(value, 'mileage')) {
+  if (Object.hasOwn(value, 'mileage')) {
     result.mileage = numberValue(value.mileage, 'specifications.mileage', errors);
   }
-  if (!partial || Object.hasOwn(value, 'horsepower')) {
+  if (Object.hasOwn(value, 'horsepower')) {
     result.horsepower = numberValue(value.horsepower, 'specifications.horsepower', errors);
   }
 

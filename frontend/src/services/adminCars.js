@@ -11,6 +11,16 @@ function requireAdminUid() {
 
 function toCarDocument(car) {
   const imageEntries = Array.isArray(car.imageEntries) ? car.imageEntries : [];
+  const specifications = Object.fromEntries(Object.entries({
+    mileage: car.mileage,
+    engine: car.engine,
+    horsepower: car.horsepower,
+    transmission: car.transmission,
+    drivetrain: car.drivetrain,
+    fuel: car.fuel,
+    exteriorColor: car.exteriorColor,
+    interiorColor: car.interiorColor,
+  }).filter(([, value]) => value !== '' && value != null));
   return {
     make: car.make,
     model: car.model,
@@ -19,16 +29,7 @@ function toCarDocument(car) {
     ...(car.condition ? { condition: car.condition } : {}),
     description: car.description,
     status: car.status,
-    specifications: {
-      mileage: car.mileage,
-      engine: car.engine,
-      horsepower: car.horsepower,
-      transmission: car.transmission,
-      drivetrain: car.drivetrain,
-      fuel: car.fuel,
-      exteriorColor: car.exteriorColor,
-      interiorColor: car.interiorColor,
-    },
+    specifications,
     images: car.images.map((url) => {
       const image = imageEntries.find((entry) => entry.url === url);
       return image?.key ? {
