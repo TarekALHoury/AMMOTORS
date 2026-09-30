@@ -89,7 +89,7 @@ describe('admin dashboard UI', () => {
     await user.click(screen.getByRole('button', { name: 'Clear inventory search' }));
     expect(search).toHaveValue('');
     expect(document.querySelector('.admin-toolbar select')).not.toBeInTheDocument();
-    expect(document.querySelector('.admin-toolbar .lucide-badge-check')).toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: 'Filter by status' })).not.toBeInTheDocument();
     expect(document.querySelector('.admin-toolbar .lucide-arrow-up-down')).toBeInTheDocument();
     expect(document.querySelector('.admin-table td[data-label="Mileage"]')).toHaveTextContent('12,000 km');
     await user.click(screen.getByText(/^Advanced filters/));
@@ -112,7 +112,7 @@ describe('admin dashboard UI', () => {
     await chooseFormOption(user, 'Filter by drivetrain', 'RWD');
     await chooseFormOption(user, 'Filter by exterior color', 'Black');
     await user.type(screen.getByLabelText('Minimum horsepower'), '500');
-    await chooseFormOption(user, 'Filter by status', 'Sold');
+    await chooseFormOption(user, 'Filter by interior color', 'Beige');
     expect(screen.getByText('No vehicles found')).toBeInTheDocument();
     await user.click(within(document.querySelector('.admin-empty')).getByRole('button', { name: 'Clear all filters' }));
     expect(screen.getByText('Audi Q5 Premium Plus')).toBeInTheDocument();
@@ -155,7 +155,7 @@ describe('admin dashboard UI', () => {
     expect(vehicleDetails.querySelector('.lucide-tags')).toBeInTheDocument();
     expect(vehicleDetails.querySelector('.lucide-calendar-days')).toBeInTheDocument();
     expect(vehicleDetails.querySelector('.lucide-circle-dollar-sign')).toBeInTheDocument();
-    expect(vehicleDetails.querySelector('.lucide-badge-check')).toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: 'Status *' })).not.toBeInTheDocument();
     expect(vehicleDetails.querySelector('.lucide-file-text')).toBeInTheDocument();
     const make = screen.getByLabelText('Make *');
     const model = screen.getByLabelText('Model *');
