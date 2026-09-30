@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 const SITE_URL = 'https://ammotors-lb.web.app';
+const FAVICON_URL = '/favicon.ico?v=20260930';
 
 function getOrCreateMeta(selector, attributes) {
   let element = document.head.querySelector(selector);
@@ -16,6 +17,16 @@ export function usePageMetadata({ title, description, path = '/', robots = 'inde
   useEffect(() => {
     const canonicalUrl = new URL(path, SITE_URL).toString();
     document.title = title;
+
+    const faviconLinks = [...document.head.querySelectorAll('link[rel~="icon"]')];
+    if (faviconLinks.length) {
+      faviconLinks.forEach((link) => link.setAttribute('href', FAVICON_URL));
+    } else {
+      const favicon = document.createElement('link');
+      favicon.setAttribute('rel', 'icon');
+      favicon.setAttribute('href', FAVICON_URL);
+      document.head.appendChild(favicon);
+    }
 
     getOrCreateMeta('meta[name="description"]', { name: 'description' }).setAttribute('content', description);
     getOrCreateMeta('meta[name="robots"]', { name: 'robots' }).setAttribute('content', robots);

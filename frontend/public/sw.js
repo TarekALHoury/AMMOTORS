@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ammotors-shell-v6';
+const CACHE_NAME = 'ammotors-shell-v7';
 const APP_SHELL = ['/', '/index.html'];
 const MAX_STATIC_ENTRIES = 60;
 
