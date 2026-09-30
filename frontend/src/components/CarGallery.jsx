@@ -31,6 +31,21 @@ function CarGallery({ images = [], name }) {
   }, [activeIndex]);
 
   useEffect(() => {
+    const strip = thumbnailsRef.current;
+    if (!strip) return undefined;
+
+    function handleWheel(event) {
+      if (strip.scrollWidth <= strip.clientWidth) return;
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      event.preventDefault();
+      strip.scrollLeft += event.deltaY;
+    }
+
+    strip.addEventListener('wheel', handleWheel, { passive: false });
+    return () => strip.removeEventListener('wheel', handleWheel);
+  }, [safeImages.length]);
+
+  useEffect(() => {
     if (!isLightboxOpen) return undefined;
 
     const previousOverflow = document.body.style.overflow;
@@ -80,12 +95,6 @@ function CarGallery({ images = [], name }) {
     touchStartX.current = event.touches[0]?.clientX ?? null;
   }
 
-  function continueSwipe(event) {
-    if (touchStartX.current === null || safeImages.length < 2) return;
-    const currentX = event.touches[0]?.clientX ?? touchStartX.current;
-    if (Math.abs(touchStartX.current - currentX) > 8) event.preventDefault();
-  }
-
   function finishSwipe(event, preventOpen = false) {
     if (touchStartX.current === null || safeImages.length < 2) return;
     const distance = touchStartX.current - (event.changedTouches[0]?.clientX ?? touchStartX.current);
@@ -105,14 +114,6 @@ function CarGallery({ images = [], name }) {
     setIsLightboxOpen(true);
   }
 
-  function scrollThumbnails(event) {
-    const strip = thumbnailsRef.current;
-    if (!strip || strip.scrollWidth <= strip.clientWidth) return;
-    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-    event.preventDefault();
-    strip.scrollLeft += event.deltaY;
-  }
-
   return (
     <div className="gallery">
       <div className="gallery-main">
@@ -121,7 +122,6 @@ function CarGallery({ images = [], name }) {
           className="gallery-expand-trigger"
           onClick={openLightbox}
           onTouchStart={startSwipe}
-          onTouchMove={continueSwipe}
           onTouchEnd={(event) => finishSwipe(event, true)}
           onTouchCancel={() => { touchStartX.current = null; }}
           aria-label={`Enlarge ${name} image ${activeIndex + 1}`}
@@ -138,7 +138,7 @@ function CarGallery({ images = [], name }) {
       </div>
 
       {safeImages.length > 1 && (
-        <div className="thumbnails" ref={thumbnailsRef} onWheel={scrollThumbnails} aria-label={`${name} image previews`}>
+        <div className="thumbnails" ref={thumbnailsRef} aria-label={`${name} image previews`}>
           {safeImages.map((image, index) => (
             <button
               type="button"
@@ -159,7 +159,7 @@ function CarGallery({ images = [], name }) {
         <div ref={dialogRef} className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={`${name} enlarged image`} onClick={() => setIsLightboxOpen(false)}>
           <div className="gallery-lightbox-content" onClick={(event) => event.stopPropagation()}>
             <button ref={closeButtonRef} type="button" className="gallery-lightbox-close" onClick={() => setIsLightboxOpen(false)} aria-label="Close enlarged image"><X /></button>
-            <div className="gallery-lightbox-image" onTouchStart={startSwipe} onTouchMove={continueSwipe} onTouchEnd={finishSwipe} onTouchCancel={() => { touchStartX.current = null; }}>
+            <div className="gallery-lightbox-image" onTouchStart={startSwipe} onTouchEnd={finishSwipe} onTouchCancel={() => { touchStartX.current = null; }}>
               <div className="gallery-image-track" style={{ transform: `translate3d(-${activeIndex * 100}%, 0, 0)` }}>
                 {safeImages.map((image, index) => (
                   <div className="gallery-image-slide" aria-hidden={index !== activeIndex} key={`${image}-${index}`}>
