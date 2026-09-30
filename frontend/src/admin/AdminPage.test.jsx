@@ -184,8 +184,11 @@ describe('admin dashboard UI', () => {
     expect(vehicleDetails.querySelector('.lucide-tags')).toBeInTheDocument();
     expect(vehicleDetails.querySelector('.lucide-calendar-days')).toBeInTheDocument();
     expect(vehicleDetails.querySelector('.lucide-circle-dollar-sign')).toBeInTheDocument();
-    expect(screen.queryByRole('combobox', { name: 'Status *' })).not.toBeInTheDocument();
+    expect(vehicleDetails.querySelector('.lucide-badge-check')).not.toBeInTheDocument();
     expect(vehicleDetails.querySelector('.lucide-file-text')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Status *')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Hosted image URL')).not.toBeInTheDocument();
+    expect(screen.getByText('Select images')).toBeInTheDocument();
     const make = screen.getByLabelText('Make *');
     const model = screen.getByLabelText('Model *');
     expect(make).toHaveRole('combobox');
@@ -261,15 +264,18 @@ describe('admin dashboard UI', () => {
     expect(mileage).toHaveValue(12000);
     expect(fireEvent.paste(mileage, { clipboardData: { getData: () => '-12.5' } })).toBe(false);
     expect(mileage).toHaveValue(12000);
-    await user.click(screen.getByRole('button', { name: 'mi' }));
-    const miles = screen.getByLabelText('Mileage (mi) *');
-    expect(miles).toHaveValue(7456);
-    expect(screen.getByText('≈ 12,000 km')).toBeInTheDocument();
-    await user.clear(miles);
-    await user.type(miles, '100');
-    expect(screen.getByText('≈ 161 km')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'km' }));
-    expect(screen.getByLabelText('Mileage (km) *')).toHaveValue(161);
+  });
+
+  test('preserves an existing vehicle status when saving without a status control', async () => {
+    const user = userEvent.setup();
+    renderAdmin();
+    await signIn(user);
+    await user.click(screen.getByRole('button', { name: /Inventory 3/i }));
+    await user.click(screen.getByRole('button', { name: 'Edit Mercedes-Benz C300' }));
+    expect(screen.queryByLabelText('Status *')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(updateAdminCar).toHaveBeenCalled());
+    expect(updateAdminCar.mock.calls[0][1].status).toBe('reserved');
   });
 
   test('supports keyboard-only selection in styled form dropdowns', async () => {
