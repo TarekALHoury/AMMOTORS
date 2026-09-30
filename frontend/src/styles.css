@@ -1460,6 +1460,7 @@ p {
   max-width: 800px;
   margin-bottom: 0;
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .state-page {
