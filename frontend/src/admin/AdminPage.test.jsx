@@ -97,7 +97,8 @@ describe('admin dashboard UI', () => {
     expect(screen.queryByRole('combobox', { name: 'Filter by status' })).not.toBeInTheDocument();
     expect(document.querySelector('.admin-toolbar .lucide-arrow-up-down')).toBeInTheDocument();
     expect(document.querySelector('.admin-table td[data-label="Mileage"]')).toHaveTextContent('12,000 km');
-    expect(document.querySelector('.admin-table td[data-label="Image size"]')).toHaveTextContent('0 B');
+    expect(document.querySelector('.admin-table td[data-label="Images"]')).toHaveTextContent('0 MB');
+    expect(document.querySelector('.admin-table td[data-label="Images"]')).toHaveTextContent('No images');
     await user.click(screen.getByText(/^Advanced filters/));
     expect(document.querySelector('.lucide-sliders-horizontal')).toBeInTheDocument();
     expect(document.querySelector('.admin-filter-grid .lucide-car-front')).toBeInTheDocument();
@@ -124,6 +125,25 @@ describe('admin dashboard UI', () => {
     expect(screen.getByText('Audi Q5 Premium Plus')).toBeInTheDocument();
     expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
     expect(document.querySelector('.admin-filter-panel select')).not.toBeInTheDocument();
+  });
+
+  test('shows each vehicle image count and R2 storage usage in the inventory table', async () => {
+    const user = userEvent.setup();
+    getCars.mockResolvedValue([{
+      ...demoCars[0],
+      images: ['https://images.example/front.webp', 'https://images.example/rear.webp'],
+      imageEntries: [
+        { url: 'https://images.example/front.webp', key: 'cars/demo-001/front.webp', sizeBytes: 1572864 },
+        { url: 'https://images.example/rear.webp', key: 'cars/demo-001/rear.webp', sizeBytes: 524288 },
+      ],
+    }]);
+    renderAdmin();
+    await signIn(user);
+    await user.click(screen.getByRole('button', { name: /Inventory 1/i }));
+
+    expect(screen.getByRole('columnheader', { name: 'Image storage' })).toBeInTheDocument();
+    expect(document.querySelector('.admin-table td[data-label="Images"]')).toHaveTextContent('2.00 MB');
+    expect(document.querySelector('.admin-table td[data-label="Images"]')).toHaveTextContent('2 images');
   });
 
   test('restores the current admin section after a refresh without storing credentials', async () => {

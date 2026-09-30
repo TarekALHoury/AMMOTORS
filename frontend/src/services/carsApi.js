@@ -33,8 +33,12 @@ function toPublicCar(snapshot) {
   const specifications = data.specifications || {};
   const imageEntries = (Array.isArray(data.images) ? data.images : [])
     .map((image) => typeof image === 'string'
-      ? { url: image, key: null }
-      : { url: image?.url, key: image?.key || null, size: Number.isFinite(Number(image?.size)) ? Number(image.size) : null })
+      ? { url: image, key: null, sizeBytes: null }
+      : {
+        url: image?.url,
+        key: image?.key || null,
+        sizeBytes: Number.isFinite(Number(image?.sizeBytes ?? image?.size)) ? Number(image.sizeBytes ?? image.size) : null,
+      })
     .filter((image) => typeof image.url === 'string');
 
   return {

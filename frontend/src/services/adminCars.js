@@ -31,7 +31,11 @@ function toCarDocument(car) {
     },
     images: car.images.map((url) => {
       const image = imageEntries.find((entry) => entry.url === url);
-      return image?.key ? { url, key: image.key, ...(Number.isFinite(Number(image.size)) ? { size: Number(image.size) } : {}) } : url;
+      return image?.key ? {
+        url,
+        key: image.key,
+        ...(Number.isFinite(Number(image.sizeBytes ?? image.size)) ? { sizeBytes: Number(image.sizeBytes ?? image.size) } : {}),
+      } : url;
     }),
   };
 }

@@ -174,12 +174,15 @@
 .admin-filter-footer button:hover:not(:disabled) { border-color: var(--line-strong); background: rgba(255,255,255,.05); }
 .admin-filter-footer button:disabled { cursor: not-allowed; opacity: .42; }
 .admin-table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); overscroll-behavior-inline: contain; -webkit-overflow-scrolling: touch; }
-.admin-table { width: 100%; min-width: 840px; border-collapse: collapse; }
+.admin-table { width: 100%; min-width: 940px; border-collapse: collapse; }
 .admin-table th, .admin-table td { padding: 15px 18px; border-bottom: 1px solid var(--line); text-align: left; }
 .admin-table th { color: #939ca1; font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; }
 .admin-table td { color: #dbe0e2; font-size: .78rem; }
 .admin-table tbody tr:last-child td { border-bottom: 0; }
 .admin-table tbody tr:hover { background: rgba(255,255,255,.02); }
+.admin-image-storage { display: grid; gap: 3px; white-space: nowrap; }
+.admin-image-storage strong { color: #eef1f2; font-size: .78rem; }
+.admin-image-storage small { color: var(--muted); font-size: .66rem; }
 .admin-vehicle-cell { display: flex; min-width: 230px; align-items: center; gap: 13px; }
 .admin-vehicle-cell img { width: 66px; height: 46px; border-radius: 4px; object-fit: cover; }
 .admin-vehicle-cell strong, .admin-vehicle-cell small { display: block; }
@@ -336,6 +339,7 @@
   .admin-table td { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--line); }
   .admin-table td::before { color: var(--muted); content: attr(data-label); font-size: .63rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
   .admin-table td:first-child, .admin-table td:last-child { grid-column: 1/-1; }
+  .admin-table td[data-label="Images"] { grid-column: 1/-1; border-bottom: 0; }
   .admin-table td:first-child { padding: 14px; background: linear-gradient(120deg,rgba(255,255,255,.035),transparent); }
   .admin-table td:first-child::before, .admin-table td:last-child::before { display: none; }
   .admin-table td:nth-last-child(2) { border-bottom: 0; }

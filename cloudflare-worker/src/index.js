@@ -4,6 +4,7 @@ const FIREBASE_JWKS = createRemoteJWKSet(
   new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'),
 );
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const MAX_SIZE_LOOKUPS = 200;
 const IMAGE_TYPES = new Map([
   ['image/jpeg', 'jpg'],
   ['image/png', 'png'],
@@ -83,7 +84,29 @@ async function uploadImage(request, env) {
     customMetadata: { carId },
   });
   const url = `${env.R2_PUBLIC_URL.replace(/\/$/, '')}/${key}`;
-  return json(request, env, { url, key, size: bytes.byteLength }, 201);
+  return json(request, env, { url, key, sizeBytes: image.size }, 201);
+}
+
+async function getImageSizes(request, env) {
+  const authorization = await requireAdmin(request, env);
+  if (authorization.status) return json(request, env, { message: authorization.message }, authorization.status);
+
+  const { images } = await request.json().catch(() => ({}));
+  if (!Array.isArray(images) || images.length > MAX_SIZE_LOOKUPS) {
+    return json(request, env, { message: `Provide up to ${MAX_SIZE_LOOKUPS} car image keys.` }, 400);
+  }
+
+  const uniqueImages = [...new Map(images.map((image) => [image?.key, image])).values()];
+  if (uniqueImages.some(({ carId, key } = {}) => !carIdPattern.test(carId || '')
+    || typeof key !== 'string' || !key.startsWith(`cars/${carId}/`))) {
+    return json(request, env, { message: 'Invalid car image key.' }, 400);
+  }
+
+  const sizes = await Promise.all(uniqueImages.map(async ({ key }) => {
+    const object = await env.AMMOTORS_IMAGES.head(key);
+    return { key, sizeBytes: object?.size ?? null };
+  }));
+  return json(request, env, { images: sizes });
 }
 
 async function deleteOneImage(request, env) {
@@ -120,6 +143,7 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(request, env) });
     try {
       if (request.method === 'POST' && url.pathname === '/api/upload-car-image') return uploadImage(request, env);
+      if (request.method === 'POST' && url.pathname === '/api/car-image-sizes') return getImageSizes(request, env);
       if (request.method === 'DELETE' && url.pathname === '/api/delete-car-image') return deleteOneImage(request, env);
       if (request.method === 'DELETE' && url.pathname === '/api/delete-car-images') return deleteCarImages(request, env);
       return json(request, env, { message: 'API route not found.' }, 404);

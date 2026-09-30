@@ -3,13 +3,13 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({ adminApiRequest: vi.fn() }));
 vi.mock('./adminApi.js', () => ({ adminApiRequest: mocks.adminApiRequest }));
 
-import { deleteCarImage, uploadCarImages } from './adminImages.js';
+import { deleteCarImage, getCarImageSizes, uploadCarImages } from './adminImages.js';
 
 describe('admin image storage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.adminApiRequest.mockResolvedValue({
-      url: 'https://images.example.com/cars/car-1/image.webp', key: 'cars/car-1/image.webp',
+      url: 'https://images.example.com/cars/car-1/image.webp', key: 'cars/car-1/image.webp', sizeBytes: 5,
     });
   });
 
@@ -17,6 +17,7 @@ describe('admin image storage', () => {
     const file = new File(['image'], 'car.jpg', { type: 'image/jpeg' });
     await expect(uploadCarImages('car-1', [file])).resolves.toEqual([{
       url: 'https://images.example.com/cars/car-1/image.webp', key: 'cars/car-1/image.webp',
+      sizeBytes: 5,
     }]);
     expect(mocks.adminApiRequest).toHaveBeenCalledWith('/api/upload-car-image', expect.objectContaining({ method: 'POST', body: expect.any(FormData) }));
   });
@@ -30,5 +31,14 @@ describe('admin image storage', () => {
   test('removes one image through the protected API', async () => {
     await deleteCarImage('car-1', 'cars/car-1/image.webp');
     expect(mocks.adminApiRequest).toHaveBeenCalledWith('/api/delete-car-image', expect.objectContaining({ method: 'DELETE' }));
+  });
+
+  test('retrieves existing R2 image sizes through the protected API', async () => {
+    const images = [{ carId: 'car-1', key: 'cars/car-1/image.webp' }];
+    mocks.adminApiRequest.mockResolvedValue({ images: [{ key: images[0].key, sizeBytes: 5242880 }] });
+    await expect(getCarImageSizes(images)).resolves.toEqual([{ key: images[0].key, sizeBytes: 5242880 }]);
+    expect(mocks.adminApiRequest).toHaveBeenCalledWith('/api/car-image-sizes', {
+      method: 'POST', body: JSON.stringify({ images }),
+    });
   });
 });

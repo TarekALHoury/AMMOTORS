@@ -3,7 +3,10 @@ import { CLOUDFLARE_STORAGE_LIMIT_BYTES, formatBytes, inventoryImageUsage, vehic
 
 describe('image storage usage', () => {
   test('aggregates known R2 bytes without inventing sizes for legacy URLs', () => {
-    const car = { images: ['https://img/one', 'https://img/legacy'], imageEntries: [{ url: 'https://img/one', size: 1_500_000 }] };
+    const car = {
+      images: ['https://img/one', 'https://img/two', 'https://img/legacy'],
+      imageEntries: [{ url: 'https://img/one', sizeBytes: 1_000_000 }, { url: 'https://img/two', size: 500_000 }],
+    };
     expect(vehicleImageUsage(car)).toEqual({ knownBytes: 1_500_000, unknownImages: 1 });
     expect(inventoryImageUsage([car, { images: [], imageEntries: [] }])).toEqual({ knownBytes: 1_500_000, unknownImages: 1 });
   });

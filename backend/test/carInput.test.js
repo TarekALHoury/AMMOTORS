@@ -58,6 +58,13 @@ test('normalizeCarInput rejects invalid status, year, price, and image URLs', ()
   );
 });
 
+test('normalizeCarInput preserves valid R2 image size metadata', () => {
+  const result = normalizeCarInput(validInput({
+    images: [{ url: 'https://images.example.com/cars/car-1/front.webp', key: 'cars/car-1/front.webp', sizeBytes: 5242880 }],
+  }));
+  assert.deepEqual(result.images, [{ url: 'https://images.example.com/cars/car-1/front.webp', key: 'cars/car-1/front.webp', sizeBytes: 5242880 }]);
+});
+
 test('partial updates accept selected nested specification fields', () => {
   assert.deepEqual(
     normalizeCarInput({ specifications: { mileage: 15000 } }, { partial: true }),
