@@ -17,7 +17,10 @@ vi.mock('../services/adminAuth.js', () => ({
 vi.mock('../services/adminCars.js', () => ({
   createAdminCar: vi.fn(), updateAdminCar: vi.fn(), deleteAdminCar: vi.fn(),
 }));
-vi.mock('../services/vehicleCatalogApi.js', () => ({ getInternetModelsForMake: vi.fn() }));
+vi.mock('../services/vehicleCatalogApi.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, getInternetModelsForMake: vi.fn() };
+});
 
 function renderAdmin() {
   return render(<MemoryRouter><AdminPage /></MemoryRouter>);

@@ -3,11 +3,18 @@ const CACHE_PREFIX = 'ammotors.vpic-models.v1.';
 const CACHE_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 const memoryCache = new Map();
 
+function mergeModelNames(...collections) {
+  const unique = new Map();
+  collections.flat().forEach((model) => {
+    const name = String(model || '').trim().replace(/\s+/g, ' ');
+    const key = name.toLocaleLowerCase('en-US');
+    if (name && !unique.has(key)) unique.set(key, name);
+  });
+  return [...unique.values()].sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
+}
+
 function normalizeModels(results) {
-  return [...new Set((results || [])
-    .map((item) => String(item?.Model_Name || '').trim())
-    .filter(Boolean))]
-    .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
+  return mergeModelNames((results || []).map((item) => item?.Model_Name));
 }
 
 function readCache(make) {
@@ -52,4 +59,4 @@ export async function getInternetModelsForMake(make, { signal } = {}) {
   return models;
 }
 
-export { normalizeModels };
+export { mergeModelNames, normalizeModels };

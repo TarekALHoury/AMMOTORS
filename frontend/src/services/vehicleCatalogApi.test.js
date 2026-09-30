@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import { getInternetModelsForMake, normalizeModels } from './vehicleCatalogApi.js';
+import { getInternetModelsForMake, mergeModelNames, normalizeModels } from './vehicleCatalogApi.js';
 
 describe('vehicle catalog API', () => {
   beforeEach(() => {
@@ -11,6 +11,11 @@ describe('vehicle catalog API', () => {
     expect(normalizeModels([
       { Model_Name: 'M8' }, { Model_Name: ' 8 Series ' }, { Model_Name: 'M8' }, { Model_Name: '' }, {},
     ])).toEqual(['8 Series', 'M8']);
+  });
+
+  test('merges casing variants while preserving genuinely different models', () => {
+    expect(mergeModelNames(['E-Pace', 'F-Pace'], ['E-PACE', 'F-TYPE', 'F-Type R']))
+      .toEqual(['E-Pace', 'F-Pace', 'F-TYPE', 'F-Type R']);
   });
 
   test('loads models from the free NHTSA catalog and caches them', async () => {

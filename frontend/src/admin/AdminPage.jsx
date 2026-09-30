@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowUpDown, CalendarDays, CarFront, Check, ChevronDown, Che
 import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 import { createAdminCar, deleteAdminCar, updateAdminCar } from '../services/adminCars.js';
-import { getInternetModelsForMake } from '../services/vehicleCatalogApi.js';
+import { getInternetModelsForMake, mergeModelNames } from '../services/vehicleCatalogApi.js';
 import VehicleImage from '../components/VehicleImage.jsx';
 import logo from '../assets/am-motors-logo.png';
 import drivetrainIcon from '../assets/icons/drivetrain.png';
@@ -402,8 +402,7 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
     return () => controller.abort();
   }, [car.make]);
 
-  const modelOptions = useMemo(() => [...new Set([...(vehicleModels[car.make] || []), ...internetModels])]
-    .sort((left, right) => left.localeCompare(right, undefined, { numeric: true })), [car.make, internetModels]);
+  const modelOptions = useMemo(() => mergeModelNames(vehicleModels[car.make] || [], internetModels), [car.make, internetModels]);
   const engineOptions = getEngineOptions(car.make, car.model);
   function change(event) { setCar({ ...car, [event.target.name]: event.target.value }); }
   function changeMake(event) { setInternetModels([]); setCar({ ...car, make: event.target.value, model: '', engine: '' }); }
