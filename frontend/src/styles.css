@@ -1212,9 +1212,13 @@ p {
   scroll-behavior: smooth;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
-  scrollbar-width: thin;
-  touch-action: pan-x;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
   -webkit-overflow-scrolling: touch;
+}
+
+.thumbnails::-webkit-scrollbar {
+  display: none;
 }
 
 .thumbnails button {
@@ -1283,6 +1287,18 @@ p {
   place-items: center;
   overscroll-behavior-x: contain;
   touch-action: pan-y pinch-zoom;
+}
+
+.gallery-lightbox-image .gallery-image-track {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.gallery-lightbox-image .gallery-image-slide {
+  display: grid;
+  place-items: center;
 }
 
 .gallery-lightbox-image img {

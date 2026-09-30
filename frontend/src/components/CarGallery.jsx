@@ -105,6 +105,14 @@ function CarGallery({ images = [], name }) {
     setIsLightboxOpen(true);
   }
 
+  function scrollThumbnails(event) {
+    const strip = thumbnailsRef.current;
+    if (!strip || strip.scrollWidth <= strip.clientWidth) return;
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+    event.preventDefault();
+    strip.scrollLeft += event.deltaY;
+  }
+
   return (
     <div className="gallery">
       <div className="gallery-main">
@@ -121,7 +129,7 @@ function CarGallery({ images = [], name }) {
           <span className="gallery-image-track" style={{ transform: `translate3d(-${activeIndex * 100}%, 0, 0)` }}>
             {safeImages.map((image, index) => (
               <span className="gallery-image-slide" aria-hidden={index !== activeIndex} key={`${image}-${index}`}>
-                <VehicleImage src={image} alt={`${name} view ${index + 1}`} loading={index === 0 ? 'eager' : 'lazy'} />
+                <VehicleImage src={image} alt={`${name} view ${index + 1}`} loading={index === activeIndex ? 'eager' : 'lazy'} />
               </span>
             ))}
           </span>
@@ -130,7 +138,7 @@ function CarGallery({ images = [], name }) {
       </div>
 
       {safeImages.length > 1 && (
-        <div className="thumbnails" ref={thumbnailsRef} aria-label={`${name} image previews`}>
+        <div className="thumbnails" ref={thumbnailsRef} onWheel={scrollThumbnails} aria-label={`${name} image previews`}>
           {safeImages.map((image, index) => (
             <button
               type="button"

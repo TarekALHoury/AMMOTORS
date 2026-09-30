@@ -14,6 +14,8 @@ test('adds non-blocking image attributes and preserves the vehicle description',
 test('announces an unavailable image when loading fails', () => {
   render(<VehicleImage src="https://example.com/missing.jpg" alt="BMW M4" />);
   fireEvent.error(screen.getByAltText('BMW M4'));
+  expect(screen.getByAltText('BMW M4')).toHaveAttribute('src', 'https://example.com/missing.jpg?ammotors_retry=1');
+  fireEvent.error(screen.getByAltText('BMW M4'));
   expect(screen.getByAltText('Image unavailable')).toBeInTheDocument();
 });
 
