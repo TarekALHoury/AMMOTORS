@@ -6,7 +6,7 @@ function CarGallery({ images = [], name }) {
   const safeImages = images.filter(Boolean);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const touchStartX = useRef(null);
+  const touchGesture = useRef(null);
   const suppressOpen = useRef(false);
   const thumbnailsRef = useRef(null);
   const thumbnailRefs = useRef([]);
@@ -91,18 +91,48 @@ function CarGallery({ images = [], name }) {
     setActiveIndex(index);
   }
 
-  function startSwipe(event) {
-    touchStartX.current = event.touches[0]?.clientX ?? null;
+  function cancelSwipe(preventOpen = false) {
+    touchGesture.current = null;
+    if (preventOpen) suppressOpen.current = true;
+  }
+
+  function startSwipe(event, preventOpen = false) {
+    if (event.touches.length !== 1) {
+      cancelSwipe(preventOpen);
+      return;
+    }
+
+    const touch = event.touches[0];
+    touchGesture.current = {
+      identifier: touch.identifier,
+      x: touch.clientX,
+      y: touch.clientY ?? 0,
+    };
+  }
+
+  function continueSwipe(event, preventOpen = false) {
+    const gesture = touchGesture.current;
+    if (!gesture) return;
+
+    if (event.touches.length !== 1 || event.touches[0].identifier !== gesture.identifier) {
+      cancelSwipe(preventOpen);
+    }
   }
 
   function finishSwipe(event, preventOpen = false) {
-    if (touchStartX.current === null || safeImages.length < 2) return;
-    const distance = touchStartX.current - (event.changedTouches[0]?.clientX ?? touchStartX.current);
-    touchStartX.current = null;
+    const gesture = touchGesture.current;
+    touchGesture.current = null;
+    if (!gesture || event.touches.length > 0 || safeImages.length < 2) return;
 
-    if (Math.abs(distance) < 45) return;
+    const touch = Array.from(event.changedTouches).find(({ identifier }) => identifier === gesture.identifier);
+    if (!touch) return;
+
+    const distanceX = gesture.x - touch.clientX;
+    const distanceY = gesture.y - (touch.clientY ?? gesture.y);
+
+    if (Math.abs(distanceX) < 45 || Math.abs(distanceX) <= Math.abs(distanceY)) return;
     if (preventOpen) suppressOpen.current = true;
-    move(distance > 0 ? 1 : -1);
+    move(distanceX > 0 ? 1 : -1);
   }
 
   function openLightbox() {
@@ -121,9 +151,10 @@ function CarGallery({ images = [], name }) {
           type="button"
           className="gallery-expand-trigger"
           onClick={openLightbox}
-          onTouchStart={startSwipe}
+          onTouchStart={(event) => startSwipe(event, true)}
+          onTouchMove={(event) => continueSwipe(event, true)}
           onTouchEnd={(event) => finishSwipe(event, true)}
-          onTouchCancel={() => { touchStartX.current = null; }}
+          onTouchCancel={() => cancelSwipe(true)}
           aria-label={`Enlarge ${name} image ${activeIndex + 1}`}
         >
           <span className="gallery-image-track" style={{ transform: `translate3d(-${activeIndex * 100}%, 0, 0)` }}>
@@ -159,7 +190,7 @@ function CarGallery({ images = [], name }) {
         <div ref={dialogRef} className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={`${name} enlarged image`} onClick={() => setIsLightboxOpen(false)}>
           <div className="gallery-lightbox-content" onClick={(event) => event.stopPropagation()}>
             <button ref={closeButtonRef} type="button" className="gallery-lightbox-close" onClick={() => setIsLightboxOpen(false)} aria-label="Close enlarged image"><X /></button>
-            <div className="gallery-lightbox-image" onTouchStart={startSwipe} onTouchEnd={finishSwipe} onTouchCancel={() => { touchStartX.current = null; }}>
+            <div className="gallery-lightbox-image" onTouchStart={startSwipe} onTouchMove={continueSwipe} onTouchEnd={finishSwipe} onTouchCancel={() => cancelSwipe()}>
               <div className="gallery-image-track" style={{ transform: `translate3d(-${activeIndex * 100}%, 0, 0)` }}>
                 {safeImages.map((image, index) => (
                   <div className="gallery-image-slide" aria-hidden={index !== activeIndex} key={`${image}-${index}`}>
