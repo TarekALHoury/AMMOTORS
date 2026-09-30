@@ -238,6 +238,15 @@ describe('admin dashboard UI', () => {
     expect(mileage).toHaveValue(12000);
     expect(fireEvent.paste(mileage, { clipboardData: { getData: () => '-12.5' } })).toBe(false);
     expect(mileage).toHaveValue(12000);
+    await user.click(screen.getByRole('button', { name: 'mi' }));
+    const miles = screen.getByLabelText('Mileage (mi) *');
+    expect(miles).toHaveValue(7456);
+    expect(screen.getByText('≈ 12,000 km')).toBeInTheDocument();
+    await user.clear(miles);
+    await user.type(miles, '100');
+    expect(screen.getByText('≈ 161 km')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'km' }));
+    expect(screen.getByLabelText('Mileage (km) *')).toHaveValue(161);
   });
 
   test('supports keyboard-only selection in styled form dropdowns', async () => {

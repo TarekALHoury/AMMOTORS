@@ -29,6 +29,11 @@
 .admin-input-with-icon > svg, .admin-input-with-icon > img { position: absolute; z-index: 1; top: 50%; left: 14px; width: 18px; height: 18px; color: #8f999f; object-fit: contain; pointer-events: none; transform: translateY(-50%); }
 .admin-input-with-icon > img, .admin-filter-label img { filter: invert(68%) sepia(8%) saturate(304%) hue-rotate(155deg) brightness(89%); }
 .admin-input-with-icon > input { padding-left: 44px; }
+.admin-mileage-field { min-width: 0; }
+.admin-unit-toggle { display: inline-flex; gap: 3px; margin-top: 8px; padding: 3px; border: 1px solid var(--line); border-radius: 6px; background: #0b1013; }
+.admin-unit-toggle button { min-width: 48px; min-height: 34px; padding: 0 12px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: .72rem; font-weight: 800; text-transform: uppercase; }
+.admin-unit-toggle button.active { background: var(--accent); color: #fff; }
+.admin-mileage-conversion { margin-left: 10px; color: var(--muted); font-size: .72rem; }
 .admin-textarea-with-icon { position: relative; }
 .admin-textarea-with-icon > svg { position: absolute; z-index: 1; top: 15px; left: 14px; color: #8f999f; pointer-events: none; }
 .admin-textarea-with-icon > textarea { padding-left: 44px; }
