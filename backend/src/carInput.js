@@ -99,8 +99,9 @@ function normalizeImages(value, errors) {
       const url = new URL(imageUrl);
       if (url.protocol !== 'https:' || url.username || url.password || !url.hostname) return null;
       if (typeof image === 'string') return url.toString();
-      if (!image || typeof image.key !== 'string' || !/^cars\/[A-Za-z0-9_-]{1,128}\/[A-Za-z0-9._-]+\.webp$/.test(image.key)) return null;
-      return { url: url.toString(), key: image.key };
+      if (!image || typeof image.key !== 'string' || !/^cars\/[A-Za-z0-9_-]{1,128}\/[A-Za-z0-9._-]+\.(?:jpg|png|webp)$/.test(image.key)) return null;
+      if (image.size != null && (!Number.isInteger(image.size) || image.size < 0 || image.size > 10 * 1024 * 1024)) return null;
+      return { url: url.toString(), key: image.key, ...(image.size != null ? { size: image.size } : {}) };
     } catch {
       return null;
     }

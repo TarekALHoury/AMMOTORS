@@ -12,6 +12,7 @@ import roadIcon from '../assets/icons/road.svg';
 import transmissionIcon from '../assets/icons/gearshifter.png';
 import { usePageMetadata } from '../utils/usePageMetadata.js';
 import { kilometersToMiles, milesToKilometers } from '../utils/formatters.js';
+import { CLOUDFLARE_STORAGE_LIMIT_BYTES, formatBytes, inventoryImageUsage, vehicleImageUsage } from '../utils/storageUsage.js';
 import { drivetrainOptions, exteriorColorOptions, fuelOptions, getEngineOptions, interiorColorOptions, transmissionOptions, vehicleMakes, vehicleModels, vehicleOptionLabels, yearOptions } from './vehicleCatalog.js';
 import './admin.css';
 
@@ -127,6 +128,9 @@ function SignIn({ onSuccess }) {
 function Summary({ cars, onNavigate }) {
   const totalValue = cars.reduce((sum, car) => sum + Number(car.price || 0), 0);
   const imageCount = cars.reduce((sum, car) => sum + (car.images?.length || 0), 0);
+  const usage = inventoryImageUsage(cars);
+  const usagePercent = Math.min(100, (usage.knownBytes / CLOUDFLARE_STORAGE_LIMIT_BYTES) * 100);
+  const remainingBytes = Math.max(0, CLOUDFLARE_STORAGE_LIMIT_BYTES - usage.knownBytes);
   const cards = [
     { label: 'Total inventory', value: cars.length, note: 'vehicles tracked', icon: CarFront, tone: 'neutral' },
     { label: 'Inventory value', value: money(totalValue), note: 'all listed vehicles', icon: CircleDollarSign, tone: 'value' },
@@ -138,6 +142,11 @@ function Summary({ cars, onNavigate }) {
       <div className="admin-page-heading"><div><p className="admin-kicker">Overview</p><h1>Dashboard</h1><p>Monitor inventory and keep listings current.</p></div><button className="button button-primary" onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
       <section className="admin-summary-grid" aria-label="Inventory summary">
         {cards.map(({ label, value, note, icon: CardIcon, tone }) => <article className={`admin-summary-card admin-summary-${tone}`} data-tilt="10" key={label}><div className="admin-summary-card-top"><span>{label}</span><span className="admin-summary-icon"><CardIcon size={20} strokeWidth={1.8} aria-hidden="true" /></span></div><strong>{value}</strong><small>{note}</small></article>)}
+      </section>
+      <section className="admin-panel admin-data-usage" aria-labelledby="data-usage-title">
+        <div className="admin-panel-heading"><div><p className="admin-kicker">Cloudflare R2 image storage</p><h2 id="data-usage-title">Data Usage</h2></div><strong>{formatBytes(usage.knownBytes)} / 5 GB</strong></div>
+        <div className="admin-usage-track" role="progressbar" aria-label="Known image storage used" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Number(usagePercent.toFixed(2))}><span style={{ width: `${usagePercent}%` }} /></div>
+        <div className="admin-usage-meta"><span>{formatBytes(remainingBytes)} remaining</span><span>{usage.unknownImages ? `${usage.unknownImages} legacy image${usage.unknownImages === 1 ? '' : 's'} not included` : 'All image sizes tracked'}</span></div>
       </section>
       <section className="admin-panel admin-recent-panel" data-tilt="2">
           <div className="admin-panel-heading"><div><p className="admin-kicker">Recent inventory</p><h2>Latest vehicles</h2></div><button className="admin-text-button" onClick={() => onNavigate('inventory')}>View all <AdminIcon name="arrow" /></button></div>
@@ -152,6 +161,11 @@ function Summary({ cars, onNavigate }) {
 
 function EmptyState({ onAction, actionLabel = 'Add first vehicle' }) {
   return <div className="admin-empty"><div className="admin-empty-icon"><AdminIcon name="cars" /></div><h3>No vehicles found</h3><p>Add a vehicle or adjust your search and filters.</p>{onAction && <button className="button button-outline" onClick={onAction}>{actionLabel}</button>}</div>;
+}
+
+function VehicleImageUsage({ car }) {
+  const usage = vehicleImageUsage(car);
+  return <span className="admin-image-size">{formatBytes(usage.knownBytes)}{usage.unknownImages ? <small title="Legacy images do not contain stored size metadata"> + {usage.unknownImages} unknown</small> : null}</span>;
 }
 
 const defaultInventoryFilters = {
@@ -246,8 +260,8 @@ function Inventory({ cars, onNavigate, onDelete }) {
         <div className="admin-filter-footer"><span>{filtered.length} matching vehicle{filtered.length === 1 ? '' : 's'}</span><button type="button" onClick={resetFilters} disabled={!search && !activeFilterCount}>Clear all filters</button></div>
       </details>
       {!filtered.length ? <EmptyState onAction={cars.length ? resetFilters : () => onNavigate('add')} actionLabel={cars.length ? 'Clear all filters' : 'Add first vehicle'} /> : view === 'table' ? (
-        <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Vehicle</th><th>Year</th><th>Mileage</th><th>Price</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{filtered.map((car) => <tr key={car.id}><td data-label="Vehicle"><div className="admin-vehicle-cell"><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.engine}</small></span></div></td><td data-label="Year">{car.year}</td><td data-label="Mileage">{Number(car.mileage || 0).toLocaleString()} km</td><td data-label="Price"><strong>{money(car.price)}</strong></td><td data-label="Actions"><div className="admin-row-actions"><button aria-label={`View ${car.make} ${car.model}`} onClick={() => onNavigate('details', car)}><AdminIcon name="eye" /></button><button aria-label={`Edit ${car.make} ${car.model}`} onClick={() => onNavigate('edit', car)}><AdminIcon name="edit" /></button><button className="danger" aria-label={`Delete ${car.make} ${car.model}`} onClick={() => onDelete(car)}><AdminIcon name="trash" /></button></div></td></tr>)}</tbody></table></div>
-      ) : <div className="admin-inventory-grid">{filtered.map((car) => <article className="admin-inventory-card" data-tilt="7" key={car.id}><VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model}`} /><div><h2>{car.make} {car.model}</h2><p>{car.year} · {Number(car.mileage || 0).toLocaleString()} km</p><strong>{money(car.price)}</strong><div className="admin-card-actions"><button onClick={() => onNavigate('details', car)}>View</button><button onClick={() => onNavigate('edit', car)}>Edit</button><button className="danger" onClick={() => onDelete(car)}>Delete</button></div></div></article>)}</div>}
+        <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Vehicle</th><th>Year</th><th>Mileage</th><th>Price</th><th>Image size</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{filtered.map((car) => <tr key={car.id}><td data-label="Vehicle"><div className="admin-vehicle-cell"><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.engine}</small></span></div></td><td data-label="Year">{car.year}</td><td data-label="Mileage">{Number(car.mileage || 0).toLocaleString()} km</td><td data-label="Price"><strong>{money(car.price)}</strong></td><td data-label="Image size"><VehicleImageUsage car={car} /></td><td data-label="Actions"><div className="admin-row-actions"><button aria-label={`View ${car.make} ${car.model}`} onClick={() => onNavigate('details', car)}><AdminIcon name="eye" /></button><button aria-label={`Edit ${car.make} ${car.model}`} onClick={() => onNavigate('edit', car)}><AdminIcon name="edit" /></button><button className="danger" aria-label={`Delete ${car.make} ${car.model}`} onClick={() => onDelete(car)}><AdminIcon name="trash" /></button></div></td></tr>)}</tbody></table></div>
+      ) : <div className="admin-inventory-grid">{filtered.map((car) => <article className="admin-inventory-card" data-tilt="7" key={car.id}><VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model}`} /><div><h2>{car.make} {car.model}</h2><p>{car.year} · {Number(car.mileage || 0).toLocaleString()} km</p><p>Images: <VehicleImageUsage car={car} /></p><strong>{money(car.price)}</strong><div className="admin-card-actions"><button onClick={() => onNavigate('details', car)}>View</button><button onClick={() => onNavigate('edit', car)}>Edit</button><button className="danger" onClick={() => onDelete(car)}>Delete</button></div></div></article>)}</div>}
     </div>
   );
 }

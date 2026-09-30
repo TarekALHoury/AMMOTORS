@@ -75,6 +75,8 @@ describe('admin dashboard UI', () => {
     expect(document.querySelector('.admin-status-panel')).not.toBeInTheDocument();
     expect(document.querySelector('.admin-recent-panel')).toBeInTheDocument();
     expect(document.querySelectorAll('.admin-summary-icon svg')).toHaveLength(4);
+    expect(screen.getByRole('heading', { name: 'Data Usage' })).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Known image storage used' })).toHaveAttribute('aria-valuemax', '100');
     expect(screen.getAllByText('BMW M4 Competition').length).toBeGreaterThan(0);
     expect(document.querySelector('.lucide-layout-dashboard')).toBeInTheDocument();
     expect(document.querySelector('.lucide-car-front')).toBeInTheDocument();
@@ -95,6 +97,7 @@ describe('admin dashboard UI', () => {
     expect(screen.queryByRole('combobox', { name: 'Filter by status' })).not.toBeInTheDocument();
     expect(document.querySelector('.admin-toolbar .lucide-arrow-up-down')).toBeInTheDocument();
     expect(document.querySelector('.admin-table td[data-label="Mileage"]')).toHaveTextContent('12,000 km');
+    expect(document.querySelector('.admin-table td[data-label="Image size"]')).toHaveTextContent('0 B');
     await user.click(screen.getByText(/^Advanced filters/));
     expect(document.querySelector('.lucide-sliders-horizontal')).toBeInTheDocument();
     expect(document.querySelector('.admin-filter-grid .lucide-car-front')).toBeInTheDocument();

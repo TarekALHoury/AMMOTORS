@@ -83,7 +83,7 @@ async function uploadImage(request, env) {
     customMetadata: { carId },
   });
   const url = `${env.R2_PUBLIC_URL.replace(/\/$/, '')}/${key}`;
-  return json(request, env, { url, key }, 201);
+  return json(request, env, { url, key, size: bytes.byteLength }, 201);
 }
 
 async function deleteOneImage(request, env) {
