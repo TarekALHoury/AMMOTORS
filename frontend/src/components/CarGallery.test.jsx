@@ -1,8 +1,21 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { expect, test } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, expect, test, vi } from 'vitest';
 import CarGallery from './CarGallery.jsx';
 
 const images = ['https://example.com/front.jpg', 'https://example.com/rear.jpg'];
+
+afterEach(() => vi.useRealTimers());
+
+test('automatically cycles multi-image galleries and wraps to the first image', () => {
+  vi.useFakeTimers();
+  const { container } = render(<CarGallery images={images} name="BMW M4" />);
+  const track = container.querySelector('.gallery-main .gallery-image-track');
+
+  act(() => vi.advanceTimersByTime(4500));
+  expect(track).toHaveStyle({ transform: 'translate3d(-100%, 0, 0)' });
+  act(() => vi.advanceTimersByTime(4500));
+  expect(track).toHaveStyle({ transform: 'translate3d(-0%, 0, 0)' });
+});
 
 test('switches the main image from the thumbnail previews', () => {
   const { container } = render(<CarGallery images={images} name="BMW M4" />);

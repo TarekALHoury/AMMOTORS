@@ -6,6 +6,7 @@ function CarGallery({ images = [], name }) {
   const safeImages = images.filter(Boolean);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isAutoPlayPaused, setIsAutoPlayPaused] = useState(false);
   const touchGesture = useRef(null);
   const suppressOpen = useRef(false);
   const thumbnailsRef = useRef(null);
@@ -18,6 +19,16 @@ function CarGallery({ images = [], name }) {
     setActiveIndex(0);
     setIsLightboxOpen(false);
   }, [images]);
+
+  useEffect(() => {
+    if (safeImages.length < 2 || isLightboxOpen || isAutoPlayPaused) return undefined;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined;
+
+    const interval = window.setInterval(() => {
+      if (!document.hidden) setActiveIndex((current) => (current + 1) % safeImages.length);
+    }, 4500);
+    return () => window.clearInterval(interval);
+  }, [safeImages.length, isLightboxOpen, isAutoPlayPaused]);
 
   useEffect(() => {
     const strip = thumbnailsRef.current;
@@ -145,7 +156,13 @@ function CarGallery({ images = [], name }) {
   }
 
   return (
-    <div className="gallery">
+    <div
+      className="gallery"
+      onMouseEnter={() => setIsAutoPlayPaused(true)}
+      onMouseLeave={() => setIsAutoPlayPaused(false)}
+      onFocusCapture={() => setIsAutoPlayPaused(true)}
+      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setIsAutoPlayPaused(false); }}
+    >
       <div className="gallery-main">
         <button
           type="button"
