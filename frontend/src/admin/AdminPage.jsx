@@ -153,10 +153,10 @@ function SignIn({ onSuccess }) {
   );
 }
 
-function Summary({ cars, onNavigate }) {
+function Summary({ cars, measuredImageSizes, imageSizeError, onNavigate }) {
   const totalValue = cars.reduce((sum, car) => sum + Number(car.price || 0), 0);
   const imageCount = cars.reduce((sum, car) => sum + (car.images?.length || 0), 0);
-  const usage = inventoryImageUsage(cars);
+  const usage = inventoryImageUsage(cars, measuredImageSizes);
   const usagePercent = Math.min(100, (usage.knownBytes / CLOUDFLARE_STORAGE_LIMIT_BYTES) * 100);
   const remainingBytes = Math.max(0, CLOUDFLARE_STORAGE_LIMIT_BYTES - usage.knownBytes);
   const cards = [
@@ -174,7 +174,7 @@ function Summary({ cars, onNavigate }) {
       <section className="admin-panel admin-data-usage" aria-labelledby="data-usage-title">
         <div className="admin-panel-heading"><h2 id="data-usage-title">Available storage</h2><strong>{formatBytes(usage.knownBytes)} / 3 GB</strong></div>
         <div className="admin-usage-track" role="progressbar" aria-label="Known image storage used" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Number(usagePercent.toFixed(2))}><span style={{ width: `${usagePercent}%` }} /></div>
-        <div className="admin-usage-meta"><span>{formatBytes(remainingBytes)} remaining</span><span>{usage.unknownImages ? `${usage.unknownImages} legacy image${usage.unknownImages === 1 ? '' : 's'} not included` : 'All image sizes tracked'}</span></div>
+        <div className="admin-usage-meta"><span>{formatBytes(remainingBytes)} remaining</span><span>{imageSizeError ? 'Some image sizes could not be checked' : usage.unknownImages ? `${usage.unknownImages} image size${usage.unknownImages === 1 ? '' : 's'} not included` : 'All image sizes tracked'}</span></div>
       </section>
       <section className="admin-panel admin-recent-panel" data-tilt="2">
           <div className="admin-panel-heading"><div><p className="admin-kicker">Recent inventory</p><h2>Latest vehicles</h2></div><button className="admin-text-button" onClick={() => onNavigate('inventory')}>View all <AdminIcon name="arrow" /></button></div>
@@ -202,29 +202,11 @@ function uniqueCarValues(cars, field, numeric = false) {
   return values.sort(numeric ? (left, right) => right - left : (left, right) => String(left).localeCompare(String(right)));
 }
 
-function Inventory({ cars, onNavigate, onDelete }) {
+function Inventory({ cars, measuredImageSizes, onNavigate, onDelete }) {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState(defaultInventoryFilters);
   const [sort, setSort] = useState('newest');
   const [view, setView] = useState('table');
-  const [measuredImageSizes, setMeasuredImageSizes] = useState({});
-  useEffect(() => {
-    const imagesToMeasure = cars.flatMap((car) => (car.imageEntries || [])
-      .filter((image) => image.key && !(image.sizeBytes != null && Number.isFinite(Number(image.sizeBytes))))
-      .map((image) => ({ carId: car.id, key: image.key })));
-    if (!imagesToMeasure.length) return undefined;
-
-    let cancelled = false;
-    getCarImageSizes(imagesToMeasure).then((images) => {
-      if (cancelled) return;
-      const sizes = Object.fromEntries(images.map((image) => [image.key, image.sizeBytes != null && Number.isFinite(Number(image.sizeBytes)) ? Number(image.sizeBytes) : null]));
-      imagesToMeasure.forEach(({ key }) => { if (!Object.prototype.hasOwnProperty.call(sizes, key)) sizes[key] = null; });
-      setMeasuredImageSizes((current) => ({ ...current, ...sizes }));
-    }).catch(() => {
-      if (!cancelled) setMeasuredImageSizes((current) => ({ ...current, ...Object.fromEntries(imagesToMeasure.map(({ key }) => [key, null])) }));
-    });
-    return () => { cancelled = true; };
-  }, [cars]);
   const options = useMemo(() => ({
     makes: uniqueCarValues(cars, 'make'),
     models: uniqueCarValues(cars.filter((car) => filters.make === 'all' || car.make === filters.make), 'model'),
@@ -550,7 +532,38 @@ function AdminWorkspace({ email, onSignOut }) {
   const [loadError, setLoadError] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notice, setNotice] = useState('');
+  const [measuredImageSizes, setMeasuredImageSizes] = useState({});
+  const [imageSizeError, setImageSizeError] = useState(false);
   const loadRequestRef = useRef(0);
+
+  useEffect(() => {
+    const imagesToMeasure = cars.flatMap((car) => (car.imageEntries || [])
+      .filter((image) => image.key
+        && !(image.sizeBytes != null && Number.isFinite(Number(image.sizeBytes)))
+        && !Object.prototype.hasOwnProperty.call(measuredImageSizes, image.key))
+      .map((image) => ({ carId: car.id, key: image.key })));
+    if (!imagesToMeasure.length) return undefined;
+
+    let cancelled = false;
+    setImageSizeError(false);
+    getCarImageSizes(imagesToMeasure).then((images) => {
+      if (cancelled) return;
+      const sizes = Object.fromEntries(images.map((image) => [
+        image.key,
+        image.sizeBytes != null && Number.isFinite(Number(image.sizeBytes)) ? Number(image.sizeBytes) : null,
+      ]));
+      imagesToMeasure.forEach(({ key }) => { if (!Object.prototype.hasOwnProperty.call(sizes, key)) sizes[key] = null; });
+      setMeasuredImageSizes((current) => ({ ...current, ...sizes }));
+    }).catch(() => {
+      if (cancelled) return;
+      setImageSizeError(true);
+      setMeasuredImageSizes((current) => ({
+        ...current,
+        ...Object.fromEntries(imagesToMeasure.map(({ key }) => [key, null])),
+      }));
+    });
+    return () => { cancelled = true; };
+  }, [cars, measuredImageSizes]);
 
   function loadInventory() {
     const requestId = ++loadRequestRef.current;
@@ -590,7 +603,7 @@ function AdminWorkspace({ email, onSignOut }) {
     }
   }
 
-  return <div className="admin-app"><aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}><a className="admin-sidebar-logo" href="/"><img src={logo} alt="AM MOTORS" /></a><nav aria-label="Admin navigation"><button className={view === 'dashboard' ? 'active' : ''} onClick={() => navigate('dashboard')}><AdminIcon name="dashboard" /> Dashboard</button><button className={['inventory', 'details', 'edit'].includes(view) ? 'active' : ''} onClick={() => navigate('inventory')}><AdminIcon name="cars" /> Inventory <span>{cars.length}</span></button><button className={view === 'add' ? 'active' : ''} onClick={() => navigate('add')}><AdminIcon name="plus" /> Add vehicle</button></nav><div className="admin-sidebar-user"><span>{email.charAt(0).toUpperCase()}</span><div><strong>Administrator</strong><small>{email}</small></div><button aria-label="Sign out" onClick={onSignOut}><AdminIcon name="logout" /></button></div></aside><div className="admin-main"><header className="admin-mobile-header"><button aria-label="Toggle admin navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><AdminIcon name={menuOpen ? 'close' : 'menu'} /></button><img src={logo} alt="AM MOTORS" /><span>Admin</span></header>{menuOpen && <button className="admin-menu-scrim" aria-label="Close admin navigation" onClick={() => setMenuOpen(false)} />}{notice && <div className="admin-toast" role="status"><span>✓</span>{notice}</div>}{loading ? <LoadingState /> : loadError ? <div className="admin-error-state" role="alert"><h1>Unable to load inventory</h1><p>Start the existing backend and try again, or continue with demo data to review the interface.</p><div><button className="button button-outline" onClick={loadInventory}>Try again</button><button className="button button-primary" onClick={() => { setCars(demoCars); setLoadError(false); }}>Use demo inventory</button></div></div> : <>{view === 'dashboard' && <Summary cars={cars} onNavigate={navigate} />}{view === 'inventory' && <Inventory cars={cars} onNavigate={navigate} onDelete={setDeleteCar} />}{view === 'add' && <CarForm key="add" mode="add" onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'edit' && selectedCar && <CarForm key={selectedCar.id} mode="edit" initialCar={selectedCar} onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'details' && selectedCar && <Details car={cars.find((car) => car.id === selectedCar.id) || selectedCar} onBack={() => navigate('inventory')} onEdit={() => navigate('edit', selectedCar)} onDelete={() => setDeleteCar(selectedCar)} />}</>}</div>{deleteCar && <DeleteDialog car={deleteCar} onCancel={() => setDeleteCar(null)} onConfirm={confirmDelete} />}</div>;
+  return <div className="admin-app"><aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}><a className="admin-sidebar-logo" href="/"><img src={logo} alt="AM MOTORS" /></a><nav aria-label="Admin navigation"><button className={view === 'dashboard' ? 'active' : ''} onClick={() => navigate('dashboard')}><AdminIcon name="dashboard" /> Dashboard</button><button className={['inventory', 'details', 'edit'].includes(view) ? 'active' : ''} onClick={() => navigate('inventory')}><AdminIcon name="cars" /> Inventory <span>{cars.length}</span></button><button className={view === 'add' ? 'active' : ''} onClick={() => navigate('add')}><AdminIcon name="plus" /> Add vehicle</button></nav><div className="admin-sidebar-user"><span>{email.charAt(0).toUpperCase()}</span><div><strong>Administrator</strong><small>{email}</small></div><button aria-label="Sign out" onClick={onSignOut}><AdminIcon name="logout" /></button></div></aside><div className="admin-main"><header className="admin-mobile-header"><button aria-label="Toggle admin navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><AdminIcon name={menuOpen ? 'close' : 'menu'} /></button><img src={logo} alt="AM MOTORS" /><span>Admin</span></header>{menuOpen && <button className="admin-menu-scrim" aria-label="Close admin navigation" onClick={() => setMenuOpen(false)} />}{notice && <div className="admin-toast" role="status"><span>✓</span>{notice}</div>}{loading ? <LoadingState /> : loadError ? <div className="admin-error-state" role="alert"><h1>Unable to load inventory</h1><p>Start the existing backend and try again, or continue with demo data to review the interface.</p><div><button className="button button-outline" onClick={loadInventory}>Try again</button><button className="button button-primary" onClick={() => { setCars(demoCars); setLoadError(false); }}>Use demo inventory</button></div></div> :   <>{view === 'dashboard' && <Summary cars={cars} measuredImageSizes={measuredImageSizes} imageSizeError={imageSizeError} onNavigate={navigate} />}{view === 'inventory' && <Inventory cars={cars} measuredImageSizes={measuredImageSizes} onNavigate={navigate} onDelete={setDeleteCar} />}{view === 'add' && <CarForm key="add" mode="add" onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'edit' && selectedCar && <CarForm key={selectedCar.id} mode="edit" initialCar={selectedCar} onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'details' && selectedCar && <Details car={cars.find((car) => car.id === selectedCar.id) || selectedCar} onBack={() => navigate('inventory')} onEdit={() => navigate('edit', selectedCar)} onDelete={() => setDeleteCar(selectedCar)} />}</>}</div>{deleteCar && <DeleteDialog car={deleteCar} onCancel={() => setDeleteCar(null)} onConfirm={confirmDelete} />}</div>;
 }
 
 function AdminPage() {

@@ -8,7 +8,9 @@ import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAu
 import { createAdminCar, deleteAdminCar, updateAdminCar } from '../services/adminCars.js';
 import { getInternetModelsForMake } from '../services/vehicleCatalogApi.js';
 
+const imageMocks = vi.hoisted(() => ({ getCarImageSizes: vi.fn() }));
 vi.mock('../services/carsApi.js', () => ({ getCars: vi.fn() }));
+vi.mock('../services/adminImages.js', () => ({ getCarImageSizes: imageMocks.getCarImageSizes }));
 vi.mock('../services/adminAuth.js', () => ({
   observeAdminAuth: vi.fn(),
   signInAdmin: vi.fn(),
@@ -42,6 +44,7 @@ describe('admin dashboard UI', () => {
     vi.clearAllMocks();
     sessionStorage.clear();
     getCars.mockResolvedValue(demoCars);
+    imageMocks.getCarImageSizes.mockResolvedValue([]);
     observeAdminAuth.mockImplementation((onUser) => {
       onUser(null);
       return vi.fn();
@@ -82,6 +85,25 @@ describe('admin dashboard UI', () => {
     expect(screen.getAllByText('BMW M4 Competition').length).toBeGreaterThan(0);
     expect(document.querySelector('.lucide-layout-dashboard')).toBeInTheDocument();
     expect(document.querySelector('.lucide-car-front')).toBeInTheDocument();
+  });
+
+  test('includes measured legacy R2 image sizes in the dashboard remaining storage', async () => {
+    const user = userEvent.setup();
+    getCars.mockResolvedValue([{
+      ...demoCars[0],
+      images: ['https://images.example/front.webp'],
+      imageEntries: [{ url: 'https://images.example/front.webp', key: 'cars/demo-001/front.webp', sizeBytes: null }],
+    }]);
+    imageMocks.getCarImageSizes.mockResolvedValue([{ key: 'cars/demo-001/front.webp', sizeBytes: 1024 ** 3 }]);
+
+    renderAdmin();
+    await signIn(user);
+
+    expect(await screen.findByText('2.00 GB remaining')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Known image storage used' })).toHaveAttribute('aria-valuenow', '33.33');
+    expect(imageMocks.getCarImageSizes).toHaveBeenCalledWith([
+      { carId: 'demo-001', key: 'cars/demo-001/front.webp' },
+    ]);
   });
 
   test('searches every vehicle detail and combines advanced inventory filters', async () => {

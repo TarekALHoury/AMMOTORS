@@ -16,4 +16,18 @@ describe('image storage usage', () => {
     expect(formatBytes(4.8 * 1024 ** 2)).toBe('4.8 MB');
     expect(formatBytes(3 * 1024 ** 3)).toBe('3.00 GB');
   });
+
+  test('includes measured R2 sizes when image metadata does not contain them', () => {
+    const car = {
+      images: ['https://img/measured', 'https://img/unknown'],
+      imageEntries: [
+        { url: 'https://img/measured', key: 'cars/one/measured.webp', sizeBytes: null },
+        { url: 'https://img/unknown', key: 'cars/one/unknown.webp', sizeBytes: null },
+      ],
+    };
+    expect(vehicleImageUsage(car, { 'cars/one/measured.webp': 1024 })).toEqual({
+      knownBytes: 1024,
+      unknownImages: 1,
+    });
+  });
 });
