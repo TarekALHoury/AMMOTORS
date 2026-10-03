@@ -388,6 +388,28 @@ describe('admin dashboard UI', () => {
     expect(make).toHaveAttribute('aria-expanded', 'false');
   });
 
+  test('clears form dropdowns from the left and resets dependent selections', async () => {
+    const user = userEvent.setup();
+    renderAdmin();
+    await signIn(user);
+    await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
+    expect(screen.queryByRole('button', { name: 'Clear Brand' })).not.toBeInTheDocument();
+    await chooseFormOption(user, 'Brand *', 'BMW');
+    await chooseFormOption(user, 'Model *', 'M4 Competition');
+    await chooseFormOption(user, 'Engine', '3.0L Twin-Turbo');
+    expect(screen.getByRole('button', { name: 'Clear Model' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Clear Model' }));
+    expect(screen.getByRole('combobox', { name: 'Model *' })).toHaveValue('');
+    expect(screen.getByRole('combobox', { name: 'Engine' })).toBeDisabled();
+    expect(screen.getByRole('combobox', { name: 'Brand *' })).toHaveValue('BMW');
+    await user.click(screen.getByRole('button', { name: 'Clear Brand' }));
+    expect(screen.getByRole('combobox', { name: 'Brand *' })).toHaveValue('');
+    expect(screen.getByRole('combobox', { name: 'Model *' })).toBeDisabled();
+    await chooseFormOption(user, 'Transmission', 'Automated Manual Transmission (AMT)');
+    await user.click(screen.getByRole('button', { name: 'Clear Transmission' }));
+    expect(screen.getByRole('combobox', { name: 'Transmission' })).toHaveValue('');
+  });
+
   test('merges internet catalog models with the offline make list', async () => {
     getInternetModelsForMake.mockResolvedValue(['1600 GT', 'Neue Klasse']);
     const user = userEvent.setup();

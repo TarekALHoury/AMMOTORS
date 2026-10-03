@@ -47,6 +47,8 @@
 .admin-select-inline { cursor: text; }
 .admin-select-inline:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(214,69,61,.16); }
 .admin-select-field.has-error .admin-select-inline { border-color: #ef6d66; background: rgba(214,69,61,.045); }
+.admin-select-clear { display: grid; width: 36px; height: 36px; flex: 0 0 auto; place-items: center; margin-left: -9px; margin-right: -5px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: #8f999f; cursor: pointer; }
+.admin-select-clear:hover, .admin-select-clear:focus-visible { outline: none; background: rgba(255,255,255,.08); color: #fff; }
 .admin-select-inline input, .admin-select-inline input:focus { width: 100%; min-width: 0; min-height: 0; flex: 1; padding: 0; border: 0; border-radius: 0; outline: none; background: transparent; box-shadow: none; color: var(--text); font: inherit; }
 .admin-select-inline input::placeholder { color: #6f777c; font-weight: 500; }
 .admin-select-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -317,6 +319,7 @@
   .admin-form-section { padding: 20px 16px; }
   .admin-field select, .admin-toolbar select { min-height: 52px; font-size: 16px; background-position: calc(100% - 18px) 23px,calc(100% - 13px) 23px; }
   .admin-select-trigger { min-height: 52px; font-size: 16px; }
+  .admin-select-clear { width: 44px; height: 44px; margin-left: -12px; }
   .admin-select-menu { position: fixed; z-index: 1000; top: auto; right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); left: max(10px, env(safe-area-inset-left)); width: auto; max-width: calc(100vw - 20px); max-height: min(62dvh, 520px); margin-inline: auto; padding: 8px; border-radius: 10px; box-shadow: 0 0 0 100vmax rgba(0,0,0,.62), 0 -18px 50px rgba(0,0,0,.55); }
   .admin-select-search { position: sticky; z-index: 1; top: 0; }
   .admin-select-search input { min-height: 48px; font-size: 16px; }
