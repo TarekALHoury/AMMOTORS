@@ -99,8 +99,8 @@
 .admin-dashboard-view .admin-page-heading { animation: admin-rise-in 520ms cubic-bezier(.2,.75,.25,1) both; }
 .admin-summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; perspective: 1200px; }
 .admin-summary-card { position: relative; isolation: isolate; padding: 24px; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(145deg, rgba(255,255,255,.035), transparent 52%), var(--panel); box-shadow: 0 14px 34px rgba(0,0,0,.16); transform-style: preserve-3d; animation: admin-card-in 600ms cubic-bezier(.2,.75,.25,1) both; transition: transform 160ms ease, border-color 220ms ease, box-shadow 220ms ease; }
-.admin-summary-card::before, .admin-inventory-card::before { position: absolute; z-index: 0; inset: 0; background: radial-gradient(circle at var(--glow-x,50%) var(--glow-y,50%),rgba(255,255,255,.13),transparent 34%); content: ''; opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
-.admin-summary-card.is-tilting::before, .admin-inventory-card.is-tilting::before { opacity: 1; }
+.admin-summary-card::before { position: absolute; z-index: 0; inset: 0; background: radial-gradient(circle at var(--glow-x,50%) var(--glow-y,50%),rgba(255,255,255,.13),transparent 34%); content: ''; opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
+.admin-summary-card.is-tilting::before { opacity: 1; }
 .admin-summary-card::after { position: absolute; z-index: -1; top: -70px; right: -70px; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, rgba(214,69,61,.18), transparent 68%); content: ''; transition: transform 300ms ease, opacity 300ms ease; }
 .admin-summary-card:nth-child(2) { animation-delay: 70ms; }
 .admin-summary-card:nth-child(3) { animation-delay: 140ms; }
@@ -154,7 +154,7 @@
 @keyframes admin-rise-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes admin-card-in { from { opacity: 0; transform: translateY(24px) rotateX(-5deg); } to { opacity: 1; transform: translateY(0) rotateX(0); } }
 
-.admin-toolbar { display: grid; grid-template-columns: minmax(260px,1fr) auto; gap: 12px; margin-bottom: 18px; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.admin-toolbar { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; margin-bottom: 18px; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
 .admin-toolbar > *, .admin-form-grid > *, .admin-details-layout > * { min-width: 0; }
 .admin-toolbar .admin-select-field { gap: 0; }
 .admin-search { position: relative; }
@@ -163,9 +163,6 @@
 .admin-search input { padding-right: 46px; padding-left: 44px; }
 .admin-search-clear { position: absolute; z-index: 2; top: 7px; right: 7px; display: grid; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 5px; background: rgba(255,255,255,.06); color: var(--muted); }
 .admin-search-clear:hover, .admin-search-clear:focus-visible { background: rgba(255,255,255,.1); color: #fff; }
-.admin-view-toggle { display: flex; padding: 4px; border: 1px solid var(--line); border-radius: 6px; }
-.admin-view-toggle button { padding: 0 12px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: .72rem; font-weight: 700; }
-.admin-view-toggle button.active { background: var(--panel-light); color: #fff; }
 .admin-filter-panel { margin: -4px 0 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
 .admin-filter-panel summary { display: flex; min-height: 52px; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; cursor: pointer; list-style: none; }
 .admin-filter-panel summary::-webkit-details-marker { display: none; }
@@ -201,21 +198,6 @@
 .admin-row-actions button { display: grid; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 4px; background: transparent; color: var(--muted); }
 .admin-row-actions button:hover { background: rgba(255,255,255,.08); color: #fff; }
 .admin-row-actions button.danger:hover { color: #ff7c75; }
-.admin-inventory-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
-.admin-inventory-card { position: relative; isolation: isolate; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: 0 16px 36px rgba(0,0,0,.18); transform-style: preserve-3d; transition: transform 160ms ease,border-color 180ms ease,box-shadow 180ms ease; }
-.admin-inventory-card:hover { border-color: rgba(214,69,61,.42); box-shadow: -10px 26px 55px rgba(0,0,0,.38); transform: translateY(-9px) rotateX(var(--tilt-x,2deg)) rotateY(var(--tilt-y,-2deg)); }
-.admin-inventory-card > img { transform: translateZ(10px); transition: transform 260ms ease; }
-.admin-inventory-card:hover > img { transform: translateZ(24px) scale(1.035); }
-.admin-inventory-card > div { position: relative; z-index: 1; transform: translateZ(18px); }
-.admin-inventory-card > img { width: 100%; aspect-ratio: 16/10; object-fit: cover; }
-.admin-inventory-card > div { padding: 20px; }
-.admin-inventory-card h2 { margin: 14px 0 5px; font-size: 1.25rem; }
-.admin-inventory-card p { margin-bottom: 13px; }
-.admin-inventory-card > div > strong { font-size: 1.2rem; }
-.admin-card-actions { display: flex; gap: 6px; margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--line); }
-.admin-card-actions button { flex: 1; padding: 8px; border: 0; border-radius: 4px; background: rgba(255,255,255,.06); color: #cfd5d8; font-size: .73rem; }
-.admin-card-actions button:hover { background: rgba(255,255,255,.1); color: #fff; }
-.admin-card-actions .danger { color: #ff8c86; }
 .admin-empty, .admin-loading, .admin-error-state { display: flex; min-height: 380px; align-items: center; justify-content: center; flex-direction: column; padding: 42px; text-align: center; }
 .admin-empty { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
 .admin-empty-icon { display: grid; width: 54px; height: 54px; margin-bottom: 18px; place-items: center; border-radius: 50%; background: rgba(214,69,61,.12); color: #ef746d; }
@@ -287,9 +269,6 @@
 
 @media (max-width: 1100px) {
   .admin-summary-grid { grid-template-columns: repeat(2,1fr); }
-  .admin-toolbar { grid-template-columns: minmax(0,1fr) auto; }
-  .admin-view-toggle { min-height: 46px; justify-content: center; }
-  .admin-inventory-grid { grid-template-columns: repeat(2,1fr); }
   .admin-image-previews { grid-template-columns: repeat(4,1fr); }
   .admin-spec-grid { grid-template-columns: repeat(2,1fr); }
   .admin-filter-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -319,15 +298,13 @@
 }
 @media (max-width: 600px), (max-device-width: 600px) and (hover: none) and (pointer: coarse) {
   .admin-signin-card { padding: 30px 22px; }
-  .admin-summary-grid, .admin-toolbar, .admin-form-grid, .admin-inventory-grid { grid-template-columns: 1fr; }
+  .admin-summary-grid, .admin-toolbar, .admin-form-grid { grid-template-columns: 1fr; }
   .admin-search { grid-column: auto; }
   .admin-toolbar { gap: 10px; padding: 10px; }
   .admin-search input { min-height: 54px; padding-right: 52px; font-size: 16px; }
   .admin-search label > svg { top: 17px; }
   .admin-search-clear { top: 7px; right: 7px; width: 40px; height: 40px; }
   .admin-toolbar .admin-select-trigger { width: 100%; }
-  .admin-view-toggle { min-height: 48px; }
-  .admin-view-toggle button { min-height: 40px; }
   .admin-view { width: min(100% - 28px,680px); padding-bottom: 56px; }
   .admin-page-heading { gap: 20px; margin-bottom: 28px; }
   .admin-data-usage { padding: 20px 16px; }
@@ -407,5 +384,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .admin-sidebar, .admin-loading > svg, .admin-dashboard-view .admin-page-heading, .admin-summary-card, .admin-dashboard-view .admin-panel { animation: none; transition: none; }
-  .admin-summary-card:hover, .admin-inventory-card:hover, .admin-recent-row:hover { transform: none; }
+  .admin-summary-card:hover, .admin-recent-row:hover { transform: none; }
 }

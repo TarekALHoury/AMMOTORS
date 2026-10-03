@@ -208,7 +208,6 @@ function uniqueCarValues(cars, field, numeric = false) {
 function Inventory({ cars, measuredImageSizes, canAddVehicle, onNavigate, onDelete }) {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState(defaultInventoryFilters);
-  const [view, setView] = useState('table');
   const options = useMemo(() => ({
     makes: uniqueCarValues(cars, 'make'),
     models: uniqueCarValues(cars.filter((car) => filters.make === 'all' || car.make === filters.make), 'model'),
@@ -255,7 +254,6 @@ function Inventory({ cars, measuredImageSizes, canAddVehicle, onNavigate, onDele
       <div className="admin-page-heading"><div><p className="admin-kicker">Vehicle management</p><h1>Inventory</h1><p>{filtered.length} of {cars.length} vehicles shown.</p></div><button className="button button-primary" disabled={!canAddVehicle} onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
       <section className="admin-toolbar" aria-label="Inventory controls">
         <div className="admin-search"><label><span className="sr-only">Search inventory</span><AdminIcon name="search" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search make, model, year, specs…" /></label>{search && <button className="admin-search-clear" type="button" aria-label="Clear inventory search" onClick={() => setSearch('')}><X size={16} aria-hidden="true" /></button>}</div>
-        <div className="admin-view-toggle" aria-label="View style"><button className={view === 'table' ? 'active' : ''} onClick={() => setView('table')} aria-pressed={view === 'table'}>Table</button><button className={view === 'grid' ? 'active' : ''} onClick={() => setView('grid')} aria-pressed={view === 'grid'}>Grid</button></div>
       </section>
       <details className="admin-filter-panel">
         <summary><SlidersHorizontal size={18} aria-hidden="true" /><span>Advanced filters{activeFilterCount ? ` (${activeFilterCount})` : ''}</span><small>Make, model, year, specifications, price, and mileage</small><ChevronDown className="admin-filter-chevron" size={18} aria-hidden="true" /></summary>
@@ -277,9 +275,9 @@ function Inventory({ cars, measuredImageSizes, canAddVehicle, onNavigate, onDele
         </div>
         <div className="admin-filter-footer"><span>{filtered.length} matching vehicle{filtered.length === 1 ? '' : 's'}</span><button type="button" onClick={resetFilters} disabled={!search && !activeFilterCount}>Clear all filters</button></div>
       </details>
-      {!filtered.length ? <EmptyState onAction={cars.length ? resetFilters : () => onNavigate('add')} actionLabel={cars.length ? 'Clear all filters' : 'Add first vehicle'} /> : view === 'table' ? (
+      {!filtered.length ? <EmptyState onAction={cars.length ? resetFilters : () => onNavigate('add')} actionLabel={cars.length ? 'Clear all filters' : 'Add first vehicle'} /> : (
         <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Vehicle</th><th>Year</th><th>Mileage</th><th>Price</th><th>Image storage</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{filtered.map((car) => { const storage = getImageStorage(car, measuredImageSizes); return <tr key={car.id}><td data-label="Vehicle"><div className="admin-vehicle-cell"><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.engine}</small></span></div></td><td data-label="Year">{car.year}</td><td data-label="Mileage">{car.mileage == null ? '—' : `${Number(car.mileage).toLocaleString()} km`}</td><td data-label="Price"><strong>{money(car.price)}</strong></td><td data-label="Images"><span className="admin-image-storage"><strong>{storage.size}</strong><small>{storage.count}</small></span></td><td data-label="Actions"><div className="admin-row-actions"><button aria-label={`View ${car.make} ${car.model}`} onClick={() => onNavigate('details', car)}><AdminIcon name="eye" /></button><button aria-label={`Edit ${car.make} ${car.model}`} onClick={() => onNavigate('edit', car)}><AdminIcon name="edit" /></button><button className="danger" aria-label={`Delete ${car.make} ${car.model}`} onClick={() => onDelete(car)}><AdminIcon name="trash" /></button></div></td></tr>; })}</tbody></table></div>
-      ) : <div className="admin-inventory-grid">{filtered.map((car) => { const storage = getImageStorage(car, measuredImageSizes); return <article className="admin-inventory-card" data-tilt="7" key={car.id}><VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model}`} /><div><h2>{car.make} {car.model}</h2><p>{car.year}{car.mileage == null ? '' : ` · ${Number(car.mileage).toLocaleString()} km`}</p><p>Images: <span className="admin-image-storage"><strong>{storage.size}</strong><small>{storage.count}</small></span></p><strong>{money(car.price)}</strong><div className="admin-card-actions"><button onClick={() => onNavigate('details', car)}>View</button><button onClick={() => onNavigate('edit', car)}>Edit</button><button className="danger" onClick={() => onDelete(car)}>Delete</button></div></div></article>; })}</div>}
+      )}
     </div>
   );
 }

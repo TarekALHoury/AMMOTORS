@@ -134,6 +134,8 @@ describe('admin dashboard UI', () => {
     renderAdmin();
     await signIn(user);
     await user.click(screen.getByRole('button', { name: /Inventory 3/i }));
+    expect(screen.queryByLabelText('View style')).not.toBeInTheDocument();
+    expect(screen.getByRole('table')).toBeInTheDocument();
     const search = screen.getByPlaceholderText('Search make, model, year, specs…');
     await user.type(search, 'refined practical');
     expect(screen.getByText('Audi Q5 Premium Plus')).toBeInTheDocument();
