@@ -16,7 +16,7 @@ describe('image storage usage', () => {
     expect(STORAGE_WARNING_BYTES).toBe(2.5 * 1024 ** 3);
     expect(formatBytes(4.8 * 1024 ** 2)).toBe('4.8 MB');
     expect(formatBytes(3 * 1024 ** 3)).toBe('3.00 GB');
-    expect(formatRemainingBytes(3 * 1024 ** 3 - 5.6 * 1024 ** 2)).toBe('2.995 GB');
+    expect(formatRemainingBytes(3 * 1024 ** 3 - 5.6 * 1024 ** 2)).toBe('2.99 GB');
   });
 
   test('includes measured R2 sizes when image metadata does not contain them', () => {

@@ -34,6 +34,6 @@ export function formatBytes(bytes) {
 
 export function formatRemainingBytes(bytes) {
   const value = Math.max(0, Number(bytes) || 0);
-  if (value >= 1024 ** 3) return `${(value / 1024 ** 3).toFixed(3)} GB`;
+  if (value >= 1024 ** 3) return `${(Math.floor(value / 1024 ** 3 * 100) / 100).toFixed(2)} GB`;
   return formatBytes(value);
 }

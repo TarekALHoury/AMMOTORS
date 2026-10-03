@@ -102,7 +102,7 @@ describe('admin dashboard UI', () => {
     renderAdmin();
     await signIn(user);
 
-    expect(await screen.findByText('2.000 GB remaining')).toBeInTheDocument();
+    expect(await screen.findByText('2.00 GB remaining')).toBeInTheDocument();
     expect(screen.getByRole('progressbar', { name: 'Image storage used' })).toHaveAttribute('aria-valuenow', '33.33');
     expect(screen.getByText('2 files in image storage')).toBeInTheDocument();
     expect(imageMocks.getCarImageSizes).toHaveBeenCalledWith([
