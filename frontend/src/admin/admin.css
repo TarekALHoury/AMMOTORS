@@ -330,10 +330,9 @@
   .admin-table td { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--line); }
   .admin-table td::before { color: var(--muted); content: attr(data-label); font-size: .63rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
   .admin-table td:first-child, .admin-table td:last-child { grid-column: 1/-1; }
-  .admin-table td[data-label="Images"] { grid-column: 1/-1; border-bottom: 0; }
+  .admin-table td[data-label="Price"], .admin-table td[data-label="Images"] { border-bottom: 0; }
   .admin-table td:first-child { padding: 14px; background: linear-gradient(120deg,rgba(255,255,255,.035),transparent); }
   .admin-table td:first-child::before, .admin-table td:last-child::before { display: none; }
-  .admin-table td:nth-last-child(2) { border-bottom: 0; }
   .admin-table td:last-child { padding: 9px; border-bottom: 0; border-top: 1px solid var(--line); }
   .admin-vehicle-cell { width: 100%; min-width: 0; }
   .admin-vehicle-cell img { width: 84px; height: 60px; border-radius: 6px; }
