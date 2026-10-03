@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, CalendarDays, CarFront, Check, ChevronDown, ChevronRight, CircleDollarSign, Eye, FileText, Fuel, Gauge, ImageUp, LayoutDashboard, LoaderCircle, LogOut, Menu, Palette, Plus, Search, SlidersHorizontal, SquarePen, Tags, Trash2, X } from 'lucide-react';
+import { ArrowLeft, ArrowUpDown, CalendarDays, CarFront, Check, ChevronDown, ChevronRight, CircleDollarSign, Eye, FileText, Fuel, Gauge, ImageUp, LayoutDashboard, LoaderCircle, LogOut, Menu, Palette, Plus, Search, SlidersHorizontal, SquarePen, Tags, Trash2, X } from 'lucide-react';
 import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 import { createAdminCar, deleteAdminCar, updateAdminCar } from '../services/adminCars.js';
@@ -208,6 +208,7 @@ function uniqueCarValues(cars, field, numeric = false) {
 function Inventory({ cars, measuredImageSizes, canAddVehicle, onNavigate, onDelete }) {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState(defaultInventoryFilters);
+  const [sort, setSort] = useState('newest');
   const options = useMemo(() => ({
     makes: uniqueCarValues(cars, 'make'),
     models: uniqueCarValues(cars.filter((car) => filters.make === 'all' || car.make === filters.make), 'model'),
@@ -246,14 +247,21 @@ function Inventory({ cars, measuredImageSizes, canAddVehicle, onNavigate, onDele
       && withinMinimumPrice && withinMaximumPrice && withinMileage
       && withinMinimumHorsepower && withinMaximumHorsepower;
   }).sort((left, right) => {
+    if (sort === 'price-high') return right.price - left.price;
+    if (sort === 'price-low') return left.price - right.price;
+    if (sort === 'mileage-low') return left.mileage - right.mileage;
+    if (sort === 'mileage-high') return right.mileage - left.mileage;
+    if (sort === 'oldest') return left.year - right.year;
+    if (sort === 'make') return `${left.make} ${left.model}`.localeCompare(`${right.make} ${right.model}`);
     return right.year - left.year;
-  }), [cars, filters, search]);
+  }), [cars, filters, search, sort]);
 
   return (
     <div className="admin-view">
       <div className="admin-page-heading"><div><p className="admin-kicker">Vehicle management</p><h1>Inventory</h1><p>{filtered.length} of {cars.length} vehicles shown.</p></div><button className="button button-primary" disabled={!canAddVehicle} onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
       <section className="admin-toolbar" aria-label="Inventory controls">
         <div className="admin-search"><label><span className="sr-only">Search inventory</span><AdminIcon name="search" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search make, model, year, specs…" /></label>{search && <button className="admin-search-clear" type="button" aria-label="Clear inventory search" onClick={() => setSearch('')}><X size={16} aria-hidden="true" /></button>}</div>
+        <SelectField label="Sort inventory" name="sort" value={sort} onChange={(event) => setSort(event.target.value)} options={['newest', 'oldest', 'price-high', 'price-low', 'mileage-low', 'mileage-high', 'make']} optionLabels={{ newest: 'Newest year', oldest: 'Oldest year', 'price-high': 'Price: high to low', 'price-low': 'Price: low to high', 'mileage-low': 'Mileage: low to high', 'mileage-high': 'Mileage: high to low', make: 'Make and model' }} leadingIcon={ArrowUpDown} hideLabel />
       </section>
       <details className="admin-filter-panel">
         <summary><SlidersHorizontal size={18} aria-hidden="true" /><span>Advanced filters{activeFilterCount ? ` (${activeFilterCount})` : ''}</span><small>Make, model, year, specifications, price, and mileage</small><ChevronDown className="admin-filter-chevron" size={18} aria-hidden="true" /></summary>

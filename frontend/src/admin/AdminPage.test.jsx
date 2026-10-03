@@ -144,7 +144,10 @@ describe('admin dashboard UI', () => {
     expect(search).toHaveValue('');
     expect(document.querySelector('.admin-toolbar select')).not.toBeInTheDocument();
     expect(screen.queryByRole('combobox', { name: 'Filter by status' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Sort inventory' })).not.toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Sort inventory' })).toHaveTextContent('Newest year');
+    await user.click(screen.getByRole('combobox', { name: 'Sort inventory' }));
+    expect(screen.getByRole('option', { name: 'Make and model' })).toBeInTheDocument();
+    await user.keyboard('{Escape}');
     expect(document.querySelector('.admin-table td[data-label="Mileage"]')).toHaveTextContent('12,000 km');
     expect(document.querySelector('.admin-table td[data-label="Images"]')).toHaveTextContent('0 MB');
     expect(document.querySelector('.admin-table td[data-label="Images"]')).toHaveTextContent('No images');

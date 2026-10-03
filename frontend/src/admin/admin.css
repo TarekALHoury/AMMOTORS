@@ -154,7 +154,7 @@
 @keyframes admin-rise-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes admin-card-in { from { opacity: 0; transform: translateY(24px) rotateX(-5deg); } to { opacity: 1; transform: translateY(0) rotateX(0); } }
 
-.admin-toolbar { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; margin-bottom: 18px; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.admin-toolbar { display: grid; grid-template-columns: minmax(0,1fr) 190px; gap: 12px; margin-bottom: 18px; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
 .admin-toolbar > *, .admin-form-grid > *, .admin-details-layout > * { min-width: 0; }
 .admin-toolbar .admin-select-field { gap: 0; }
 .admin-search { position: relative; }
