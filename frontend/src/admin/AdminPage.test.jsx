@@ -262,7 +262,7 @@ describe('admin dashboard UI', () => {
     expect(screen.queryByRole('option', { name: 'C300' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('option', { name: 'M4 Competition' }));
     expect(screen.getByLabelText('Engine')).toBeEnabled();
-    expect(screen.getByLabelText('Engine').querySelector('img[data-icon="engine"]')).toBeInTheDocument();
+    expect(screen.getByLabelText('Engine').parentElement.querySelector('img[data-icon="engine"]')).toBeInTheDocument();
     const specificationFields = document.querySelector('.admin-specification-fields');
     expect(specificationFields.querySelector('img[data-icon="road"]')).toBeInTheDocument();
     expect(specificationFields.querySelector('.lucide-gauge')).toBeInTheDocument();
@@ -271,19 +271,25 @@ describe('admin dashboard UI', () => {
     expect(specificationFields.querySelector('img[data-icon="transmission"]')).toBeInTheDocument();
     expect(specificationFields.querySelector('img[data-icon="drivetrain"]')).toBeInTheDocument();
     await chooseFormOption(user, 'Engine', '3.0L Twin-Turbo');
-    expect(screen.getByRole('combobox', { name: 'Engine' })).toHaveTextContent('3.0L Twin-Turbo');
+    expect(screen.getByRole('combobox', { name: 'Engine' })).toHaveValue('3.0L Twin-Turbo');
     await chooseFormOption(user, 'Brand *', 'Audi');
-    expect(model).toHaveTextContent('Select or search for a model');
+    expect(model).toHaveValue('');
+    expect(model).toHaveAttribute('placeholder', 'Select or search for a model');
     expect(screen.getByLabelText('Engine')).toBeDisabled();
     await user.click(model);
-    await user.type(screen.getByRole('searchbox', { name: 'Search Model' }), 'Regional Sportback X');
+    expect(screen.queryByRole('searchbox', { name: 'Search Model' })).not.toBeInTheDocument();
+    await user.type(model, 'Regional Sportback X');
     await user.click(screen.getByRole('option', { name: 'Use “Regional Sportback X”' }));
-    expect(model).toHaveTextContent('Regional Sportback X');
+    expect(model).toHaveValue('Regional Sportback X');
     expect(screen.getByLabelText('Engine')).toBeEnabled();
-    expect(screen.getByLabelText('Year *')).toHaveRole('combobox');
+    expect(screen.getByLabelText('Year *')).toHaveAttribute('inputmode', 'numeric');
+    expect(screen.getByLabelText('Year *')).toHaveAttribute('pattern', '[0-9]*');
     expect(screen.getByLabelText('Fuel type')).toHaveRole('combobox');
     await user.click(screen.getByLabelText('Transmission'));
     expect(screen.getByRole('option', { name: 'Automated Manual Transmission (AMT)' })).toBeInTheDocument();
+    expect(screen.queryByRole('searchbox', { name: 'Search Transmission' })).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText('Transmission'), 'automated');
+    expect(screen.queryByRole('option', { name: 'Automatic' })).not.toBeInTheDocument();
     await user.keyboard('{Escape}');
     await user.click(screen.getByLabelText('Fuel type'));
     expect(screen.getByRole('option', { name: 'Self-charging Hybrid (HEV)' })).toBeInTheDocument();
@@ -301,6 +307,25 @@ describe('admin dashboard UI', () => {
     expect(screen.getByRole('option', { name: 'Burgundy' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Cognac' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Espresso' })).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Interior color'), 'burg');
+    expect(screen.getByRole('option', { name: 'Burgundy' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Tan' })).not.toBeInTheDocument();
+  });
+
+  test('accepts only four numeric year digits with the phone number pad', async () => {
+    const user = userEvent.setup();
+    renderAdmin();
+    await signIn(user);
+    await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
+    const year = screen.getByLabelText('Year *');
+    expect(year).toHaveAttribute('type', 'text');
+    expect(year).toHaveAttribute('inputmode', 'numeric');
+    expect(year).toHaveAttribute('pattern', '[0-9]*');
+    expect(year).toHaveAttribute('maxlength', '4');
+    await user.type(year, '2025abc9');
+    expect(year).toHaveValue('2025');
+    expect(fireEvent.paste(year, { clipboardData: { getData: () => '20ab' } })).toBe(false);
+    expect(year).toHaveValue('2025');
   });
 
   test('restricts mileage to non-negative whole numbers and requests a mobile number keypad', async () => {
@@ -400,11 +425,9 @@ describe('admin dashboard UI', () => {
       viewport.height = 640;
       viewport.offsetTop = 0;
       await user.click(screen.getByRole('combobox', { name: 'Exterior color' }));
-      const standardMenu = screen.getByRole('listbox', { name: 'Exterior color options' }).parentElement;
-      expect(standardMenu).toHaveClass('is-searchable');
-      await waitFor(() => expect(standardMenu).toHaveStyle({ top: '332px', bottom: 'auto', maxHeight: '300px' }));
-      await user.click(screen.getByRole('searchbox', { name: 'Search Exterior color' }));
-      await waitFor(() => expect(standardMenu).toHaveStyle({ top: '8px', maxHeight: '624px' }));
+      const colorMenu = screen.getByRole('listbox', { name: 'Exterior color options' }).parentElement;
+      expect(screen.queryByRole('searchbox', { name: 'Search Exterior color' })).not.toBeInTheDocument();
+      await waitFor(() => expect(colorMenu).toHaveStyle({ top: 'calc(100% - 1px)', bottom: 'auto', maxHeight: '300px' }));
     } finally {
       if (originalWidth) Object.defineProperty(window, 'innerWidth', originalWidth);
       if (originalViewport) Object.defineProperty(window, 'visualViewport', originalViewport);
