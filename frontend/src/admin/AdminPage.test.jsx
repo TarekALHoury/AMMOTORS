@@ -223,7 +223,7 @@ describe('admin dashboard UI', () => {
     const form = document.querySelector('.admin-car-form');
     await user.click(within(form).getByRole('button', { name: 'Add vehicle' }));
     expect(await screen.findAllByText('Required.')).not.toHaveLength(0);
-    expect(screen.getByLabelText('Make *')).toHaveFocus();
+    expect(screen.getByLabelText('Brand *')).toHaveFocus();
     expect(screen.getByLabelText('Mileage (km)')).toHaveAttribute('aria-invalid', 'false');
     expect(screen.getByLabelText('Transmission')).toHaveAttribute('aria-invalid', 'false');
     expect(screen.getByLabelText('Drivetrain')).toHaveAttribute('aria-invalid', 'false');
@@ -244,7 +244,7 @@ describe('admin dashboard UI', () => {
     expect(screen.queryByLabelText('Status *')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Hosted image URL')).not.toBeInTheDocument();
     expect(screen.getByText('Select images')).toBeInTheDocument();
-    const make = screen.getByLabelText('Make *');
+    const make = screen.getByLabelText('Brand *');
     const model = screen.getByLabelText('Model *');
     expect(make).toHaveRole('combobox');
     expect(model).toBeDisabled();
@@ -272,7 +272,7 @@ describe('admin dashboard UI', () => {
     expect(specificationFields.querySelector('img[data-icon="drivetrain"]')).toBeInTheDocument();
     await chooseFormOption(user, 'Engine', '3.0L Twin-Turbo');
     expect(screen.getByRole('combobox', { name: 'Engine' })).toHaveTextContent('3.0L Twin-Turbo');
-    await chooseFormOption(user, 'Make *', 'Audi');
+    await chooseFormOption(user, 'Brand *', 'Audi');
     expect(model).toHaveTextContent('Select or search for a model');
     expect(screen.getByLabelText('Engine')).toBeDisabled();
     await user.click(model);
@@ -338,28 +338,28 @@ describe('admin dashboard UI', () => {
     renderAdmin();
     await signIn(user);
     await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
-    const make = screen.getByRole('combobox', { name: 'Make *' });
+    const make = screen.getByRole('combobox', { name: 'Brand *' });
     make.focus();
-    await user.keyboard('{Enter}{ArrowDown}{Enter}');
-    expect(make).toHaveTextContent('Acura');
+    await user.keyboard('{ArrowDown}{Enter}');
+    expect(make).toHaveValue('Acura');
     expect(make).toHaveAttribute('aria-expanded', 'false');
     expect(screen.getByRole('combobox', { name: 'Model *' })).toBeEnabled();
   });
 
-  test('searches the make dropdown and selects from filtered brands', async () => {
+  test('searches brands directly in the main field without another search box', async () => {
     const user = userEvent.setup();
     renderAdmin();
     await signIn(user);
     await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
-    const make = screen.getByRole('combobox', { name: 'Make *' });
+    const make = screen.getByRole('combobox', { name: 'Brand *' });
     await user.click(make);
-    const makeSearch = screen.getByRole('searchbox', { name: 'Search Make' });
-    expect(makeSearch).toHaveFocus();
-    await user.type(makeSearch, 'land rover');
+    expect(make).toHaveFocus();
+    expect(screen.queryByRole('searchbox', { name: 'Search Brand' })).not.toBeInTheDocument();
+    await user.type(make, 'land rover');
     expect(screen.getByRole('option', { name: 'Land Rover' })).toBeInTheDocument();
     expect(screen.queryByRole('option', { name: 'BMW' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('option', { name: 'Land Rover' }));
-    expect(make).toHaveTextContent('Land Rover');
+    expect(make).toHaveValue('Land Rover');
     expect(make).toHaveAttribute('aria-expanded', 'false');
   });
 
@@ -369,7 +369,7 @@ describe('admin dashboard UI', () => {
     renderAdmin();
     await signIn(user);
     await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
-    await chooseFormOption(user, 'Make *', 'BMW');
+    await chooseFormOption(user, 'Brand *', 'BMW');
     await waitFor(() => expect(getInternetModelsForMake).toHaveBeenCalledWith('BMW', expect.objectContaining({ signal: expect.any(AbortSignal) })));
     await user.click(screen.getByRole('combobox', { name: 'Model *' }));
     expect(await screen.findByRole('option', { name: '1600 GT' })).toBeInTheDocument();
@@ -389,13 +389,13 @@ describe('admin dashboard UI', () => {
       renderAdmin();
       await signIn(user);
       await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
-      await user.click(screen.getByRole('combobox', { name: 'Make *' }));
-      const menu = screen.getByRole('listbox', { name: 'Make * options' }).parentElement;
-      await waitFor(() => expect(menu).toHaveStyle({ top: '20px', bottom: 'auto', maxHeight: '304px' }));
+      await user.click(screen.getByRole('combobox', { name: 'Brand *' }));
+      const menu = screen.getByRole('listbox', { name: 'Brand * options' }).parentElement;
+      await waitFor(() => expect(menu).toHaveStyle({ top: 'calc(100% - 1px)', bottom: 'auto', maxHeight: '300px' }));
       viewport.height = 260;
       viewport.offsetTop = 20;
       viewport.dispatchEvent(new Event('resize'));
-      await waitFor(() => expect(menu).toHaveStyle({ top: '28px', maxHeight: '244px' }));
+      await waitFor(() => expect(menu).toHaveStyle({ top: 'calc(100% - 1px)', maxHeight: '272px' }));
       await user.keyboard('{Escape}');
       viewport.height = 640;
       viewport.offsetTop = 0;
