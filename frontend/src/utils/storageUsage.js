@@ -1,5 +1,11 @@
 export const CLOUDFLARE_STORAGE_LIMIT_BYTES = 3 * 1024 * 1024 * 1024;
 export const STORAGE_WARNING_BYTES = 2.5 * 1024 ** 3;
+export const MIN_VISIBLE_STORAGE_PERCENT = 0.5;
+
+function validBytes(value, fallback = 0) {
+  const bytes = Number(value);
+  return Number.isFinite(bytes) && bytes >= 0 ? bytes : fallback;
+}
 
 export function vehicleImageUsage(car, measuredSizes = {}) {
   const entries = Array.isArray(car?.imageEntries) ? car.imageEntries : [];
@@ -24,16 +30,51 @@ export function inventoryImageUsage(cars, measuredSizes = {}) {
   }, { knownBytes: 0, unknownImages: 0 });
 }
 
+export function legacyImageCount(cars) {
+  return (cars || []).reduce((total, car) => {
+    const sizedUrls = new Set((car?.imageEntries || [])
+      .filter((image) => {
+        const size = Number(image?.sizeBytes ?? image?.size);
+        return Number.isFinite(size) && size >= 0;
+      })
+      .map((image) => image.url));
+    return total + (car?.images || []).filter((url) => !sizedUrls.has(url)).length;
+  }, 0);
+}
+
+export function storageUsageMetrics(usedBytes, limitBytes = CLOUDFLARE_STORAGE_LIMIT_BYTES) {
+  const used = validBytes(usedBytes);
+  const limit = validBytes(limitBytes, CLOUDFLARE_STORAGE_LIMIT_BYTES) || CLOUDFLARE_STORAGE_LIMIT_BYTES;
+  const actualPercentage = (used / limit) * 100;
+  const progressPercentage = Math.min(100, actualPercentage);
+  const visualPercentage = used > 0
+    ? Math.min(100, Math.max(progressPercentage, MIN_VISIBLE_STORAGE_PERCENT))
+    : 0;
+  return {
+    usedBytes: used,
+    limitBytes: limit,
+    remainingBytes: Math.max(0, limit - used),
+    actualPercentage,
+    progressPercentage,
+    visualPercentage,
+    isExceeded: used > limit,
+  };
+}
+
 export function formatBytes(bytes) {
-  const value = Math.max(0, Number(bytes) || 0);
+  const value = validBytes(bytes);
   if (value < 1024) return `${Math.round(value)} B`;
   if (value < 1024 ** 2) return `${(value / 1024).toFixed(value < 10 * 1024 ? 1 : 0)} KB`;
   if (value < 1024 ** 3) return `${(value / 1024 ** 2).toFixed(value < 10 * 1024 ** 2 ? 1 : 0)} MB`;
+  if (Number.isInteger(value / 1024 ** 3)) return `${value / 1024 ** 3} GB`;
   return `${(value / 1024 ** 3).toFixed(2)} GB`;
 }
 
 export function formatRemainingBytes(bytes) {
-  const value = Math.max(0, Number(bytes) || 0);
-  if (value >= 1024 ** 3) return `${(Math.floor(value / 1024 ** 3 * 100) / 100).toFixed(2)} GB`;
+  const value = validBytes(bytes);
+  if (value >= 1024 ** 3) {
+    const gigabytes = value / 1024 ** 3;
+    return Number.isInteger(gigabytes) ? `${gigabytes} GB` : `~${gigabytes.toFixed(3)} GB`;
+  }
   return formatBytes(value);
 }

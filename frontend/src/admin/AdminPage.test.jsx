@@ -83,7 +83,11 @@ describe('admin dashboard UI', () => {
     expect(screen.getByRole('heading', { name: 'Available storage' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Available storage' }).closest('.admin-panel')).toHaveTextContent('/ 3 GB');
     expect(screen.queryByText(/Cloudflare R2/i)).not.toBeInTheDocument();
-    expect(screen.getByRole('progressbar', { name: 'Image storage used' })).toHaveAttribute('aria-valuemax', '100');
+    const emptyProgress = screen.getByRole('progressbar', { name: 'Image storage used' });
+    expect(emptyProgress).toHaveAttribute('aria-valuemax', '100');
+    expect(emptyProgress).toHaveAttribute('aria-valuenow', '0');
+    expect(emptyProgress.firstElementChild).toHaveStyle({ width: '0%' });
+    expect(screen.getByText('3 GB')).toBeInTheDocument();
     expect(screen.getAllByText('BMW M4 Competition').length).toBeGreaterThan(0);
     expect(document.querySelector('.lucide-layout-dashboard')).toBeInTheDocument();
     expect(document.querySelector('.lucide-car-front')).toBeInTheDocument();
@@ -102,12 +106,48 @@ describe('admin dashboard UI', () => {
     renderAdmin();
     await signIn(user);
 
-    expect(await screen.findByText('2.00 GB remaining')).toBeInTheDocument();
+    expect(await screen.findByText('2 GB')).toBeInTheDocument();
     expect(screen.getByRole('progressbar', { name: 'Image storage used' })).toHaveAttribute('aria-valuenow', '33.33');
     expect(screen.getByText('2 files in image storage')).toBeInTheDocument();
     expect(imageMocks.getCarImageSizes).toHaveBeenCalledWith([
       { carId: 'demo-001', key: 'cars/demo-001/front.webp' },
     ]);
+  });
+
+  test('shows precise low usage, a visible-only minimum bar, and legacy metadata gaps', async () => {
+    const usedBytes = 4.6 * 1024 ** 2;
+    getCars.mockResolvedValue([{
+      ...demoCars[0],
+      images: ['https://images.example/legacy.jpg'],
+      imageEntries: [{ url: 'https://images.example/legacy.jpg', key: null, sizeBytes: null }],
+    }]);
+    imageMocks.getStorageUsage.mockResolvedValue({ usedBytes, objectCount: 1, limitBytes: 3 * 1024 ** 3 });
+
+    renderAdmin();
+    await signIn(userEvent.setup());
+
+    const panel = screen.getByRole('heading', { name: 'Available storage' }).closest('.admin-panel');
+    expect(panel).toHaveTextContent('4.6 MB / 3 GB');
+    expect(panel).toHaveTextContent('~2.996 GB');
+    expect(panel).toHaveTextContent('1 legacy image lack per-image size metadata');
+    const progress = screen.getByRole('progressbar', { name: 'Image storage used' });
+    expect(progress).toHaveAttribute('aria-valuenow', '0.15');
+    expect(progress).toHaveAttribute('aria-valuetext', '0.15% used');
+    expect(progress.firstElementChild).toHaveStyle({ width: '0.5%' });
+  });
+
+  test('caps only the visual bar and remaining value when usage exceeds the limit', async () => {
+    imageMocks.getStorageUsage.mockResolvedValue({ usedBytes: 4 * 1024 ** 3, objectCount: 12, limitBytes: 3 * 1024 ** 3 });
+
+    renderAdmin();
+    await signIn(userEvent.setup(), 'Dashboard', false);
+
+    const progress = screen.getByRole('progressbar', { name: 'Image storage used' });
+    expect(progress).toHaveAttribute('aria-valuenow', '100');
+    expect(progress).toHaveAttribute('aria-valuetext', '133.33% used');
+    expect(progress.firstElementChild).toHaveStyle({ width: '100%' });
+    expect(screen.getByText('0 B')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Storage limit exceeded by 1 GB');
   });
 
   test('warns near 2.5 GB and disables new vehicles at 3 GB', async () => {
@@ -125,7 +165,8 @@ describe('admin dashboard UI', () => {
     await waitFor(() => expect(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i })).toBeDisabled());
     await user.click(screen.getByRole('button', { name: /Dashboard/i }));
     expect(screen.getByRole('alert')).toHaveTextContent('Storage full');
-    expect(screen.getByText('0 B remaining')).toBeInTheDocument();
+    expect(screen.getByText('0 B')).toBeInTheDocument();
+    expect(screen.getByText('remaining')).toBeInTheDocument();
     screen.getAllByRole('button', { name: 'Add vehicle' }).forEach((button) => expect(button).toBeDisabled());
   });
 

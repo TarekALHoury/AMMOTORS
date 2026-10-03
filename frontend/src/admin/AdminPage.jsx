@@ -13,7 +13,7 @@ import roadIcon from '../assets/icons/road.svg';
 import transmissionIcon from '../assets/icons/gearshifter.png';
 import { usePageMetadata } from '../utils/usePageMetadata.js';
 import { kilometersToMiles, milesToKilometers } from '../utils/formatters.js';
-import { CLOUDFLARE_STORAGE_LIMIT_BYTES, STORAGE_WARNING_BYTES, formatBytes, formatRemainingBytes } from '../utils/storageUsage.js';
+import { CLOUDFLARE_STORAGE_LIMIT_BYTES, STORAGE_WARNING_BYTES, formatBytes, formatRemainingBytes, legacyImageCount, storageUsageMetrics } from '../utils/storageUsage.js';
 import { drivetrainOptions, exteriorColorOptions, fuelOptions, getEngineOptions, interiorColorOptions, transmissionOptions, vehicleMakes, vehicleModels, vehicleOptionLabels } from './vehicleCatalog.js';
 import './admin.css';
 
@@ -156,11 +156,11 @@ function SignIn({ onSuccess }) {
 function Summary({ cars, storage, onNavigate, onRefreshStorage }) {
   const totalValue = cars.reduce((sum, car) => sum + Number(car.price || 0), 0);
   const imageCount = cars.reduce((sum, car) => sum + (car.images?.length || 0), 0);
-  const usedBytes = storage.usedBytes ?? 0;
-  const usagePercent = Math.min(100, (usedBytes / CLOUDFLARE_STORAGE_LIMIT_BYTES) * 100);
-  const remainingBytes = Math.max(0, CLOUDFLARE_STORAGE_LIMIT_BYTES - usedBytes);
-  const isFull = storage.status === 'ready' && usedBytes >= CLOUDFLARE_STORAGE_LIMIT_BYTES;
-  const isWarning = storage.status === 'ready' && usedBytes >= STORAGE_WARNING_BYTES;
+  const metrics = storageUsageMetrics(storage.usedBytes, storage.limitBytes);
+  const legacyImages = legacyImageCount(cars);
+  const isFull = storage.status === 'ready' && metrics.usedBytes >= metrics.limitBytes;
+  const isWarning = storage.status === 'ready' && metrics.usedBytes >= Math.min(STORAGE_WARNING_BYTES, metrics.limitBytes * (5 / 6));
+  const percentageText = `${metrics.actualPercentage.toFixed(2)}%`;
   const cards = [
     { label: 'Total inventory', value: cars.length, note: 'vehicles tracked', icon: CarFront, tone: 'neutral' },
     { label: 'Inventory value', value: money(totalValue), note: 'all listed vehicles', icon: CircleDollarSign, tone: 'value' },
@@ -174,10 +174,14 @@ function Summary({ cars, storage, onNavigate, onRefreshStorage }) {
         {cards.map(({ label, value, note, icon: CardIcon, tone }) => <article className={`admin-summary-card admin-summary-${tone}`} data-tilt="10" key={label}><div className="admin-summary-card-top"><span>{label}</span><span className="admin-summary-icon"><CardIcon size={20} strokeWidth={1.8} aria-hidden="true" /></span></div><strong>{value}</strong><small>{note}</small></article>)}
       </section>
       <section className={`admin-panel admin-data-usage${isWarning ? ' is-warning' : ''}${isFull ? ' is-full' : ''}`} aria-labelledby="data-usage-title">
-        <div className="admin-panel-heading"><h2 id="data-usage-title">Available storage</h2><strong>{storage.status === 'ready' ? formatBytes(usedBytes) : '—'} / 3 GB</strong></div>
-        <div className="admin-usage-track" role="progressbar" aria-label="Image storage used" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Number(usagePercent.toFixed(2))}><span style={{ width: `${usagePercent}%` }} /></div>
-        <div className="admin-usage-meta"><span>{storage.status === 'ready' ? `${formatRemainingBytes(remainingBytes)} remaining` : storage.status === 'error' ? 'Storage usage could not be checked' : 'Checking storage…'}</span><span>{storage.status === 'ready' ? `${storage.objectCount} file${storage.objectCount === 1 ? '' : 's'} in image storage` : ''}<button type="button" onClick={onRefreshStorage}>Refresh storage</button></span></div>
-        {isWarning && <p className="admin-usage-alert" role="alert">{isFull ? 'Storage full — new vehicles are disabled. Delete images to free space.' : '⚠ Storage almost full — 0.5 GB or less remains.'}</p>}
+        <div className="admin-panel-heading"><h2 id="data-usage-title">Available storage</h2><strong>{storage.status === 'ready' ? formatBytes(metrics.usedBytes) : '—'} / {formatBytes(metrics.limitBytes)}</strong></div>
+        <div className="admin-usage-track" role="progressbar" aria-label="Image storage used" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Number(metrics.progressPercentage.toFixed(2))} aria-valuetext={storage.status === 'ready' ? `${percentageText} used` : 'Storage usage unavailable'} title={storage.status === 'ready' ? `${percentageText} used` : undefined}><span style={{ width: `${storage.status === 'ready' ? metrics.visualPercentage : 0}%` }} /></div>
+        <div className="admin-usage-stats">
+          <span><strong>{storage.status === 'ready' ? formatBytes(metrics.usedBytes) : '—'}</strong><small>{storage.status === 'ready' ? `used · ${percentageText} utilization` : storage.status === 'error' ? 'Storage usage could not be checked' : 'Checking storage…'}</small></span>
+          <span><strong>{storage.status === 'ready' ? formatRemainingBytes(metrics.remainingBytes) : '—'}</strong><small>remaining</small></span>
+        </div>
+        <div className="admin-usage-meta"><span>{legacyImages ? `${legacyImages} legacy image${legacyImages === 1 ? '' : 's'} lack per-image size metadata` : 'All listed images have storage metadata'}</span><span>{storage.status === 'ready' ? `${storage.objectCount} file${storage.objectCount === 1 ? '' : 's'} in image storage` : ''}<button type="button" onClick={onRefreshStorage}>Refresh storage</button></span></div>
+        {isWarning && <p className="admin-usage-alert" role="alert">{metrics.isExceeded ? `Storage limit exceeded by ${formatBytes(metrics.usedBytes - metrics.limitBytes)}. Delete images to free space.` : isFull ? 'Storage full — new vehicles are disabled. Delete images to free space.' : 'Storage almost full — 0.5 GB or less remains.'}</p>}
       </section>
       <section className="admin-panel admin-recent-panel" data-tilt="2">
           <div className="admin-panel-heading"><div><p className="admin-kicker">Recent inventory</p><h2>Latest vehicles</h2></div><button className="admin-text-button" onClick={() => onNavigate('inventory')}>View all <AdminIcon name="arrow" /></button></div>
@@ -556,17 +560,18 @@ function AdminWorkspace({ email, onSignOut }) {
   const [notice, setNotice] = useState('');
   const [measuredImageSizes, setMeasuredImageSizes] = useState({});
   const [imageSizeError, setImageSizeError] = useState(false);
-  const [storage, setStorage] = useState({ status: 'loading', usedBytes: null, objectCount: 0 });
+  const [storage, setStorage] = useState({ status: 'loading', usedBytes: null, objectCount: 0, limitBytes: CLOUDFLARE_STORAGE_LIMIT_BYTES });
   const loadRequestRef = useRef(0);
 
   async function refreshStorage() {
     try {
       const usage = await getStorageUsage();
-      if (!Number.isFinite(usage?.usedBytes) || usage.usedBytes < 0 || !Number.isInteger(usage.objectCount)) throw new Error('Invalid storage usage');
-      setStorage({ status: 'ready', usedBytes: usage.usedBytes, objectCount: usage.objectCount });
+      if (!Number.isFinite(usage?.usedBytes) || usage.usedBytes < 0 || !Number.isInteger(usage.objectCount) || usage.objectCount < 0) throw new Error('Invalid storage usage');
+      const limitBytes = Number.isFinite(usage.limitBytes) && usage.limitBytes > 0 ? usage.limitBytes : CLOUDFLARE_STORAGE_LIMIT_BYTES;
+      setStorage({ status: 'ready', usedBytes: usage.usedBytes, objectCount: usage.objectCount, limitBytes });
       return usage;
     } catch {
-      setStorage({ status: 'error', usedBytes: null, objectCount: 0 });
+      setStorage({ status: 'error', usedBytes: null, objectCount: 0, limitBytes: CLOUDFLARE_STORAGE_LIMIT_BYTES });
       return null;
     }
   }
@@ -623,11 +628,11 @@ function AdminWorkspace({ email, onSignOut }) {
   useEffect(() => {
     if (view === 'add' && storage.status !== 'loading' && storage.status !== 'ready') {
       setView('inventory'); storeAdminLocation('inventory');
-    } else if (view === 'add' && storage.status === 'ready' && storage.usedBytes >= CLOUDFLARE_STORAGE_LIMIT_BYTES) {
+    } else if (view === 'add' && storage.status === 'ready' && storage.usedBytes >= storage.limitBytes) {
       setView('inventory'); storeAdminLocation('inventory');
     }
   }, [view, storage]);
-  const canAddVehicle = storage.status === 'ready' && storage.usedBytes < CLOUDFLARE_STORAGE_LIMIT_BYTES;
+  const canAddVehicle = storage.status === 'ready' && storage.usedBytes < storage.limitBytes;
   function navigate(nextView, car = null) {
     if (nextView === 'add' && !canAddVehicle) return;
     setView(nextView); setSelectedCar(car); storeAdminLocation(nextView, car?.id); setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'auto' });
@@ -635,7 +640,7 @@ function AdminWorkspace({ email, onSignOut }) {
   async function saveCar(car, files) {
     if (view === 'add') {
       const usage = await refreshStorage();
-      if (!usage || usage.usedBytes >= CLOUDFLARE_STORAGE_LIMIT_BYTES) {
+      if (!usage || usage.usedBytes >= (usage.limitBytes || CLOUDFLARE_STORAGE_LIMIT_BYTES)) {
         throw new Error('Storage is full or could not be checked. Delete images and try again.');
       }
       const created = await createAdminCar(car, files);
