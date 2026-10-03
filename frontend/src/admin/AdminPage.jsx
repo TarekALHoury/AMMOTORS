@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowLeft, ArrowUpDown, CalendarDays, CarFront, Check, ChevronDown, ChevronRight, CircleDollarSign, Eye, FileText, Fuel, Gauge, ImageUp, LayoutDashboard, LoaderCircle, LogOut, Menu, Palette, Plus, Search, SlidersHorizontal, SquarePen, Tags, Trash2, X } from 'lucide-react';
 import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
@@ -320,10 +321,11 @@ function SelectField({ label, ariaLabel = label, name, value, error, onChange, o
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(Math.max(0, resolvedOptions.indexOf(value)));
-  const [mobileMenuStyle, setMobileMenuStyle] = useState(undefined);
+  const [menuLayout, setMenuLayout] = useState(null);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const rootRef = useRef(null);
   const triggerRef = useRef(null);
+  const menuRef = useRef(null);
   const searchRef = useRef(null);
   const visibleOptions = searchable && query
     ? resolvedOptions.filter((option) => (optionLabels[option] || option).toLowerCase().includes(query.trim().toLowerCase()))
@@ -333,7 +335,7 @@ function SelectField({ label, ariaLabel = label, name, value, error, onChange, o
 
   useEffect(() => {
     function closeOnOutsideClick(event) {
-      if (!rootRef.current?.contains(event.target)) setOpen(false);
+      if (!rootRef.current?.contains(event.target) && !menuRef.current?.contains(event.target)) setOpen(false);
     }
     document.addEventListener('pointerdown', closeOnOutsideClick);
     return () => document.removeEventListener('pointerdown', closeOnOutsideClick);
@@ -346,41 +348,69 @@ function SelectField({ label, ariaLabel = label, name, value, error, onChange, o
   useEffect(() => { setActiveIndex(0); }, [query]);
   useEffect(() => {
     if (!open) {
-      setMobileMenuStyle(undefined);
+      setMenuLayout(null);
       return undefined;
     }
-    const usesMobileMenu = window.innerWidth <= 600 || window.matchMedia?.('(max-device-width: 600px) and (hover: none) and (pointer: coarse)').matches;
-    if (!usesMobileMenu) return undefined;
     const viewport = window.visualViewport;
-    function fitMenuToKeyboard() {
+    function positionMenu() {
       const height = viewport?.height || window.innerHeight;
-      if (inlineSearch) {
-        const rect = triggerRef.current?.getBoundingClientRect();
-        const visibleTop = viewport?.offsetTop || 0;
-        const visibleBottom = visibleTop + height;
-        const below = visibleBottom - (rect?.bottom || 0) - 8;
-        const above = (rect?.top || 0) - visibleTop - 8;
-        const placeAbove = below < 160 && above > below;
-        setMobileMenuStyle({ top: placeAbove ? 'auto' : 'calc(100% - 1px)', bottom: placeAbove ? 'calc(100% - 1px)' : 'auto', maxHeight: `${Math.max(100, Math.min(300, placeAbove ? above : below))}px` });
+      const width = viewport?.width || window.innerWidth;
+      const visibleTop = viewport?.offsetTop || 0;
+      const visibleLeft = viewport?.offsetLeft || 0;
+      const visibleBottom = visibleTop + height;
+      const usesMobileSheet = !inlineSearch && (width <= 600 || window.matchMedia?.('(max-device-width: 600px) and (hover: none) and (pointer: coarse)').matches);
+      if (usesMobileSheet) {
+        const inset = width <= 430 ? 6 : 10;
+        const availableHeight = Math.max(120, Math.round(height - inset * 2));
+        const menuHeight = searchable && searchExpanded
+          ? availableHeight
+          : Math.min(520, Math.max(160, Math.round(height * 0.62)), availableHeight);
+        setMenuLayout({
+          mobileSheet: true,
+          placement: 'sheet',
+          style: {
+            top: `${Math.max(inset, Math.round(visibleBottom - menuHeight - inset))}px`,
+            left: `${Math.round(visibleLeft + inset)}px`,
+            width: `${Math.max(0, Math.round(width - inset * 2))}px`,
+            maxHeight: `${menuHeight}px`,
+          },
+        });
         return;
       }
-      const availableHeight = Math.max(120, Math.round(height - 16));
-      const menuHeight = searchable && searchExpanded
-        ? availableHeight
-        : Math.min(300, Math.max(160, Math.round(height * 0.48)), availableHeight);
-      const top = searchable && searchExpanded
-        ? (viewport?.offsetTop || 0) + 8
-        : (viewport?.offsetTop || 0) + height - menuHeight - 8;
-      setMobileMenuStyle({ top: `${Math.max(8, Math.round(top))}px`, bottom: 'auto', maxHeight: `${menuHeight}px` });
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const gap = 6;
+      const edge = 8;
+      const below = visibleBottom - rect.bottom - gap - edge;
+      const above = rect.top - visibleTop - gap - edge;
+      const placeAbove = below < 180 && above > below;
+      const availableHeight = Math.max(100, placeAbove ? above : below);
+      const menuHeight = Math.min(310, availableHeight);
+      const menuWidth = Math.min(Math.max(rect.width, 220), Math.max(0, width - edge * 2));
+      const left = Math.min(Math.max(rect.left, visibleLeft + edge), visibleLeft + width - menuWidth - edge);
+      setMenuLayout({
+        mobileSheet: false,
+        placement: placeAbove ? 'above' : 'below',
+        style: {
+          top: `${Math.round(placeAbove ? rect.top - menuHeight - gap : rect.bottom + gap)}px`,
+          left: `${Math.round(left)}px`,
+          width: `${Math.round(menuWidth)}px`,
+          maxHeight: `${Math.round(menuHeight)}px`,
+        },
+      });
     }
-    fitMenuToKeyboard();
-    viewport?.addEventListener('resize', fitMenuToKeyboard);
-    viewport?.addEventListener('scroll', fitMenuToKeyboard);
-    window.addEventListener('orientationchange', fitMenuToKeyboard);
+    positionMenu();
+    viewport?.addEventListener('resize', positionMenu);
+    viewport?.addEventListener('scroll', positionMenu);
+    window.addEventListener('resize', positionMenu);
+    window.addEventListener('scroll', positionMenu, true);
+    window.addEventListener('orientationchange', positionMenu);
     return () => {
-      viewport?.removeEventListener('resize', fitMenuToKeyboard);
-      viewport?.removeEventListener('scroll', fitMenuToKeyboard);
-      window.removeEventListener('orientationchange', fitMenuToKeyboard);
+      viewport?.removeEventListener('resize', positionMenu);
+      viewport?.removeEventListener('scroll', positionMenu);
+      window.removeEventListener('resize', positionMenu);
+      window.removeEventListener('scroll', positionMenu, true);
+      window.removeEventListener('orientationchange', positionMenu);
     };
   }, [open, searchable, searchExpanded, inlineSearch]);
 
@@ -434,7 +464,7 @@ function SelectField({ label, ariaLabel = label, name, value, error, onChange, o
     </div> : <button ref={triggerRef} id={`${id}-trigger`} className="admin-select-trigger" type="button" role="combobox" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-listbox`} aria-activedescendant={open && visibleOptions[activeIndex] ? `${id}-option-${activeIndex}` : undefined} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} disabled={disabled} onClick={() => { setQuery(''); setOpen((current) => !current); }} onKeyDown={handleKeyDown}>
       {LeadingIcon && <LeadingIcon className="admin-select-leading-icon" size={18} aria-hidden="true" />}{leadingIconSrc && <img className="admin-select-leading-image" src={leadingIconSrc} alt="" aria-hidden="true" data-icon={leadingIconName} />}<span className={`admin-select-value ${value ? '' : 'placeholder'}`}>{value ? optionLabels[value] || value : placeholder}</span><span className="admin-select-chevron" aria-hidden="true" />
     </button>}
-    {open && <div className={`admin-select-menu ${searchable && !inlineSearch ? 'is-searchable' : ''}`} style={mobileMenuStyle}>{searchable && !inlineSearch && <label className="admin-select-search"><span className="sr-only">Search {label.replace(' *', '')}</span><AdminIcon name="search" /><input ref={searchRef} type="search" aria-label={`Search ${label.replace(' *', '')}`} value={query} onFocus={() => setSearchExpanded(true)} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleSearchKeyDown} placeholder={`Search ${label.replace(' *', '').toLowerCase()}`} /></label>}<div className="admin-select-options" id={`${id}-listbox`} role="listbox" aria-label={`${label} options`}>{visibleOptions.map((option, index) => <button id={`${id}-option-${index}`} type="button" role="option" aria-selected={option === value} className={index === activeIndex ? 'is-active' : ''} key={option} onPointerMove={() => setActiveIndex(index)} onClick={() => choose(option)}>{optionLabels[option] || option}{hasUnsupportedValue && option === value ? ' (Other)' : ''}{option === value && <Check size={16} aria-hidden="true" />}</button>)}{canUseCustom && <button type="button" role="option" aria-selected="false" className="admin-select-custom" onClick={() => choose(customValue)}>Use “{customValue}”</button>}{!visibleOptions.length && !canUseCustom && <p className="admin-select-empty">No matching options found.</p>}</div></div>}
+    {open && menuLayout && createPortal(<div ref={menuRef} className={`admin-select-menu ${searchable && !inlineSearch ? 'is-searchable' : ''} ${menuLayout.mobileSheet ? 'is-mobile-sheet' : ''} is-${menuLayout.placement}`} style={menuLayout.style}>{searchable && !inlineSearch && <label className="admin-select-search"><span className="sr-only">Search {label.replace(' *', '')}</span><AdminIcon name="search" /><input ref={searchRef} type="search" aria-label={`Search ${label.replace(' *', '')}`} value={query} onFocus={() => setSearchExpanded(true)} onChange={(event) => setQuery(event.target.value)} onKeyDown={handleSearchKeyDown} placeholder={`Search ${label.replace(' *', '').toLowerCase()}`} /></label>}<div className="admin-select-options" id={`${id}-listbox`} role="listbox" aria-label={`${label} options`}>{visibleOptions.map((option, index) => <button id={`${id}-option-${index}`} type="button" role="option" aria-selected={option === value} className={index === activeIndex ? 'is-active' : ''} key={option} onPointerMove={() => setActiveIndex(index)} onClick={() => choose(option)}>{optionLabels[option] || option}{hasUnsupportedValue && option === value ? ' (Other)' : ''}{option === value && <Check size={16} aria-hidden="true" />}</button>)}{canUseCustom && <button type="button" role="option" aria-selected="false" className="admin-select-custom" onClick={() => choose(customValue)}>Use “{customValue}”</button>}{!visibleOptions.length && !canUseCustom && <p className="admin-select-empty">No matching options found.</p>}</div></div>, rootRef.current?.closest('dialog') || document.body)}
     {error && <small id={errorId} className="admin-field-error">{error}</small>}
   </div>;
 }

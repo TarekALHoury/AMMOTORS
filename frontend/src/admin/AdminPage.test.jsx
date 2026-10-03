@@ -479,22 +479,49 @@ describe('admin dashboard UI', () => {
       await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
       await user.click(screen.getByRole('combobox', { name: 'Brand *' }));
       const menu = screen.getByRole('listbox', { name: 'Brand * options' }).parentElement;
-      await waitFor(() => expect(menu).toHaveStyle({ top: 'calc(100% - 1px)', bottom: 'auto', maxHeight: '300px' }));
+      await waitFor(() => expect(menu).toHaveStyle({ top: '6px', maxHeight: '310px' }));
+      expect(menu.parentElement).toBe(document.body);
       viewport.height = 260;
       viewport.offsetTop = 20;
       viewport.dispatchEvent(new Event('resize'));
-      await waitFor(() => expect(menu).toHaveStyle({ top: 'calc(100% - 1px)', maxHeight: '272px' }));
+      await waitFor(() => expect(menu).toHaveStyle({ top: '6px', maxHeight: '266px' }));
       await user.keyboard('{Escape}');
       viewport.height = 640;
       viewport.offsetTop = 0;
       await user.click(screen.getByRole('combobox', { name: 'Exterior color' }));
       const colorMenu = screen.getByRole('listbox', { name: 'Exterior color options' }).parentElement;
       expect(screen.queryByRole('searchbox', { name: 'Search Exterior color' })).not.toBeInTheDocument();
-      await waitFor(() => expect(colorMenu).toHaveStyle({ top: 'calc(100% - 1px)', bottom: 'auto', maxHeight: '300px' }));
+      await waitFor(() => expect(colorMenu).toHaveClass('is-below'));
+      expect(colorMenu).toHaveStyle({ top: '6px', left: '8px', width: '220px', maxHeight: '310px' });
     } finally {
       if (originalWidth) Object.defineProperty(window, 'innerWidth', originalWidth);
       if (originalViewport) Object.defineProperty(window, 'visualViewport', originalViewport);
       else delete window.visualViewport;
+    }
+  });
+
+  test('portals dropdowns above stacking contexts and opens upward near the viewport edge', async () => {
+    const originalWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth');
+    const originalHeight = Object.getOwnPropertyDescriptor(window, 'innerHeight');
+    const rectSpy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      x: 300, y: 440, top: 440, right: 600, bottom: 488, left: 300, width: 300, height: 48, toJSON: () => ({}),
+    });
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 500 });
+    try {
+      const user = userEvent.setup();
+      renderAdmin();
+      await signIn(user);
+      await user.click(screen.getByRole('button', { name: /Inventory 3/i }));
+      await user.click(screen.getByRole('combobox', { name: 'Sort inventory' }));
+      const menu = screen.getByRole('listbox', { name: 'Sort inventory options' }).parentElement;
+      await waitFor(() => expect(menu).toHaveClass('is-above'));
+      expect(menu.parentElement).toBe(document.body);
+      expect(menu).toHaveStyle({ top: '124px', left: '300px', width: '300px', maxHeight: '310px' });
+    } finally {
+      rectSpy.mockRestore();
+      if (originalWidth) Object.defineProperty(window, 'innerWidth', originalWidth);
+      if (originalHeight) Object.defineProperty(window, 'innerHeight', originalHeight);
     }
   });
 
