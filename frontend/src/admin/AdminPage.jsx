@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowUpDown, CalendarDays, CarFront, Check, ChevronDown, Che
 import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 import { createAdminCar, deleteAdminCar, updateAdminCar } from '../services/adminCars.js';
-import { getCarImageSizes } from '../services/adminImages.js';
+import { getCarImageSizes, getStorageUsage } from '../services/adminImages.js';
 import { getInternetModelsForMake, mergeModelNames } from '../services/vehicleCatalogApi.js';
 import VehicleImage from '../components/VehicleImage.jsx';
 import logo from '../assets/am-motors-logo.png';
@@ -13,7 +13,7 @@ import roadIcon from '../assets/icons/road.svg';
 import transmissionIcon from '../assets/icons/gearshifter.png';
 import { usePageMetadata } from '../utils/usePageMetadata.js';
 import { kilometersToMiles, milesToKilometers } from '../utils/formatters.js';
-import { CLOUDFLARE_STORAGE_LIMIT_BYTES, formatBytes, inventoryImageUsage } from '../utils/storageUsage.js';
+import { CLOUDFLARE_STORAGE_LIMIT_BYTES, STORAGE_WARNING_BYTES, formatBytes, formatRemainingBytes } from '../utils/storageUsage.js';
 import { drivetrainOptions, exteriorColorOptions, fuelOptions, getEngineOptions, interiorColorOptions, transmissionOptions, vehicleMakes, vehicleModels, vehicleOptionLabels, yearOptions } from './vehicleCatalog.js';
 import './admin.css';
 
@@ -153,12 +153,14 @@ function SignIn({ onSuccess }) {
   );
 }
 
-function Summary({ cars, measuredImageSizes, imageSizeError, onNavigate }) {
+function Summary({ cars, storage, onNavigate, onRefreshStorage }) {
   const totalValue = cars.reduce((sum, car) => sum + Number(car.price || 0), 0);
   const imageCount = cars.reduce((sum, car) => sum + (car.images?.length || 0), 0);
-  const usage = inventoryImageUsage(cars, measuredImageSizes);
-  const usagePercent = Math.min(100, (usage.knownBytes / CLOUDFLARE_STORAGE_LIMIT_BYTES) * 100);
-  const remainingBytes = Math.max(0, CLOUDFLARE_STORAGE_LIMIT_BYTES - usage.knownBytes);
+  const usedBytes = storage.usedBytes ?? 0;
+  const usagePercent = Math.min(100, (usedBytes / CLOUDFLARE_STORAGE_LIMIT_BYTES) * 100);
+  const remainingBytes = Math.max(0, CLOUDFLARE_STORAGE_LIMIT_BYTES - usedBytes);
+  const isFull = storage.status === 'ready' && usedBytes >= CLOUDFLARE_STORAGE_LIMIT_BYTES;
+  const isWarning = storage.status === 'ready' && usedBytes >= STORAGE_WARNING_BYTES;
   const cards = [
     { label: 'Total inventory', value: cars.length, note: 'vehicles tracked', icon: CarFront, tone: 'neutral' },
     { label: 'Inventory value', value: money(totalValue), note: 'all listed vehicles', icon: CircleDollarSign, tone: 'value' },
@@ -167,14 +169,15 @@ function Summary({ cars, measuredImageSizes, imageSizeError, onNavigate }) {
   ];
   return (
     <div className="admin-view admin-dashboard-view">
-      <div className="admin-page-heading"><div><p className="admin-kicker">Overview</p><h1>Dashboard</h1><p>Monitor inventory and keep listings current.</p></div><button className="button button-primary" onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
+      <div className="admin-page-heading"><div><p className="admin-kicker">Overview</p><h1>Dashboard</h1><p>Monitor inventory and keep listings current.</p></div><button className="button button-primary" disabled={storage.status !== 'ready' || isFull} onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
       <section className="admin-summary-grid" aria-label="Inventory summary">
         {cards.map(({ label, value, note, icon: CardIcon, tone }) => <article className={`admin-summary-card admin-summary-${tone}`} data-tilt="10" key={label}><div className="admin-summary-card-top"><span>{label}</span><span className="admin-summary-icon"><CardIcon size={20} strokeWidth={1.8} aria-hidden="true" /></span></div><strong>{value}</strong><small>{note}</small></article>)}
       </section>
-      <section className="admin-panel admin-data-usage" aria-labelledby="data-usage-title">
-        <div className="admin-panel-heading"><h2 id="data-usage-title">Available storage</h2><strong>{formatBytes(usage.knownBytes)} / 3 GB</strong></div>
-        <div className="admin-usage-track" role="progressbar" aria-label="Known image storage used" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Number(usagePercent.toFixed(2))}><span style={{ width: `${usagePercent}%` }} /></div>
-        <div className="admin-usage-meta"><span>{formatBytes(remainingBytes)} remaining</span><span>{imageSizeError ? 'Some image sizes could not be checked' : usage.unknownImages ? `${usage.unknownImages} image size${usage.unknownImages === 1 ? '' : 's'} not included` : 'All image sizes tracked'}</span></div>
+      <section className={`admin-panel admin-data-usage${isWarning ? ' is-warning' : ''}${isFull ? ' is-full' : ''}`} aria-labelledby="data-usage-title">
+        <div className="admin-panel-heading"><h2 id="data-usage-title">Available storage</h2><strong>{storage.status === 'ready' ? formatBytes(usedBytes) : '—'} / 3 GB</strong></div>
+        <div className="admin-usage-track" role="progressbar" aria-label="Image storage used" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Number(usagePercent.toFixed(2))}><span style={{ width: `${usagePercent}%` }} /></div>
+        <div className="admin-usage-meta"><span>{storage.status === 'ready' ? `${formatRemainingBytes(remainingBytes)} remaining` : storage.status === 'error' ? 'Storage usage could not be checked' : 'Checking storage…'}</span><span>{storage.status === 'ready' ? `${storage.objectCount} file${storage.objectCount === 1 ? '' : 's'} in image storage` : ''}<button type="button" onClick={onRefreshStorage}>Refresh storage</button></span></div>
+        {isWarning && <p className="admin-usage-alert" role="alert">{isFull ? 'Storage full — new vehicles are disabled. Delete images to free space.' : '⚠ Storage almost full — 0.5 GB or less remains.'}</p>}
       </section>
       <section className="admin-panel admin-recent-panel" data-tilt="2">
           <div className="admin-panel-heading"><div><p className="admin-kicker">Recent inventory</p><h2>Latest vehicles</h2></div><button className="admin-text-button" onClick={() => onNavigate('inventory')}>View all <AdminIcon name="arrow" /></button></div>
@@ -202,7 +205,7 @@ function uniqueCarValues(cars, field, numeric = false) {
   return values.sort(numeric ? (left, right) => right - left : (left, right) => String(left).localeCompare(String(right)));
 }
 
-function Inventory({ cars, measuredImageSizes, onNavigate, onDelete }) {
+function Inventory({ cars, measuredImageSizes, canAddVehicle, onNavigate, onDelete }) {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState(defaultInventoryFilters);
   const [sort, setSort] = useState('newest');
@@ -256,7 +259,7 @@ function Inventory({ cars, measuredImageSizes, onNavigate, onDelete }) {
 
   return (
     <div className="admin-view">
-      <div className="admin-page-heading"><div><p className="admin-kicker">Vehicle management</p><h1>Inventory</h1><p>{filtered.length} of {cars.length} vehicles shown.</p></div><button className="button button-primary" onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
+      <div className="admin-page-heading"><div><p className="admin-kicker">Vehicle management</p><h1>Inventory</h1><p>{filtered.length} of {cars.length} vehicles shown.</p></div><button className="button button-primary" disabled={!canAddVehicle} onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
       <section className="admin-toolbar" aria-label="Inventory controls">
         <div className="admin-search"><label><span className="sr-only">Search inventory</span><AdminIcon name="search" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search make, model, year, specs…" /></label>{search && <button className="admin-search-clear" type="button" aria-label="Clear inventory search" onClick={() => setSearch('')}><X size={16} aria-hidden="true" /></button>}</div>
         <SelectField label="Sort inventory" name="sort" value={sort} onChange={(event) => setSort(event.target.value)} options={['newest', 'oldest', 'price-high', 'price-low', 'mileage-low', 'mileage-high', 'make']} optionLabels={{ newest: 'Newest year', oldest: 'Oldest year', 'price-high': 'Price: high to low', 'price-low': 'Price: low to high', 'mileage-low': 'Mileage: low to high', 'mileage-high': 'Mileage: high to low', make: 'Make and model' }} leadingIcon={ArrowUpDown} hideLabel />
@@ -494,8 +497,8 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
     setSaving(true);
     try {
       await onSave({ ...car, images: car.images.filter((image) => !image.startsWith('blob:')), year: Number(car.year), price: Number(car.price), mileage: car.mileage === '' ? undefined : Number(car.mileage), horsepower: car.horsepower === '' ? undefined : Number(car.horsepower) }, selectedFiles.map((item) => item.file));
-    } catch {
-      setErrors({ form: 'The vehicle could not be saved. Check your connection and administrator access, then try again.' });
+    } catch (error) {
+      setErrors({ form: error?.message || 'The vehicle could not be saved. Check your connection and administrator access, then try again.' });
       setSaving(false);
     }
   }
@@ -534,7 +537,20 @@ function AdminWorkspace({ email, onSignOut }) {
   const [notice, setNotice] = useState('');
   const [measuredImageSizes, setMeasuredImageSizes] = useState({});
   const [imageSizeError, setImageSizeError] = useState(false);
+  const [storage, setStorage] = useState({ status: 'loading', usedBytes: null, objectCount: 0 });
   const loadRequestRef = useRef(0);
+
+  async function refreshStorage() {
+    try {
+      const usage = await getStorageUsage();
+      if (!Number.isFinite(usage?.usedBytes) || usage.usedBytes < 0 || !Number.isInteger(usage.objectCount)) throw new Error('Invalid storage usage');
+      setStorage({ status: 'ready', usedBytes: usage.usedBytes, objectCount: usage.objectCount });
+      return usage;
+    } catch {
+      setStorage({ status: 'error', usedBytes: null, objectCount: 0 });
+      return null;
+    }
+  }
 
   useEffect(() => {
     const imagesToMeasure = cars.flatMap((car) => (car.imageEntries || [])
@@ -575,7 +591,9 @@ function AdminWorkspace({ email, onSignOut }) {
   }
   useEffect(() => {
     loadInventory();
-    return () => { loadRequestRef.current += 1; };
+    refreshStorage();
+    window.addEventListener('focus', refreshStorage);
+    return () => { loadRequestRef.current += 1; window.removeEventListener('focus', refreshStorage); };
   }, []);
   useEffect(() => {
     if (!cars.length || selectedCar || !['edit', 'details'].includes(view)) return;
@@ -583,27 +601,44 @@ function AdminWorkspace({ email, onSignOut }) {
     if (restoredCar) setSelectedCar(restoredCar);
     else { setView('inventory'); storeAdminLocation('inventory'); }
   }, [cars, initialLocation.selectedId, selectedCar, view]);
-  function navigate(nextView, car = null) { setView(nextView); setSelectedCar(car); storeAdminLocation(nextView, car?.id); setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'auto' }); }
+  useEffect(() => {
+    if (view === 'add' && storage.status !== 'loading' && storage.status !== 'ready') {
+      setView('inventory'); storeAdminLocation('inventory');
+    } else if (view === 'add' && storage.status === 'ready' && storage.usedBytes >= CLOUDFLARE_STORAGE_LIMIT_BYTES) {
+      setView('inventory'); storeAdminLocation('inventory');
+    }
+  }, [view, storage]);
+  const canAddVehicle = storage.status === 'ready' && storage.usedBytes < CLOUDFLARE_STORAGE_LIMIT_BYTES;
+  function navigate(nextView, car = null) {
+    if (nextView === 'add' && !canAddVehicle) return;
+    setView(nextView); setSelectedCar(car); storeAdminLocation(nextView, car?.id); setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'auto' });
+  }
   async function saveCar(car, files) {
     if (view === 'add') {
+      const usage = await refreshStorage();
+      if (!usage || usage.usedBytes >= CLOUDFLARE_STORAGE_LIMIT_BYTES) {
+        throw new Error('Storage is full or could not be checked. Delete images and try again.');
+      }
       const created = await createAdminCar(car, files);
       setCars((current) => [created, ...current]); setNotice('Vehicle published successfully.');
     } else {
       const updated = await updateAdminCar(selectedCar.id, car, files, selectedCar.imageEntries || []);
       setCars((current) => current.map((item) => item.id === selectedCar.id ? updated : item)); setNotice('Vehicle changes published successfully.');
     }
+    await refreshStorage();
     navigate('inventory'); window.setTimeout(() => setNotice(''), 3500);
   }
   async function confirmDelete() {
     try {
       await deleteAdminCar(deleteCar.id);
       setCars((current) => current.filter((car) => car.id !== deleteCar.id)); setDeleteCar(null); setNotice('Vehicle deleted successfully.'); navigate('inventory'); window.setTimeout(() => setNotice(''), 3500);
+      await refreshStorage();
     } catch {
       setNotice('Vehicle could not be deleted. Please try again.'); window.setTimeout(() => setNotice(''), 3500);
     }
   }
 
-  return <div className="admin-app"><aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}><a className="admin-sidebar-logo" href="/"><img src={logo} alt="AM MOTORS" /></a><nav aria-label="Admin navigation"><button className={view === 'dashboard' ? 'active' : ''} onClick={() => navigate('dashboard')}><AdminIcon name="dashboard" /> Dashboard</button><button className={['inventory', 'details', 'edit'].includes(view) ? 'active' : ''} onClick={() => navigate('inventory')}><AdminIcon name="cars" /> Inventory <span>{cars.length}</span></button><button className={view === 'add' ? 'active' : ''} onClick={() => navigate('add')}><AdminIcon name="plus" /> Add vehicle</button></nav><div className="admin-sidebar-user"><span>{email.charAt(0).toUpperCase()}</span><div><strong>Administrator</strong><small>{email}</small></div><button aria-label="Sign out" onClick={onSignOut}><AdminIcon name="logout" /></button></div></aside><div className="admin-main"><header className="admin-mobile-header"><button aria-label="Toggle admin navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><AdminIcon name={menuOpen ? 'close' : 'menu'} /></button><img src={logo} alt="AM MOTORS" /><span>Admin</span></header>{menuOpen && <button className="admin-menu-scrim" aria-label="Close admin navigation" onClick={() => setMenuOpen(false)} />}{notice && <div className="admin-toast" role="status"><span>✓</span>{notice}</div>}{loading ? <LoadingState /> : loadError ? <div className="admin-error-state" role="alert"><h1>Unable to load inventory</h1><p>Start the existing backend and try again, or continue with demo data to review the interface.</p><div><button className="button button-outline" onClick={loadInventory}>Try again</button><button className="button button-primary" onClick={() => { setCars(demoCars); setLoadError(false); }}>Use demo inventory</button></div></div> :   <>{view === 'dashboard' && <Summary cars={cars} measuredImageSizes={measuredImageSizes} imageSizeError={imageSizeError} onNavigate={navigate} />}{view === 'inventory' && <Inventory cars={cars} measuredImageSizes={measuredImageSizes} onNavigate={navigate} onDelete={setDeleteCar} />}{view === 'add' && <CarForm key="add" mode="add" onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'edit' && selectedCar && <CarForm key={selectedCar.id} mode="edit" initialCar={selectedCar} onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'details' && selectedCar && <Details car={cars.find((car) => car.id === selectedCar.id) || selectedCar} onBack={() => navigate('inventory')} onEdit={() => navigate('edit', selectedCar)} onDelete={() => setDeleteCar(selectedCar)} />}</>}</div>{deleteCar && <DeleteDialog car={deleteCar} onCancel={() => setDeleteCar(null)} onConfirm={confirmDelete} />}</div>;
+  return <div className="admin-app"><aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}><a className="admin-sidebar-logo" href="/"><img src={logo} alt="AM MOTORS" /></a><nav aria-label="Admin navigation"><button className={view === 'dashboard' ? 'active' : ''} onClick={() => navigate('dashboard')}><AdminIcon name="dashboard" /> Dashboard</button><button className={['inventory', 'details', 'edit'].includes(view) ? 'active' : ''} onClick={() => navigate('inventory')}><AdminIcon name="cars" /> Inventory <span>{cars.length}</span></button><button className={view === 'add' ? 'active' : ''} disabled={!canAddVehicle} onClick={() => navigate('add')}><AdminIcon name="plus" /> Add vehicle</button></nav><div className="admin-sidebar-user"><span>{email.charAt(0).toUpperCase()}</span><div><strong>Administrator</strong><small>{email}</small></div><button aria-label="Sign out" onClick={onSignOut}><AdminIcon name="logout" /></button></div></aside><div className="admin-main"><header className="admin-mobile-header"><button aria-label="Toggle admin navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><AdminIcon name={menuOpen ? 'close' : 'menu'} /></button><img src={logo} alt="AM MOTORS" /><span>Admin</span></header>{menuOpen && <button className="admin-menu-scrim" aria-label="Close admin navigation" onClick={() => setMenuOpen(false)} />}{notice && <div className="admin-toast" role="status"><span>✓</span>{notice}</div>}{loading ? <LoadingState /> : loadError ? <div className="admin-error-state" role="alert"><h1>Unable to load inventory</h1><p>Start the existing backend and try again, or continue with demo data to review the interface.</p><div><button className="button button-outline" onClick={loadInventory}>Try again</button><button className="button button-primary" onClick={() => { setCars(demoCars); setLoadError(false); }}>Use demo inventory</button></div></div> :   <>{view === 'dashboard' && <Summary cars={cars} storage={storage} onNavigate={navigate} onRefreshStorage={refreshStorage} />}{view === 'inventory' && <Inventory cars={cars} measuredImageSizes={measuredImageSizes} canAddVehicle={canAddVehicle} onNavigate={navigate} onDelete={setDeleteCar} />}{view === 'add' && canAddVehicle && <CarForm key="add" mode="add" onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'edit' && selectedCar && <CarForm key={selectedCar.id} mode="edit" initialCar={selectedCar} onCancel={() => navigate('inventory')} onSave={saveCar} />}{view === 'details' && selectedCar && <Details car={cars.find((car) => car.id === selectedCar.id) || selectedCar} onBack={() => navigate('inventory')} onEdit={() => navigate('edit', selectedCar)} onDelete={() => setDeleteCar(selectedCar)} />}</>}</div>{deleteCar && <DeleteDialog car={deleteCar} onCancel={() => setDeleteCar(null)} onConfirm={confirmDelete} />}</div>;
 }
 
 function AdminPage() {

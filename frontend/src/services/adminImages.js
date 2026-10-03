@@ -34,6 +34,10 @@ export async function getCarImageSizes(images = []) {
   return sizes;
 }
 
+export function getStorageUsage() {
+  return adminApiRequest('/api/storage-usage', { method: 'GET' });
+}
+
 export function deleteCarImage(carId, key) {
   return adminApiRequest('/api/delete-car-image', {
     method: 'DELETE', body: JSON.stringify({ carId, key }),

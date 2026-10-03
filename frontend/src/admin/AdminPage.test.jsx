@@ -8,9 +8,9 @@ import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAu
 import { createAdminCar, deleteAdminCar, updateAdminCar } from '../services/adminCars.js';
 import { getInternetModelsForMake } from '../services/vehicleCatalogApi.js';
 
-const imageMocks = vi.hoisted(() => ({ getCarImageSizes: vi.fn() }));
+const imageMocks = vi.hoisted(() => ({ getCarImageSizes: vi.fn(), getStorageUsage: vi.fn() }));
 vi.mock('../services/carsApi.js', () => ({ getCars: vi.fn() }));
-vi.mock('../services/adminImages.js', () => ({ getCarImageSizes: imageMocks.getCarImageSizes }));
+vi.mock('../services/adminImages.js', () => ({ getCarImageSizes: imageMocks.getCarImageSizes, getStorageUsage: imageMocks.getStorageUsage }));
 vi.mock('../services/adminAuth.js', () => ({
   observeAdminAuth: vi.fn(),
   signInAdmin: vi.fn(),
@@ -28,10 +28,11 @@ function renderAdmin() {
   return render(<MemoryRouter><AdminPage /></MemoryRouter>);
 }
 
-async function signIn(user, expectedHeading = 'Dashboard') {
+async function signIn(user, expectedHeading = 'Dashboard', expectSpace = true) {
   await user.type(screen.getByLabelText('Email address'), 'admin@example.com');
   await user.type(screen.getByLabelText('Password'), 'secure-password{Enter}');
   await screen.findByRole('heading', { name: expectedHeading });
+  if (expectSpace) await waitFor(() => expect(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i })).toBeEnabled());
 }
 
 async function chooseFormOption(user, label, option) {
@@ -45,6 +46,7 @@ describe('admin dashboard UI', () => {
     sessionStorage.clear();
     getCars.mockResolvedValue(demoCars);
     imageMocks.getCarImageSizes.mockResolvedValue([]);
+    imageMocks.getStorageUsage.mockResolvedValue({ usedBytes: 0, objectCount: 0, limitBytes: 3 * 1024 ** 3 });
     observeAdminAuth.mockImplementation((onUser) => {
       onUser(null);
       return vi.fn();
@@ -81,13 +83,13 @@ describe('admin dashboard UI', () => {
     expect(screen.getByRole('heading', { name: 'Available storage' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Available storage' }).closest('.admin-panel')).toHaveTextContent('/ 3 GB');
     expect(screen.queryByText(/Cloudflare R2/i)).not.toBeInTheDocument();
-    expect(screen.getByRole('progressbar', { name: 'Known image storage used' })).toHaveAttribute('aria-valuemax', '100');
+    expect(screen.getByRole('progressbar', { name: 'Image storage used' })).toHaveAttribute('aria-valuemax', '100');
     expect(screen.getAllByText('BMW M4 Competition').length).toBeGreaterThan(0);
     expect(document.querySelector('.lucide-layout-dashboard')).toBeInTheDocument();
     expect(document.querySelector('.lucide-car-front')).toBeInTheDocument();
   });
 
-  test('includes measured legacy R2 image sizes in the dashboard remaining storage', async () => {
+  test('uses the actual R2 bucket total for remaining storage', async () => {
     const user = userEvent.setup();
     getCars.mockResolvedValue([{
       ...demoCars[0],
@@ -95,15 +97,36 @@ describe('admin dashboard UI', () => {
       imageEntries: [{ url: 'https://images.example/front.webp', key: 'cars/demo-001/front.webp', sizeBytes: null }],
     }]);
     imageMocks.getCarImageSizes.mockResolvedValue([{ key: 'cars/demo-001/front.webp', sizeBytes: 1024 ** 3 }]);
+    imageMocks.getStorageUsage.mockResolvedValue({ usedBytes: 1024 ** 3, objectCount: 2, limitBytes: 3 * 1024 ** 3 });
 
     renderAdmin();
     await signIn(user);
 
-    expect(await screen.findByText('2.00 GB remaining')).toBeInTheDocument();
-    expect(screen.getByRole('progressbar', { name: 'Known image storage used' })).toHaveAttribute('aria-valuenow', '33.33');
+    expect(await screen.findByText('2.000 GB remaining')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Image storage used' })).toHaveAttribute('aria-valuenow', '33.33');
+    expect(screen.getByText('2 files in image storage')).toBeInTheDocument();
     expect(imageMocks.getCarImageSizes).toHaveBeenCalledWith([
       { carId: 'demo-001', key: 'cars/demo-001/front.webp' },
     ]);
+  });
+
+  test('warns near 2.5 GB and disables new vehicles at 3 GB', async () => {
+    const user = userEvent.setup();
+    imageMocks.getStorageUsage.mockResolvedValueOnce({ usedBytes: 2.5 * 1024 ** 3, objectCount: 8 })
+      .mockResolvedValueOnce({ usedBytes: 3 * 1024 ** 3, objectCount: 10 });
+    renderAdmin();
+    await signIn(user);
+    expect(screen.getByRole('alert')).toHaveTextContent('Storage almost full');
+    expect(screen.getByRole('progressbar', { name: 'Image storage used' })).toHaveAttribute('aria-valuenow', '83.33');
+
+    await user.click(screen.getByRole('button', { name: /Inventory 3/i }));
+    await user.click(screen.getByRole('button', { name: 'Delete BMW M4 Competition' }));
+    await user.click(screen.getByRole('button', { name: 'Delete vehicle' }));
+    await waitFor(() => expect(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i })).toBeDisabled());
+    await user.click(screen.getByRole('button', { name: /Dashboard/i }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Storage full');
+    expect(screen.getByText('0 B remaining')).toBeInTheDocument();
+    screen.getAllByRole('button', { name: 'Add vehicle' }).forEach((button) => expect(button).toBeDisabled());
   });
 
   test('searches every vehicle detail and combines advanced inventory filters', async () => {

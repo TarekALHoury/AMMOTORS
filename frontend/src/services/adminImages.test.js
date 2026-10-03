@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({ adminApiRequest: vi.fn() }));
 vi.mock('./adminApi.js', () => ({ adminApiRequest: mocks.adminApiRequest }));
 
-import { deleteCarImage, getCarImageSizes, uploadCarImages } from './adminImages.js';
+import { deleteCarImage, getCarImageSizes, getStorageUsage, uploadCarImages } from './adminImages.js';
 
 describe('admin image storage', () => {
   beforeEach(() => {
@@ -40,5 +40,11 @@ describe('admin image storage', () => {
     expect(mocks.adminApiRequest).toHaveBeenCalledWith('/api/car-image-sizes', {
       method: 'POST', body: JSON.stringify({ images }),
     });
+  });
+
+  test('retrieves authoritative bucket usage through the protected API', async () => {
+    mocks.adminApiRequest.mockResolvedValue({ usedBytes: 123, objectCount: 2, limitBytes: 3 * 1024 ** 3 });
+    await expect(getStorageUsage()).resolves.toMatchObject({ usedBytes: 123, objectCount: 2 });
+    expect(mocks.adminApiRequest).toHaveBeenCalledWith('/api/storage-usage', { method: 'GET' });
   });
 });

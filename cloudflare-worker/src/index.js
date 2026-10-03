@@ -5,6 +5,7 @@ const FIREBASE_JWKS = createRemoteJWKSet(
 );
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_SIZE_LOOKUPS = 200;
+const STORAGE_LIMIT_BYTES = 3 * 1024 ** 3;
 const IMAGE_TYPES = new Map([
   ['image/jpeg', 'jpg'],
   ['image/png', 'png'],
@@ -18,7 +19,7 @@ function corsHeaders(request, env) {
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-    'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
     'Access-Control-Max-Age': '86400',
     Vary: 'Origin',
   };
@@ -58,6 +59,31 @@ function imageKey(carId, extension) {
   return `cars/${carId}/image-${crypto.randomUUID()}.${extension}`;
 }
 
+export async function bucketUsage(bucket) {
+  let usedBytes = 0;
+  let objectCount = 0;
+  let cursor;
+  do {
+    const page = await bucket.list({ cursor, limit: 1000 });
+    for (const object of page.objects) {
+      usedBytes += object.size;
+      objectCount += 1;
+    }
+    cursor = page.truncated ? page.cursor : undefined;
+  } while (cursor);
+  return { usedBytes, objectCount, limitBytes: STORAGE_LIMIT_BYTES };
+}
+
+export function fitsStorageLimit(usedBytes, incomingBytes) {
+  return usedBytes + incomingBytes <= STORAGE_LIMIT_BYTES;
+}
+
+async function getStorageUsage(request, env) {
+  const authorization = await requireAdmin(request, env);
+  if (authorization.status) return json(request, env, { message: authorization.message }, authorization.status);
+  return json(request, env, await bucketUsage(env.AMMOTORS_IMAGES));
+}
+
 async function uploadImage(request, env) {
   const authorization = await requireAdmin(request, env);
   if (authorization.status) return json(request, env, { message: authorization.message }, authorization.status);
@@ -70,6 +96,10 @@ async function uploadImage(request, env) {
   }
   if (image.size <= 0 || image.size > MAX_IMAGE_BYTES) {
     return json(request, env, { message: 'Image files must be 10 MB or smaller.' }, 413);
+  }
+  const usage = await bucketUsage(env.AMMOTORS_IMAGES);
+  if (!fitsStorageLimit(usage.usedBytes, image.size)) {
+    return json(request, env, { message: 'Image storage is full. Delete images before uploading more.' }, 507);
   }
   const bytes = new Uint8Array(await image.arrayBuffer());
   if (!validImageBytes(bytes, image.type)) {
@@ -143,6 +173,7 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(request, env) });
     try {
       if (request.method === 'POST' && url.pathname === '/api/upload-car-image') return uploadImage(request, env);
+      if (request.method === 'GET' && url.pathname === '/api/storage-usage') return getStorageUsage(request, env);
       if (request.method === 'POST' && url.pathname === '/api/car-image-sizes') return getImageSizes(request, env);
       if (request.method === 'DELETE' && url.pathname === '/api/delete-car-image') return deleteOneImage(request, env);
       if (request.method === 'DELETE' && url.pathname === '/api/delete-car-images') return deleteCarImages(request, env);

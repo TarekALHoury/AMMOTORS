@@ -1,12 +1,14 @@
 export const CLOUDFLARE_STORAGE_LIMIT_BYTES = 3 * 1024 * 1024 * 1024;
+export const STORAGE_WARNING_BYTES = 2.5 * 1024 ** 3;
 
 export function vehicleImageUsage(car, measuredSizes = {}) {
   const entries = Array.isArray(car?.imageEntries) ? car.imageEntries : [];
-  const imageSize = (image) => Number(image?.sizeBytes ?? image?.size);
+  const imageSize = (image) => image?.sizeBytes != null || image?.size != null
+    ? Number(image.sizeBytes ?? image.size) : NaN;
   const getKnownSize = (image) => {
     const storedSize = imageSize(image);
     if (Number.isFinite(storedSize) && storedSize >= 0) return storedSize;
-    const measuredSize = Number(measuredSizes[image.key]);
+    const measuredSize = image?.key && measuredSizes[image.key] != null ? Number(measuredSizes[image.key]) : NaN;
     return Number.isFinite(measuredSize) && measuredSize >= 0 ? measuredSize : null;
   };
   const knownBytes = entries.reduce((total, image) => total + (getKnownSize(image) ?? 0), 0);
@@ -28,4 +30,10 @@ export function formatBytes(bytes) {
   if (value < 1024 ** 2) return `${(value / 1024).toFixed(value < 10 * 1024 ? 1 : 0)} KB`;
   if (value < 1024 ** 3) return `${(value / 1024 ** 2).toFixed(value < 10 * 1024 ** 2 ? 1 : 0)} MB`;
   return `${(value / 1024 ** 3).toFixed(2)} GB`;
+}
+
+export function formatRemainingBytes(bytes) {
+  const value = Math.max(0, Number(bytes) || 0);
+  if (value >= 1024 ** 3) return `${(value / 1024 ** 3).toFixed(3)} GB`;
+  return formatBytes(value);
 }
