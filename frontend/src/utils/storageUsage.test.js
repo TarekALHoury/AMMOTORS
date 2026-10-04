@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { CLOUDFLARE_STORAGE_LIMIT_BYTES, MIN_VISIBLE_STORAGE_PERCENT, STORAGE_WARNING_BYTES, formatBytes, formatRemainingBytes, inventoryImageUsage, legacyImageCount, storageUsageMetrics, vehicleImageUsage } from './storageUsage.js';
+import { CLOUDFLARE_STORAGE_LIMIT_BYTES, MIN_VISIBLE_STORAGE_PERCENT, STORAGE_WARNING_BYTES, formatBytes, formatRemainingBytes, inventoryImageUsage, storageUsageMetrics, vehicleImageUsage } from './storageUsage.js';
 
 describe('image storage usage', () => {
   test('aggregates known R2 bytes without inventing sizes for legacy URLs', () => {
@@ -16,8 +16,8 @@ describe('image storage usage', () => {
     expect(STORAGE_WARNING_BYTES).toBe(2.5 * 1024 ** 3);
     expect(formatBytes(4.8 * 1024 ** 2)).toBe('4.8 MB');
     expect(formatBytes(3 * 1024 ** 3)).toBe('3 GB');
-    expect(formatRemainingBytes(3 * 1024 ** 3)).toBe('3 GB');
-    expect(formatRemainingBytes(3 * 1024 ** 3 - 5.6 * 1024 ** 2)).toBe('~2.995 GB');
+    expect(formatRemainingBytes(3 * 1024 ** 3)).toBe('3.00 GB');
+    expect(formatRemainingBytes(3 * 1024 ** 3 - 5.6 * 1024 ** 2)).toBe('2.99 GB');
   });
 
   test('includes measured R2 sizes when image metadata does not contain them', () => {
@@ -48,13 +48,9 @@ describe('image storage usage', () => {
     expect(metrics.isExceeded).toBe(exceeded);
   });
 
-  test('sanitizes invalid metadata and counts only images without size metadata as legacy', () => {
+  test('sanitizes invalid storage metadata', () => {
     expect(storageUsageMetrics(Infinity).usedBytes).toBe(0);
     expect(storageUsageMetrics(-10).remainingBytes).toBe(CLOUDFLARE_STORAGE_LIMIT_BYTES);
     expect(formatBytes(NaN)).toBe('0 B');
-    expect(legacyImageCount([{
-      images: ['https://img/r2', 'https://img/legacy'],
-      imageEntries: [{ url: 'https://img/r2', key: 'cars/one/r2.webp', sizeBytes: 1024 }, { url: 'https://img/legacy', key: null }],
-    }])).toBe(1);
   });
 });

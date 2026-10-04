@@ -87,7 +87,7 @@ describe('admin dashboard UI', () => {
     expect(emptyProgress).toHaveAttribute('aria-valuemax', '100');
     expect(emptyProgress).toHaveAttribute('aria-valuenow', '0');
     expect(emptyProgress.firstElementChild).toHaveStyle({ width: '0%' });
-    expect(screen.getByText('3 GB')).toBeInTheDocument();
+    expect(screen.getByText('3.00 GB')).toBeInTheDocument();
     expect(screen.getAllByText('BMW M4 Competition').length).toBeGreaterThan(0);
     expect(document.querySelector('.lucide-layout-dashboard')).toBeInTheDocument();
     expect(document.querySelector('.lucide-car-front')).toBeInTheDocument();
@@ -106,15 +106,16 @@ describe('admin dashboard UI', () => {
     renderAdmin();
     await signIn(user);
 
-    expect(await screen.findByText('2 GB')).toBeInTheDocument();
+    expect(await screen.findByText('2.00 GB')).toBeInTheDocument();
     expect(screen.getByRole('progressbar', { name: 'Image storage used' })).toHaveAttribute('aria-valuenow', '33.33');
-    expect(screen.getByText('2 files in image storage')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Refresh storage' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/files in image storage|legacy image/i)).not.toBeInTheDocument();
     expect(imageMocks.getCarImageSizes).toHaveBeenCalledWith([
       { carId: 'demo-001', key: 'cars/demo-001/front.webp' },
     ]);
   });
 
-  test('shows precise low usage, a visible-only minimum bar, and legacy metadata gaps', async () => {
+  test('shows compact low usage without image metadata details', async () => {
     const usedBytes = 4.6 * 1024 ** 2;
     getCars.mockResolvedValue([{
       ...demoCars[0],
@@ -128,8 +129,9 @@ describe('admin dashboard UI', () => {
 
     const panel = screen.getByRole('heading', { name: 'Available storage' }).closest('.admin-panel');
     expect(panel).toHaveTextContent('4.6 MB / 3 GB');
-    expect(panel).toHaveTextContent('~2.996 GB');
-    expect(panel).toHaveTextContent('1 legacy image lack per-image size metadata');
+    expect(panel).toHaveTextContent('2.99 GB');
+    expect(panel).not.toHaveTextContent('legacy image');
+    expect(panel).not.toHaveTextContent('files in image storage');
     const progress = screen.getByRole('progressbar', { name: 'Image storage used' });
     expect(progress).toHaveAttribute('aria-valuenow', '0.15');
     expect(progress).toHaveAttribute('aria-valuetext', '0.15% used');

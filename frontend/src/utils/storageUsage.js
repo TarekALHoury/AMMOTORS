@@ -30,18 +30,6 @@ export function inventoryImageUsage(cars, measuredSizes = {}) {
   }, { knownBytes: 0, unknownImages: 0 });
 }
 
-export function legacyImageCount(cars) {
-  return (cars || []).reduce((total, car) => {
-    const sizedUrls = new Set((car?.imageEntries || [])
-      .filter((image) => {
-        const size = Number(image?.sizeBytes ?? image?.size);
-        return Number.isFinite(size) && size >= 0;
-      })
-      .map((image) => image.url));
-    return total + (car?.images || []).filter((url) => !sizedUrls.has(url)).length;
-  }, 0);
-}
-
 export function storageUsageMetrics(usedBytes, limitBytes = CLOUDFLARE_STORAGE_LIMIT_BYTES) {
   const used = validBytes(usedBytes);
   const limit = validBytes(limitBytes, CLOUDFLARE_STORAGE_LIMIT_BYTES) || CLOUDFLARE_STORAGE_LIMIT_BYTES;
@@ -72,9 +60,6 @@ export function formatBytes(bytes) {
 
 export function formatRemainingBytes(bytes) {
   const value = validBytes(bytes);
-  if (value >= 1024 ** 3) {
-    const gigabytes = value / 1024 ** 3;
-    return Number.isInteger(gigabytes) ? `${gigabytes} GB` : `~${gigabytes.toFixed(3)} GB`;
-  }
+  if (value >= 1024 ** 3) return `${(Math.floor(value / 1024 ** 3 * 100) / 100).toFixed(2)} GB`;
   return formatBytes(value);
 }

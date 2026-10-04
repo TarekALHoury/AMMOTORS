@@ -129,9 +129,6 @@
 .admin-usage-stats > span:last-child { text-align: right; }
 .admin-usage-stats strong { overflow-wrap: anywhere; color: #f2f4f5; font-size: clamp(.95rem,2vw,1.15rem); }
 .admin-usage-stats small { color: var(--muted); font-size: .7rem; }
-.admin-usage-meta { display: flex; justify-content: space-between; gap: 18px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: .7rem; }
-.admin-usage-meta > span:last-child { display: inline-flex; align-items: center; gap: 12px; }
-.admin-usage-meta button { padding: 0; border: 0; background: transparent; color: #dce1e3; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
 .admin-data-usage.is-warning { border-color: rgba(240,184,78,.55); }
 .admin-data-usage.is-full { border-color: rgba(239,109,102,.7); }
 .admin-data-usage.is-warning .admin-usage-track span { background: #e6ab41; }
@@ -321,7 +318,7 @@
   .admin-view { width: min(calc(100% - 28px),680px); padding-bottom: 56px; }
   .admin-page-heading { gap: 20px; margin-bottom: 28px; }
   .admin-data-usage { padding: 20px 16px; }
-  .admin-data-usage .admin-panel-heading, .admin-usage-meta { align-items: flex-start; flex-direction: column; }
+  .admin-data-usage .admin-panel-heading { align-items: flex-start; flex-direction: column; }
   .admin-form-section { padding: 20px 16px; }
   .admin-field select, .admin-toolbar select { min-height: 52px; font-size: 16px; background-position: calc(100% - 18px) 23px,calc(100% - 13px) 23px; }
   .admin-select-trigger { min-height: 52px; font-size: 16px; }
@@ -379,7 +376,6 @@
   .admin-filter-panel summary { padding-inline: 14px; }
   .admin-usage-stats { grid-template-columns: 1fr; gap: 10px; }
   .admin-usage-stats > span:last-child { text-align: left; }
-  .admin-usage-meta > span:last-child { align-items: flex-start; flex-direction: column; }
 }
 @media (max-width: 380px), (max-device-width: 380px) and (hover: none) and (pointer: coarse) {
   .admin-mobile-header { padding-inline: 12px; }
