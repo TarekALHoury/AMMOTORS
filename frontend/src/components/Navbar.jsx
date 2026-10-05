@@ -82,6 +82,7 @@ function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
             <Link {...navProps('contact')} to="/#contact">Contact</Link>
             <span className="nav-active-indicator" aria-hidden="true" style={indicator ? { width: indicator.width, transform: `translateX(${indicator.left}px)` } : undefined} />
             <div className="nav-actions">
+              <Link className="icon-button" to="/admin" aria-label="Admin login" title="Admin login"><Icon name="user" size={19} /></Link>
               <a className="icon-button" href={dealership.instagram} target="_blank" rel="noreferrer" aria-label="AM MOTORS on Instagram"><Icon name="instagram" size={19} /></a>
               <a className="icon-button" href={dealership.tiktok} target="_blank" rel="noreferrer" aria-label="AM MOTORS on TikTok"><Icon name="tiktok" size={19} className="tiktok-icon" /></a>
               <a className="button button-small" href={`https://wa.me/${dealership.whatsapp}`} target="_blank" rel="noreferrer" aria-label="Contact AM MOTORS via WhatsApp"><Icon name="whatsapp" size={17} /> Contact</a>

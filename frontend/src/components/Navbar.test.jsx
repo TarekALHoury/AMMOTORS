@@ -32,6 +32,12 @@ test('tracks the homepage section while scrolling', async () => {
   await waitFor(() => expect(document.querySelector('.nav-link[href="/#contact"]')).toHaveAttribute('aria-current', 'location'));
 });
 
+test('links the user icon to the admin login page', () => {
+  render(<MemoryRouter><Navbar /></MemoryRouter>);
+  expect(screen.getByRole('link', { name: 'Admin login' })).toHaveAttribute('href', '/admin');
+  expect(screen.getByRole('link', { name: 'Admin login' }).querySelector('svg')).toBeInTheDocument();
+});
+
 test('toggles the selected color mode', () => {
   const onToggleTheme = vi.fn();
   render(<MemoryRouter initialEntries={['/cars']}><Navbar theme="dark" onToggleTheme={onToggleTheme} /></MemoryRouter>);
