@@ -6,7 +6,6 @@ function CarGallery({ images = [], name }) {
   const safeImages = images.filter(Boolean);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [isAutoPlayPaused, setIsAutoPlayPaused] = useState(false);
   const touchGesture = useRef(null);
   const suppressOpen = useRef(false);
   const thumbnailsRef = useRef(null);
@@ -19,16 +18,6 @@ function CarGallery({ images = [], name }) {
     setActiveIndex(0);
     setIsLightboxOpen(false);
   }, [images]);
-
-  useEffect(() => {
-    if (safeImages.length < 2 || isLightboxOpen || isAutoPlayPaused) return undefined;
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined;
-
-    const interval = window.setInterval(() => {
-      if (!document.hidden) setActiveIndex((current) => (current + 1) % safeImages.length);
-    }, 4500);
-    return () => window.clearInterval(interval);
-  }, [safeImages.length, isLightboxOpen, isAutoPlayPaused]);
 
   useEffect(() => {
     const strip = thumbnailsRef.current;
@@ -59,7 +48,14 @@ function CarGallery({ images = [], name }) {
   useEffect(() => {
     if (!isLightboxOpen) return undefined;
 
+    const scrollY = window.scrollY;
+    const previousPosition = document.body.style.position;
+    const previousTop = document.body.style.top;
+    const previousWidth = document.body.style.width;
     const previousOverflow = document.body.style.overflow;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
     document.body.style.overflow = 'hidden';
     window.requestAnimationFrame(() => closeButtonRef.current?.focus());
 
@@ -85,7 +81,11 @@ function CarGallery({ images = [], name }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
+      document.body.style.position = previousPosition;
+      document.body.style.top = previousTop;
+      document.body.style.width = previousWidth;
       document.body.style.overflow = previousOverflow;
+      window.scrollTo(0, scrollY);
       window.removeEventListener('keydown', handleKeyDown);
       returnFocusRef.current?.focus?.();
     };
@@ -156,13 +156,7 @@ function CarGallery({ images = [], name }) {
   }
 
   return (
-    <div
-      className="gallery"
-      onMouseEnter={() => setIsAutoPlayPaused(true)}
-      onMouseLeave={() => setIsAutoPlayPaused(false)}
-      onFocusCapture={() => setIsAutoPlayPaused(true)}
-      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setIsAutoPlayPaused(false); }}
-    >
+    <div className="gallery">
       <div className="gallery-main">
         <button
           type="button"

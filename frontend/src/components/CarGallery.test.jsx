@@ -4,16 +4,17 @@ import CarGallery from './CarGallery.jsx';
 
 const images = ['https://example.com/front.jpg', 'https://example.com/rear.jpg'];
 
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
 
-test('automatically cycles multi-image galleries and wraps to the first image', () => {
+test('keeps the selected image still until a person changes it', () => {
   vi.useFakeTimers();
   const { container } = render(<CarGallery images={images} name="BMW M4" />);
   const track = container.querySelector('.gallery-main .gallery-image-track');
 
-  act(() => vi.advanceTimersByTime(4500));
-  expect(track).toHaveStyle({ transform: 'translate3d(-100%, 0, 0)' });
-  act(() => vi.advanceTimersByTime(4500));
+  act(() => vi.advanceTimersByTime(15000));
   expect(track).toHaveStyle({ transform: 'translate3d(-0%, 0, 0)' });
 });
 
@@ -27,6 +28,7 @@ test('switches the main image from the thumbnail previews', () => {
 });
 
 test('opens an enlarged viewer and supports keyboard navigation', () => {
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
   const { container } = render(<CarGallery images={images} name="BMW M4" />);
 
   fireEvent.click(screen.getByRole('button', { name: 'Enlarge BMW M4 image 1' }));
@@ -37,6 +39,36 @@ test('opens an enlarged viewer and supports keyboard navigation', () => {
 
   fireEvent.keyDown(window, { key: 'Escape' });
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+});
+
+test('locks background scrolling while the enlarged viewer is open and restores its position', () => {
+  vi.spyOn(window, 'scrollY', 'get').mockReturnValue(420);
+  const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+  render(<CarGallery images={images} name="BMW M4" />);
+
+  fireEvent.click(screen.getByRole('button', { name: 'Enlarge BMW M4 image 1' }));
+  expect(document.body.style.position).toBe('fixed');
+  expect(document.body.style.top).toBe('-420px');
+  expect(document.body.style.overflow).toBe('hidden');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Close enlarged image' }));
+  expect(document.body.style.position).toBe('');
+  expect(document.body.style.top).toBe('');
+  expect(document.body.style.overflow).toBe('');
+  expect(scrollTo).toHaveBeenCalledWith(0, 420);
+});
+
+test('lets a horizontal swipe change the enlarged photo while the page stays locked', () => {
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+  const { container } = render(<CarGallery images={images} name="BMW M4" />);
+  fireEvent.click(screen.getByRole('button', { name: 'Enlarge BMW M4 image 1' }));
+  const viewer = container.querySelector('.gallery-lightbox-image');
+
+  fireEvent.touchStart(viewer, { touches: [{ identifier: 1, clientX: 240, clientY: 200 }] });
+  fireEvent.touchEnd(viewer, { touches: [], changedTouches: [{ identifier: 1, clientX: 120, clientY: 205 }] });
+
+  expect(container.querySelector('.gallery-lightbox .gallery-image-track')).toHaveStyle({ transform: 'translate3d(-100%, 0, 0)' });
+  expect(document.body.style.position).toBe('fixed');
 });
 
 test('changes the main photo with a horizontal swipe without opening the viewer', () => {
@@ -55,6 +87,7 @@ test.each([
   ['pinch out', 90, 270],
   ['pinch in', 270, 90],
 ])('does not change the enlarged photo during a %s gesture', (_, firstFingerEnd, secondFingerEnd) => {
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
   const { container } = render(<CarGallery images={images} name="BMW M4" />);
   fireEvent.click(screen.getByRole('button', { name: 'Enlarge BMW M4 image 1' }));
   const viewer = container.querySelector('.gallery-lightbox-image');

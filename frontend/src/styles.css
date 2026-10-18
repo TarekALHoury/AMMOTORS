@@ -1246,6 +1246,9 @@ p {
   inset: 0;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: pinch-zoom;
   padding: max(24px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
   background: rgba(2, 4, 5, 0.96);
   backdrop-filter: blur(8px);
@@ -1277,8 +1280,8 @@ p {
   height: min(78svh, 760px);
   overflow: hidden;
   place-items: center;
-  overscroll-behavior-x: contain;
-  touch-action: pan-y pinch-zoom;
+  overscroll-behavior: contain;
+  touch-action: pinch-zoom;
 }
 
 .gallery-lightbox-image .gallery-image-track {
