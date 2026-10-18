@@ -65,8 +65,11 @@ emulatorTest('Firestore rejects unauthenticated and non-admin writes', async () 
 emulatorTest('Firestore permits valid admin writes and rejects invalid data', async () => {
   const adminDb = environment.authenticatedContext('admin-1', { admin: true }).firestore();
   await assertSucceeds(setDoc(doc(adminDb, 'cars/admin-write'), carData()));
+  const { price, ...withoutPrice } = carData();
+  await assertSucceeds(setDoc(doc(adminDb, 'cars/no-price'), withoutPrice));
   await assertSucceeds(setDoc(doc(adminDb, 'cars/optional-specifications'), carData({ specifications: {} })));
   await assertFails(setDoc(doc(adminDb, 'cars/invalid-write'), carData({ status: 'hidden' })));
+  await assertFails(setDoc(doc(adminDb, 'cars/invalid-price'), carData({ price: -1 })));
   await assertFails(setDoc(doc(adminDb, 'cars/invalid-optional-specification'), carData({ specifications: { mileage: -1 } })));
 });
 

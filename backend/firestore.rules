@@ -34,13 +34,13 @@ service cloud.firestore {
           'specifications', 'images', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
         ])
         && data.keys().hasAll([
-          'make', 'model', 'year', 'price', 'description', 'status',
+          'make', 'model', 'year', 'description', 'status',
           'specifications', 'images', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
         ])
         && validString(data.make, 120)
         && validString(data.model, 120)
         && data.year is int && data.year >= 1886 && data.year <= 2200
-        && data.price is number && data.price >= 0
+        && (!('price' in data) || (data.price is number && data.price >= 0))
         && data.description is string && data.description.size() <= 5000
         && data.status in ['available', 'reserved', 'sold']
         && validSpecifications(data.specifications)
