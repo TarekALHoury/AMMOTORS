@@ -381,6 +381,24 @@ describe('admin dashboard UI', () => {
     expect(updateAdminCar.mock.calls[0][1]).not.toHaveProperty('price');
   });
 
+  test('accepts and saves a custom engine instead of a catalog suggestion', async () => {
+    const user = userEvent.setup();
+    renderAdmin();
+    await signIn(user);
+    await user.click(screen.getByRole('button', { name: /Inventory 3/i }));
+    await user.click(screen.getByRole('button', { name: 'Edit Mercedes-Benz C300' }));
+
+    const engine = screen.getByRole('combobox', { name: 'Engine' });
+    await user.click(engine);
+    await user.type(engine, 'Custom 2.5L Hybrid');
+    await user.click(screen.getByRole('option', { name: /Use .*Custom 2\.5L Hybrid/ }));
+    expect(engine).toHaveValue('Custom 2.5L Hybrid');
+
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(updateAdminCar).toHaveBeenCalled());
+    expect(updateAdminCar.mock.calls[0][1].engine).toBe('Custom 2.5L Hybrid');
+  });
+
   test('supports keyboard-only selection in styled form dropdowns', async () => {
     const user = userEvent.setup();
     renderAdmin();
