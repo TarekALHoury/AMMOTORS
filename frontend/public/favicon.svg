@@ -1,6 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AM MOTORS">
-  <rect width="64" height="64" fill="#080b0d"/>
-  <path fill="#fff" fill-rule="evenodd" d="M5 46 17 16h9l11 30h-9l-2.2-7h-9L14.5 46H5Zm14.4-14h4.2l-2.1-6.6-2.1 6.6Z"/>
-  <path fill="#fff" d="M36 46V16h6l7 11 7-11h6v30h-8V30l-5 8-5-8v16h-8Z"/>
-  <rect x="11" y="51" width="42" height="3" rx="1.5" fill="#d6453d"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#080b0d"/>
+  <path fill="#fff" d="M8 44 23 16h10L18 44Zm18 0 15-28h9L35 44Zm15 0 10-19 10 19Z"/>
+  <path fill="#d6453d" d="M9 50h46v3H9z"/>
 </svg>

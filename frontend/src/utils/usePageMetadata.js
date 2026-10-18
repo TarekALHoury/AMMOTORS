@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 const SITE_URL = 'https://ammotors-lb.web.app';
-const FAVICON_URL = '/favicon.png';
+const FAVICON_URL = '/favicon.ico?v=20260930';
 
 function getOrCreateMeta(selector, attributes) {
   let element = document.head.querySelector(selector);
