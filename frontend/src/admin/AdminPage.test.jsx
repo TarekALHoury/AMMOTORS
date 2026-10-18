@@ -320,6 +320,8 @@ describe('admin dashboard UI', () => {
     expect(screen.queryByRole('option', { name: 'Automatic' })).not.toBeInTheDocument();
     await user.keyboard('{Escape}');
     await user.click(screen.getByLabelText('Fuel type'));
+    expect(screen.getByRole('option', { name: 'Gasoline' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Petrol' })).not.toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Self-charging Hybrid (HEV)' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Plug-in Hybrid (PHEV)' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Fully Electric (BEV)' })).toBeInTheDocument();

@@ -64,7 +64,7 @@ export const vehicleModels = {
 export const vehicleMakes = Object.keys(vehicleModels).sort((left, right) => left.localeCompare(right));
 export const drivetrainOptions = ['FWD', 'RWD', 'AWD', '4WD'];
 export const transmissionOptions = ['Automatic', 'Manual', 'CVT', 'Dual-clutch', 'Automated manual'];
-export const fuelOptions = ['Petrol', 'Diesel', 'Hybrid', 'Plug-in Hybrid', 'Electric', 'LPG', 'Hydrogen'];
+export const fuelOptions = ['Gasoline', 'Diesel', 'Hybrid', 'Plug-in Hybrid', 'Electric', 'LPG', 'Hydrogen'];
 export const vehicleOptionLabels = {
   'Automated manual': 'Automated Manual Transmission (AMT)',
   Hybrid: 'Self-charging Hybrid (HEV)',

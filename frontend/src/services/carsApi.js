@@ -1,12 +1,13 @@
 import { collection, doc, getDoc, getDocs } from '@firebase/firestore';
 import { firestore } from './firestore.js';
+import { normalizeFuelType } from '../utils/vehicleFuel.js';
 
 const CARS_CACHE_KEY = 'ammotors.public-cars.v1';
 
 function readCachedCars() {
   try {
     const cached = JSON.parse(localStorage.getItem(CARS_CACHE_KEY));
-    return Array.isArray(cached?.cars) ? cached.cars : null;
+    return Array.isArray(cached?.cars) ? cached.cars.map((car) => ({ ...car, fuel: normalizeFuelType(car.fuel) })) : null;
   } catch {
     return null;
   }
@@ -52,7 +53,7 @@ function toPublicCar(snapshot) {
     horsepower: specifications.horsepower,
     transmission: specifications.transmission,
     drivetrain: specifications.drivetrain,
-    fuel: specifications.fuel,
+    fuel: normalizeFuelType(specifications.fuel),
     description: data.description,
     status: data.status,
     images: imageEntries.map((image) => image.url),

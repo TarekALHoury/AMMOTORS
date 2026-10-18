@@ -2,6 +2,7 @@ import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc } from '
 import { firebaseAuth } from './firebaseAuth.js';
 import { firestore } from './firestore.js';
 import { deleteCarImage, deleteCarImages, uploadCarImages } from './adminImages.js';
+import { normalizeFuelType } from '../utils/vehicleFuel.js';
 
 function requireAdminUid() {
   const uid = firebaseAuth.currentUser?.uid;
@@ -17,7 +18,7 @@ function toCarDocument(car) {
     horsepower: car.horsepower,
     transmission: car.transmission,
     drivetrain: car.drivetrain,
-    fuel: car.fuel,
+    fuel: normalizeFuelType(car.fuel),
   }).filter(([, value]) => value !== '' && value != null));
   return {
     make: car.make,

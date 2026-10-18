@@ -45,9 +45,9 @@ function storeAdminLocation(view, selectedId = null) {
 }
 
 const demoCars = [
-  { id: 'demo-001', make: 'BMW', model: 'M4 Competition', year: 2024, mileage: 12000, engine: '3.0L Twin-Turbo', horsepower: 503, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Petrol', description: 'Clean, low-mileage performance coupe.', status: 'available', images: [] },
-  { id: 'demo-002', make: 'Mercedes-Benz', model: 'C300', year: 2023, mileage: 18500, engine: '2.0L Turbo', horsepower: 255, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Petrol', description: 'Comfortable and well maintained.', status: 'reserved', images: [] },
-  { id: 'demo-003', make: 'Audi', model: 'Q5 Premium Plus', year: 2024, mileage: 7200, engine: '2.0L Turbo', horsepower: 261, transmission: 'Automatic', drivetrain: 'AWD', fuel: 'Petrol', description: 'A refined, practical luxury SUV.', status: 'sold', images: [] },
+  { id: 'demo-001', make: 'BMW', model: 'M4 Competition', year: 2024, mileage: 12000, engine: '3.0L Twin-Turbo', horsepower: 503, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Gasoline', description: 'Clean, low-mileage performance coupe.', status: 'available', images: [] },
+  { id: 'demo-002', make: 'Mercedes-Benz', model: 'C300', year: 2023, mileage: 18500, engine: '2.0L Turbo', horsepower: 255, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Gasoline', description: 'Comfortable and well maintained.', status: 'reserved', images: [] },
+  { id: 'demo-003', make: 'Audi', model: 'Q5 Premium Plus', year: 2024, mileage: 7200, engine: '2.0L Turbo', horsepower: 261, transmission: 'Automatic', drivetrain: 'AWD', fuel: 'Gasoline', description: 'A refined, practical luxury SUV.', status: 'sold', images: [] },
 ];
 
 function formatMegabytes(bytes) {

@@ -29,10 +29,11 @@ describe('offline car data cache', () => {
 
   test('caches successful inventory reads and uses them when Firestore is offline', async () => {
     firestoreMocks.getDocs.mockResolvedValueOnce({ docs: [snapshot()] });
-    expect(await getCars()).toHaveLength(1);
+    const [car] = await getCars();
+    expect(car.fuel).toBe('Gasoline');
 
     firestoreMocks.getDocs.mockRejectedValueOnce(new Error('offline'));
-    expect(await getCars()).toEqual([expect.objectContaining({ id: 'car-1', make: 'BMW' })]);
+    expect(await getCars()).toEqual([expect.objectContaining({ id: 'car-1', make: 'BMW', fuel: 'Gasoline' })]);
   });
 
   test('uses a cached vehicle for offline detail refreshes', async () => {
