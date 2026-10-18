@@ -18,14 +18,11 @@ function toCarDocument(car) {
     transmission: car.transmission,
     drivetrain: car.drivetrain,
     fuel: car.fuel,
-    exteriorColor: car.exteriorColor,
-    interiorColor: car.interiorColor,
   }).filter(([, value]) => value !== '' && value != null));
   return {
     make: car.make,
     model: car.model,
     year: car.year,
-    price: car.price,
     ...(car.condition ? { condition: car.condition } : {}),
     description: car.description,
     status: car.status,

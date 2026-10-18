@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { formatMileage, formatPrice } from '../utils/formatters.js';
+import { formatMileage } from '../utils/formatters.js';
 import VehicleImage from './VehicleImage.jsx';
 
 function CarCard({ car }) {
@@ -13,7 +13,6 @@ function CarCard({ car }) {
         <p className="car-make">{car.make}</p>
         <h3>{car.model}</h3>
         <p className="car-meta">{car.year} <span aria-hidden="true">|</span> {formatMileage(car.mileage)}</p>
-        <p className="car-price">{formatPrice(car.price)}</p>
       </div>
     </Link>
   );

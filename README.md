@@ -31,7 +31,7 @@ The visual identity stays intentionally refined: bold editorial typography, dark
 
 ## Showroom highlights
 
-- Responsive inventory with filtering, pagination, availability, pricing, and mileage
+- Responsive inventory with filtering, pagination, availability, and mileage
 - Detailed vehicle pages with ordered specifications and clear enquiry actions
 - Swipeable multi-image galleries with animated transitions, thumbnails, and an accessible fullscreen viewer
 - Stable iOS and mobile browser scroll animation without viewport-chrome jumps

@@ -16,6 +16,8 @@ describe('admin car persistence', () => {
   test('maps the public form shape to the Firestore document contract', () => {
     expect(toCarDocument(car).specifications.mileage).toBe(12000);
     expect(toCarDocument(car)).not.toHaveProperty('id');
+    expect(toCarDocument(car)).not.toHaveProperty('price');
+    expect(toCarDocument(car).specifications).not.toHaveProperty('exteriorColor');
   });
 
   test('omits optional specifications when the admin leaves them blank', () => {

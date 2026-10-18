@@ -65,18 +65,6 @@ export const vehicleMakes = Object.keys(vehicleModels).sort((left, right) => lef
 export const drivetrainOptions = ['FWD', 'RWD', 'AWD', '4WD'];
 export const transmissionOptions = ['Automatic', 'Manual', 'CVT', 'Dual-clutch', 'Automated manual'];
 export const fuelOptions = ['Petrol', 'Diesel', 'Hybrid', 'Plug-in Hybrid', 'Electric', 'LPG', 'Hydrogen'];
-export const exteriorColorOptions = [
-  'Black', 'Jet Black', 'Matte Black', 'White', 'Pearl White', 'Ivory', 'Silver', 'Gray', 'Graphite', 'Gunmetal',
-  'Charcoal', 'Blue', 'Navy Blue', 'Sky Blue', 'Turquoise', 'Teal', 'Red', 'Burgundy', 'Maroon', 'Green',
-  'Olive Green', 'British Racing Green', 'Brown', 'Bronze', 'Copper', 'Beige', 'Champagne', 'Gold', 'Orange',
-  'Yellow', 'Purple', 'Violet', 'Pink', 'Rose Gold', 'Two-tone', 'Custom',
-];
-export const interiorColorOptions = [
-  'Black', 'Jet Black', 'Charcoal', 'Graphite', 'Dark Gray', 'Gray', 'Light Gray', 'White', 'Ivory', 'Cream',
-  'Beige', 'Sand', 'Taupe', 'Tan', 'Camel', 'Caramel', 'Cognac', 'Brown', 'Chocolate', 'Espresso', 'Chestnut',
-  'Red', 'Burgundy', 'Maroon', 'Blue', 'Navy Blue', 'Green', 'Olive Green', 'Orange', 'Yellow', 'Purple',
-  'Two-tone', 'Custom',
-];
 export const vehicleOptionLabels = {
   'Automated manual': 'Automated Manual Transmission (AMT)',
   Hybrid: 'Self-charging Hybrid (HEV)',

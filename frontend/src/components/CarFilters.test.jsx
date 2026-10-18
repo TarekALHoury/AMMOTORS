@@ -10,11 +10,11 @@ const cars = [
 ];
 
 function FilterHarness() {
-  const [filters, setFilters] = useState({ search: '', make: '', model: '', price: '' });
+  const [filters, setFilters] = useState({ search: '', make: '', model: '' });
   return <CarFilters filters={filters} setFilters={setFilters} cars={cars} />;
 }
 
-test('uses styled dependent dropdowns for every public inventory filter', async () => {
+test('uses styled dependent make and model filters without prices', async () => {
   const user = userEvent.setup();
   render(<FilterHarness />);
   const make = screen.getByRole('combobox', { name: 'Make' });
@@ -26,7 +26,5 @@ test('uses styled dependent dropdowns for every public inventory filter', async 
   expect(screen.getByRole('option', { name: 'M4' })).toBeInTheDocument();
   expect(screen.queryByRole('option', { name: 'Q5' })).not.toBeInTheDocument();
   await user.keyboard('{Escape}');
-  await user.click(screen.getByRole('combobox', { name: 'Price range' }));
-  await user.click(screen.getByRole('option', { name: 'Under $50,000' }));
-  expect(screen.getByRole('combobox', { name: 'Price range' })).toHaveTextContent('Under $50,000');
+  expect(screen.queryByRole('combobox', { name: 'Price range' })).not.toBeInTheDocument();
 });

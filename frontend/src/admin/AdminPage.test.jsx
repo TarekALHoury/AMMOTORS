@@ -74,12 +74,12 @@ describe('admin dashboard UI', () => {
     await signIn(user);
     expect(getCars).toHaveBeenCalledOnce();
     expect(document.querySelector('.admin-dashboard-view')).toBeInTheDocument();
-    expect(document.querySelectorAll('.admin-summary-card[data-tilt="10"]')).toHaveLength(4);
+    expect(document.querySelectorAll('.admin-summary-card[data-tilt="10"]')).toHaveLength(1);
     expect(screen.getByText('Total inventory').closest('.admin-summary-card')).toHaveTextContent('3');
     expect(screen.queryByRole('heading', { name: 'Inventory mix' })).not.toBeInTheDocument();
     expect(document.querySelector('.admin-status-panel')).not.toBeInTheDocument();
     expect(document.querySelector('.admin-recent-panel')).toBeInTheDocument();
-    expect(document.querySelectorAll('.admin-summary-icon svg')).toHaveLength(4);
+    expect(document.querySelectorAll('.admin-summary-icon svg')).toHaveLength(1);
     expect(screen.getByRole('heading', { name: 'Available storage' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Available storage' }).closest('.admin-panel')).toHaveTextContent('/ 3 GB');
     expect(screen.queryByText(/Cloudflare R2/i)).not.toBeInTheDocument();
@@ -172,7 +172,7 @@ describe('admin dashboard UI', () => {
     screen.getAllByRole('button', { name: 'Add vehicle' }).forEach((button) => expect(button).toBeDisabled());
   });
 
-  test('searches every vehicle detail and combines advanced inventory filters', async () => {
+  test('searches inventory without prices or advanced filters', async () => {
     const user = userEvent.setup();
     renderAdmin();
     await signIn(user);
@@ -189,37 +189,22 @@ describe('admin dashboard UI', () => {
     expect(screen.queryByRole('combobox', { name: 'Filter by status' })).not.toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Sort inventory' })).toHaveTextContent('Newest year');
     await user.click(screen.getByRole('combobox', { name: 'Sort inventory' }));
-    expect(screen.getByRole('option', { name: 'Make and model' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Brand and model' })).toBeInTheDocument();
     await user.keyboard('{Escape}');
-    expect(document.querySelector('.admin-table td[data-label="Mileage"]')).toHaveTextContent('12,000 km');
+    expect(document.querySelector('.admin-table td[data-label="Mileage"]')).toHaveTextContent('7,456 mi');
     expect(document.querySelector('.admin-table td[data-label="Images"]')).toHaveTextContent('0 MB');
     expect(document.querySelector('.admin-table td[data-label="Images"]')).toHaveTextContent('No images');
-    await user.click(screen.getByText(/^Advanced filters/));
-    expect(document.querySelector('.lucide-sliders-horizontal')).toBeInTheDocument();
-    expect(document.querySelector('.admin-filter-grid .lucide-car-front')).toBeInTheDocument();
-    expect(document.querySelector('.admin-filter-grid .lucide-circle-dollar-sign')).toBeInTheDocument();
-    expect(document.querySelector('.admin-filter-grid img[data-icon="road"]')).toBeInTheDocument();
-    const specializedIcons = [...document.querySelectorAll('.admin-filter-grid .admin-select-leading-image')];
-    expect(specializedIcons).toHaveLength(3);
-    expect(specializedIcons.some((icon) => icon.src.includes('drivetrain.png'))).toBe(true);
-    expect(specializedIcons.some((icon) => icon.src.includes('gearshifter.png'))).toBe(true);
-    expect(specializedIcons.some((icon) => icon.dataset.icon === 'engine')).toBe(true);
-    await chooseFormOption(user, 'Filter by make', 'BMW');
+    expect(document.querySelector('.admin-filter-panel')).not.toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Price' })).not.toBeInTheDocument();
+    await user.type(search, 'BMW 2024');
     expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
     expect(screen.queryByText('Audi Q5 Premium Plus')).not.toBeInTheDocument();
-    await user.click(screen.getByLabelText('Filter by model'));
-    expect(screen.getByRole('option', { name: 'M4 Competition' })).toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: 'C300' })).not.toBeInTheDocument();
-    await user.keyboard('{Escape}');
-    await chooseFormOption(user, 'Filter by drivetrain', 'RWD');
-    await chooseFormOption(user, 'Filter by exterior color', 'Black');
-    await user.type(screen.getByLabelText('Minimum horsepower'), '500');
-    await chooseFormOption(user, 'Filter by interior color', 'Beige');
+    await user.clear(search);
+    await user.type(search, 'nonexistent vehicle');
     expect(screen.getByText('No vehicles found')).toBeInTheDocument();
     await user.click(within(document.querySelector('.admin-empty')).getByRole('button', { name: 'Clear all filters' }));
     expect(screen.getByText('Audi Q5 Premium Plus')).toBeInTheDocument();
     expect(screen.getByText('BMW M4 Competition')).toBeInTheDocument();
-    expect(document.querySelector('.admin-filter-panel select')).not.toBeInTheDocument();
   });
 
   test('shows each vehicle image count and R2 storage usage in the inventory table', async () => {
@@ -267,7 +252,7 @@ describe('admin dashboard UI', () => {
     await user.click(within(form).getByRole('button', { name: 'Add vehicle' }));
     expect(await screen.findAllByText('Required.')).not.toHaveLength(0);
     expect(screen.getByLabelText('Brand *')).toHaveFocus();
-    expect(screen.getByLabelText('Mileage (km)')).toHaveAttribute('aria-invalid', 'false');
+    expect(screen.getByLabelText('Mileage (mi)')).toHaveAttribute('aria-invalid', 'false');
     expect(screen.getByLabelText('Transmission')).toHaveAttribute('aria-invalid', 'false');
     expect(screen.getByLabelText('Drivetrain')).toHaveAttribute('aria-invalid', 'false');
   });
@@ -281,7 +266,7 @@ describe('admin dashboard UI', () => {
     expect(vehicleDetails.querySelector('.lucide-car-front')).toBeInTheDocument();
     expect(vehicleDetails.querySelector('.lucide-tags')).toBeInTheDocument();
     expect(vehicleDetails.querySelector('.lucide-calendar-days')).toBeInTheDocument();
-    expect(vehicleDetails.querySelector('.lucide-circle-dollar-sign')).toBeInTheDocument();
+    expect(vehicleDetails.querySelector('.lucide-circle-dollar-sign')).not.toBeInTheDocument();
     expect(vehicleDetails.querySelector('.lucide-badge-check')).not.toBeInTheDocument();
     expect(vehicleDetails.querySelector('.lucide-file-text')).toBeInTheDocument();
     expect(screen.queryByLabelText('Status *')).not.toBeInTheDocument();
@@ -310,7 +295,7 @@ describe('admin dashboard UI', () => {
     expect(specificationFields.querySelector('img[data-icon="road"]')).toBeInTheDocument();
     expect(specificationFields.querySelector('.lucide-gauge')).toBeInTheDocument();
     expect(specificationFields.querySelector('.lucide-fuel')).toBeInTheDocument();
-    expect(specificationFields.querySelectorAll('.lucide-palette')).toHaveLength(2);
+    expect(specificationFields.querySelectorAll('.lucide-palette')).toHaveLength(0);
     expect(specificationFields.querySelector('img[data-icon="transmission"]')).toBeInTheDocument();
     expect(specificationFields.querySelector('img[data-icon="drivetrain"]')).toBeInTheDocument();
     await chooseFormOption(user, 'Engine', '3.0L Twin-Turbo');
@@ -339,20 +324,8 @@ describe('admin dashboard UI', () => {
     expect(screen.getByRole('option', { name: 'Plug-in Hybrid (PHEV)' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Fully Electric (BEV)' })).toBeInTheDocument();
     await user.keyboard('{Escape}');
-    expect(screen.getByLabelText('Exterior color')).toHaveRole('combobox');
-    expect(screen.getByLabelText('Interior color')).toHaveRole('combobox');
-    await user.click(screen.getByLabelText('Exterior color'));
-    expect(screen.getByRole('option', { name: 'Silver' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Purple' })).toBeInTheDocument();
-    await user.keyboard('{Escape}');
-    await user.click(screen.getByLabelText('Interior color'));
-    expect(screen.getByRole('option', { name: 'Tan' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Burgundy' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Cognac' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Espresso' })).toBeInTheDocument();
-    await user.type(screen.getByLabelText('Interior color'), 'burg');
-    expect(screen.getByRole('option', { name: 'Burgundy' })).toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: 'Tan' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Exterior color')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Interior color')).not.toBeInTheDocument();
   });
 
   test('accepts only four numeric year digits with the phone number pad', async () => {
@@ -376,7 +349,7 @@ describe('admin dashboard UI', () => {
     renderAdmin();
     await signIn(user);
     await user.click(within(screen.getByRole('navigation', { name: 'Admin navigation' })).getByRole('button', { name: /Add vehicle/i }));
-    const mileage = screen.getByLabelText('Mileage (km)');
+    const mileage = screen.getByLabelText('Mileage (mi)');
     expect(mileage).toHaveAttribute('type', 'number');
     expect(mileage).toHaveAttribute('inputmode', 'numeric');
     expect(mileage).toHaveAttribute('min', '0');
@@ -396,9 +369,14 @@ describe('admin dashboard UI', () => {
     await user.click(screen.getByRole('button', { name: /Inventory 3/i }));
     await user.click(screen.getByRole('button', { name: 'Edit Mercedes-Benz C300' }));
     expect(screen.queryByLabelText('Status *')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Mileage (mi)')).toHaveValue(11495);
+    await user.clear(screen.getByLabelText('Mileage (mi)'));
+    await user.type(screen.getByLabelText('Mileage (mi)'), '100');
     await user.click(screen.getByRole('button', { name: 'Save changes' }));
     await waitFor(() => expect(updateAdminCar).toHaveBeenCalled());
     expect(updateAdminCar.mock.calls[0][1].status).toBe('reserved');
+    expect(updateAdminCar.mock.calls[0][1].mileage).toBe(161);
+    expect(updateAdminCar.mock.calls[0][1]).not.toHaveProperty('price');
   });
 
   test('supports keyboard-only selection in styled form dropdowns', async () => {
@@ -488,13 +466,6 @@ describe('admin dashboard UI', () => {
       viewport.dispatchEvent(new Event('resize'));
       await waitFor(() => expect(menu).toHaveStyle({ top: '6px', maxHeight: '266px' }));
       await user.keyboard('{Escape}');
-      viewport.height = 640;
-      viewport.offsetTop = 0;
-      await user.click(screen.getByRole('combobox', { name: 'Exterior color' }));
-      const colorMenu = screen.getByRole('listbox', { name: 'Exterior color options' }).parentElement;
-      expect(screen.queryByRole('searchbox', { name: 'Search Exterior color' })).not.toBeInTheDocument();
-      await waitFor(() => expect(colorMenu).toHaveClass('is-below'));
-      expect(colorMenu).toHaveStyle({ top: '6px', left: '8px', width: '220px', maxHeight: '310px' });
     } finally {
       if (originalWidth) Object.defineProperty(window, 'innerWidth', originalWidth);
       if (originalViewport) Object.defineProperty(window, 'visualViewport', originalViewport);

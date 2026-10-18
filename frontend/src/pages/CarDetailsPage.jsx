@@ -4,7 +4,7 @@ import CarGallery from '../components/CarGallery.jsx';
 import CarSpecs from '../components/CarSpecs.jsx';
 import WhatsAppButton from '../components/WhatsAppButton.jsx';
 import { getCarById } from '../services/carsApi.js';
-import { formatMileage, formatPrice } from '../utils/formatters.js';
+import { formatMileage } from '../utils/formatters.js';
 import { usePageMetadata } from '../utils/usePageMetadata.js';
 
 function CarDetailsPage() {
@@ -28,8 +28,8 @@ function CarDetailsPage() {
   usePageMetadata({
     title: car ? `${car.year} ${car.make} ${car.model} | AM MOTORS` : 'Vehicle Details | AM MOTORS',
     description: car
-      ? `View photos, price, mileage, and specifications for this ${car.year} ${car.make} ${car.model} from AM MOTORS in Lebanon.`
-      : 'View vehicle photos, specifications, mileage, and pricing from AM MOTORS in Lebanon.',
+      ? `View photos, mileage, and specifications for this ${car.year} ${car.make} ${car.model} from AM MOTORS in Lebanon.`
+      : 'View vehicle photos, specifications, and mileage from AM MOTORS in Lebanon.',
     path: `/cars/${id}`,
     robots: errorStatus === 404 ? 'noindex, follow' : 'index, follow',
   });
@@ -55,7 +55,6 @@ function CarDetailsPage() {
             <span className="status-pill inline-status">{car.status}</span>
             <h1>{carName}</h1>
             <p className="vehicle-meta">{car.year} <span aria-hidden="true">|</span> {formatMileage(car.mileage)}</p>
-            <p className="detail-price">{formatPrice(car.price)}</p>
             <WhatsAppButton car={car} className="full-width" />
             <p className="response-note">Contact us directly for availability and more details.</p>
           </aside>

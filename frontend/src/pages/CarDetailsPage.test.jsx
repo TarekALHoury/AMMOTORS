@@ -22,7 +22,8 @@ test('shows the year once in the compact vehicle summary with a bar separator', 
   expect(await screen.findByRole('heading', { name: 'GMC Yukon' })).toBeInTheDocument();
   const summary = container.querySelector('.vehicle-summary');
   expect(summary.querySelectorAll('.vehicle-year')).toHaveLength(0);
-  expect(summary.querySelector('.vehicle-meta').textContent).toBe('2024 | 100,000 km');
+  expect(summary.querySelector('.vehicle-meta').textContent).toBe('2024 | 62,137 mi');
+  expect(summary.querySelector('.detail-price')).toBeNull();
 });
 
 test('preserves the description line breaks entered in the admin form', async () => {

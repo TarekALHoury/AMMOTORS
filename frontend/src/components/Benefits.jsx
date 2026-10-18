@@ -2,7 +2,7 @@ import Icon from './Icon.jsx';
 
 const benefits = [
   { icon: 'diamond', title: 'Quality', text: 'Vehicles' },
-  { icon: 'tag', title: 'Transparent', text: 'Pricing' },
+  { icon: 'tag', title: 'Clear', text: 'Details' },
   { icon: 'shield', title: 'Trusted', text: 'Dealership' },
   { icon: 'whatsapp', title: 'Direct', text: 'WhatsApp Contact' },
 ];

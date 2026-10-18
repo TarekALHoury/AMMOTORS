@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowUpDown, CalendarDays, CarFront, Check, ChevronDown, ChevronRight, CircleDollarSign, Eye, FileText, Fuel, Gauge, ImageUp, LayoutDashboard, LoaderCircle, LogOut, Menu, Palette, Plus, Search, SlidersHorizontal, SquarePen, Tags, Trash2, X } from 'lucide-react';
+import { ArrowLeft, ArrowUpDown, CalendarDays, CarFront, Check, ChevronDown, ChevronRight, Eye, FileText, Fuel, Gauge, ImageUp, LayoutDashboard, LoaderCircle, LogOut, Menu, Plus, Search, SquarePen, Tags, Trash2, X } from 'lucide-react';
 import { getCars } from '../services/carsApi.js';
 import { observeAdminAuth, signInAdmin, signOutAdmin } from '../services/adminAuth.js';
 import { createAdminCar, deleteAdminCar, updateAdminCar } from '../services/adminCars.js';
@@ -13,15 +13,15 @@ import engineIcon from '../assets/icons/engine.svg';
 import roadIcon from '../assets/icons/road.svg';
 import transmissionIcon from '../assets/icons/gearshifter.png';
 import { usePageMetadata } from '../utils/usePageMetadata.js';
-import { kilometersToMiles, milesToKilometers } from '../utils/formatters.js';
+import { formatMileage, kilometersToMiles, milesToKilometers } from '../utils/formatters.js';
 import { CLOUDFLARE_STORAGE_LIMIT_BYTES, STORAGE_WARNING_BYTES, formatBytes, formatRemainingBytes, storageUsageMetrics } from '../utils/storageUsage.js';
-import { drivetrainOptions, exteriorColorOptions, fuelOptions, getEngineOptions, interiorColorOptions, transmissionOptions, vehicleMakes, vehicleModels, vehicleOptionLabels } from './vehicleCatalog.js';
+import { drivetrainOptions, fuelOptions, getEngineOptions, transmissionOptions, vehicleMakes, vehicleModels, vehicleOptionLabels } from './vehicleCatalog.js';
 import './admin.css';
 
 const emptyCar = {
-  make: '', model: '', year: '', price: '', description: '', status: 'available',
+  make: '', model: '', year: '', description: '', status: 'available',
   mileage: '', engine: '', horsepower: '', transmission: '', drivetrain: '', fuel: '',
-  exteriorColor: '', interiorColor: '', images: [],
+  images: [],
 };
 
 const ADMIN_LOCATION_KEY = 'ammotors.admin-location.v1';
@@ -45,14 +45,10 @@ function storeAdminLocation(view, selectedId = null) {
 }
 
 const demoCars = [
-  { id: 'demo-001', make: 'BMW', model: 'M4 Competition', year: 2024, price: 80000, mileage: 12000, engine: '3.0L Twin-Turbo', horsepower: 503, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Petrol', exteriorColor: 'Black', interiorColor: 'Black', description: 'Clean, low-mileage performance coupe.', status: 'available', images: [] },
-  { id: 'demo-002', make: 'Mercedes-Benz', model: 'C300', year: 2023, price: 54000, mileage: 18500, engine: '2.0L Turbo', horsepower: 255, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Petrol', exteriorColor: 'White', interiorColor: 'Beige', description: 'Comfortable and well maintained.', status: 'reserved', images: [] },
-  { id: 'demo-003', make: 'Audi', model: 'Q5 Premium Plus', year: 2024, price: 63000, mileage: 7200, engine: '2.0L Turbo', horsepower: 261, transmission: 'Automatic', drivetrain: 'AWD', fuel: 'Petrol', exteriorColor: 'Gray', interiorColor: 'Black', description: 'A refined, practical luxury SUV.', status: 'sold', images: [] },
+  { id: 'demo-001', make: 'BMW', model: 'M4 Competition', year: 2024, mileage: 12000, engine: '3.0L Twin-Turbo', horsepower: 503, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Petrol', description: 'Clean, low-mileage performance coupe.', status: 'available', images: [] },
+  { id: 'demo-002', make: 'Mercedes-Benz', model: 'C300', year: 2023, mileage: 18500, engine: '2.0L Turbo', horsepower: 255, transmission: 'Automatic', drivetrain: 'RWD', fuel: 'Petrol', description: 'Comfortable and well maintained.', status: 'reserved', images: [] },
+  { id: 'demo-003', make: 'Audi', model: 'Q5 Premium Plus', year: 2024, mileage: 7200, engine: '2.0L Turbo', horsepower: 261, transmission: 'Automatic', drivetrain: 'AWD', fuel: 'Petrol', description: 'A refined, practical luxury SUV.', status: 'sold', images: [] },
 ];
-
-function money(value) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value || 0);
-}
 
 function formatMegabytes(bytes) {
   const megabytes = bytes / (1024 * 1024);
@@ -155,17 +151,12 @@ function SignIn({ onSuccess }) {
 }
 
 function Summary({ cars, storage, onNavigate }) {
-  const totalValue = cars.reduce((sum, car) => sum + Number(car.price || 0), 0);
-  const imageCount = cars.reduce((sum, car) => sum + (car.images?.length || 0), 0);
   const metrics = storageUsageMetrics(storage.usedBytes, storage.limitBytes);
   const isFull = storage.status === 'ready' && metrics.usedBytes >= metrics.limitBytes;
   const isWarning = storage.status === 'ready' && metrics.usedBytes >= Math.min(STORAGE_WARNING_BYTES, metrics.limitBytes * (5 / 6));
   const percentageText = `${metrics.actualPercentage.toFixed(2)}%`;
   const cards = [
     { label: 'Total inventory', value: cars.length, note: 'vehicles tracked', icon: CarFront, tone: 'neutral' },
-    { label: 'Inventory value', value: money(totalValue), note: 'all listed vehicles', icon: CircleDollarSign, tone: 'value' },
-    { label: 'Average price', value: money(cars.length ? totalValue / cars.length : 0), note: 'per vehicle', icon: Tags, tone: 'neutral' },
-    { label: 'Vehicle images', value: imageCount, note: 'images attached', icon: ImageUp, tone: 'neutral' },
   ];
   return (
     <div className="admin-view admin-dashboard-view">
@@ -185,7 +176,7 @@ function Summary({ cars, storage, onNavigate }) {
       <section className="admin-panel admin-recent-panel" data-tilt="2">
           <div className="admin-panel-heading"><div><p className="admin-kicker">Recent inventory</p><h2>Latest vehicles</h2></div><button className="admin-text-button" onClick={() => onNavigate('inventory')}>View all <AdminIcon name="arrow" /></button></div>
           <div className="admin-recent-list">
-            {cars.slice(0, 4).map((car) => <button key={car.id} className="admin-recent-row" onClick={() => onNavigate('details', car)}><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.year} · {money(car.price)}</small></span><AdminIcon name="arrow" /></button>)}
+            {cars.slice(0, 4).map((car) => <button key={car.id} className="admin-recent-row" onClick={() => onNavigate('details', car)}><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.year} · {formatMileage(car.mileage)}</small></span><AdminIcon name="arrow" /></button>)}
             {!cars.length && <EmptyState onAction={() => onNavigate('add')} />}
           </div>
       </section>
@@ -194,100 +185,34 @@ function Summary({ cars, storage, onNavigate }) {
 }
 
 function EmptyState({ onAction, actionLabel = 'Add first vehicle' }) {
-  return <div className="admin-empty"><div className="admin-empty-icon"><AdminIcon name="cars" /></div><h3>No vehicles found</h3><p>Add a vehicle or adjust your search and filters.</p>{onAction && <button className="button button-outline" onClick={onAction}>{actionLabel}</button>}</div>;
-}
-
-const defaultInventoryFilters = {
-  make: 'all', model: 'all', year: 'all', drivetrain: 'all',
-  transmission: 'all', fuel: 'all', engine: 'all', exteriorColor: 'all', interiorColor: 'all',
-  minPrice: '', maxPrice: '', maxMileage: '', minHorsepower: '', maxHorsepower: '',
-};
-
-function uniqueCarValues(cars, field, numeric = false) {
-  const values = [...new Set(cars.map((car) => car[field]).filter((value) => value !== '' && value != null))];
-  return values.sort(numeric ? (left, right) => right - left : (left, right) => String(left).localeCompare(String(right)));
+  return <div className="admin-empty"><div className="admin-empty-icon"><AdminIcon name="cars" /></div><h3>No vehicles found</h3><p>Add a vehicle or adjust your search.</p>{onAction && <button className="button button-outline" onClick={onAction}>{actionLabel}</button>}</div>;
 }
 
 function Inventory({ cars, measuredImageSizes, canAddVehicle, onNavigate, onDelete }) {
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState(defaultInventoryFilters);
   const [sort, setSort] = useState('newest');
-  const options = useMemo(() => ({
-    makes: uniqueCarValues(cars, 'make'),
-    models: uniqueCarValues(cars.filter((car) => filters.make === 'all' || car.make === filters.make), 'model'),
-    years: uniqueCarValues(cars, 'year', true),
-    drivetrains: uniqueCarValues(cars, 'drivetrain'),
-    transmissions: uniqueCarValues(cars, 'transmission'),
-    fuels: uniqueCarValues(cars, 'fuel'),
-    engines: uniqueCarValues(cars, 'engine'),
-    exteriorColors: uniqueCarValues(cars, 'exteriorColor'),
-    interiorColors: uniqueCarValues(cars, 'interiorColor'),
-  }), [cars, filters.make]);
-  const activeFilterCount = Object.entries(filters).filter(([key, value]) => value !== defaultInventoryFilters[key]).length;
-  function updateFilter(name, value) {
-    setFilters((current) => ({ ...current, [name]: value, ...(name === 'make' ? { model: 'all' } : {}) }));
-  }
-  function resetFilters() { setSearch(''); setFilters(defaultInventoryFilters); }
+  function resetFilters() { setSearch(''); }
   const filtered = useMemo(() => cars.filter((car) => {
-    const searchable = [car.make, car.model, car.year, car.price, car.mileage, car.engine, car.horsepower, car.transmission, car.drivetrain, car.fuel, car.exteriorColor, car.interiorColor, car.description].join(' ').toLowerCase();
+    const searchable = [car.make, car.model, car.year, car.mileage == null ? '' : Math.round(kilometersToMiles(car.mileage)), car.engine, car.horsepower, car.transmission, car.drivetrain, car.fuel, car.description].join(' ').toLowerCase();
     const queryWords = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    const matchesText = queryWords.every((word) => searchable.includes(word));
-    const withinMinimumPrice = filters.minPrice === '' || Number(car.price) >= Number(filters.minPrice);
-    const withinMaximumPrice = filters.maxPrice === '' || Number(car.price) <= Number(filters.maxPrice);
-    const withinMileage = filters.maxMileage === '' || Number(car.mileage) <= Number(filters.maxMileage);
-    const withinMinimumHorsepower = filters.minHorsepower === '' || Number(car.horsepower) >= Number(filters.minHorsepower);
-    const withinMaximumHorsepower = filters.maxHorsepower === '' || Number(car.horsepower) <= Number(filters.maxHorsepower);
-    return matchesText
-      && (filters.make === 'all' || car.make === filters.make)
-      && (filters.model === 'all' || car.model === filters.model)
-      && (filters.year === 'all' || String(car.year) === filters.year)
-      && (filters.drivetrain === 'all' || car.drivetrain === filters.drivetrain)
-      && (filters.transmission === 'all' || car.transmission === filters.transmission)
-      && (filters.fuel === 'all' || car.fuel === filters.fuel)
-      && (filters.engine === 'all' || car.engine === filters.engine)
-      && (filters.exteriorColor === 'all' || car.exteriorColor === filters.exteriorColor)
-      && (filters.interiorColor === 'all' || car.interiorColor === filters.interiorColor)
-      && withinMinimumPrice && withinMaximumPrice && withinMileage
-      && withinMinimumHorsepower && withinMaximumHorsepower;
+    return queryWords.every((word) => searchable.includes(word));
   }).sort((left, right) => {
-    if (sort === 'price-high') return right.price - left.price;
-    if (sort === 'price-low') return left.price - right.price;
     if (sort === 'mileage-low') return left.mileage - right.mileage;
     if (sort === 'mileage-high') return right.mileage - left.mileage;
     if (sort === 'oldest') return left.year - right.year;
     if (sort === 'make') return `${left.make} ${left.model}`.localeCompare(`${right.make} ${right.model}`);
     return right.year - left.year;
-  }), [cars, filters, search, sort]);
+  }), [cars, search, sort]);
 
   return (
     <div className="admin-view">
       <div className="admin-page-heading"><div><p className="admin-kicker">Vehicle management</p><h1>Inventory</h1><p>{filtered.length} of {cars.length} vehicles shown.</p></div><button className="button button-primary" disabled={!canAddVehicle} onClick={() => onNavigate('add')}><AdminIcon name="plus" /> Add vehicle</button></div>
       <section className="admin-toolbar" aria-label="Inventory controls">
         <div className="admin-search"><label><span className="sr-only">Search inventory</span><AdminIcon name="search" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search make, model, year, specs…" /></label>{search && <button className="admin-search-clear" type="button" aria-label="Clear inventory search" onClick={() => setSearch('')}><X size={16} aria-hidden="true" /></button>}</div>
-        <SelectField label="Sort inventory" name="sort" value={sort} onChange={(event) => setSort(event.target.value)} options={['newest', 'oldest', 'price-high', 'price-low', 'mileage-low', 'mileage-high', 'make']} optionLabels={{ newest: 'Newest year', oldest: 'Oldest year', 'price-high': 'Price: high to low', 'price-low': 'Price: low to high', 'mileage-low': 'Mileage: low to high', 'mileage-high': 'Mileage: high to low', make: 'Make and model' }} leadingIcon={ArrowUpDown} hideLabel />
+        <SelectField label="Sort inventory" name="sort" value={sort} onChange={(event) => setSort(event.target.value)} options={['newest', 'oldest', 'mileage-low', 'mileage-high', 'make']} optionLabels={{ newest: 'Newest year', oldest: 'Oldest year', 'mileage-low': 'Mileage: low to high', 'mileage-high': 'Mileage: high to low', make: 'Brand and model' }} leadingIcon={ArrowUpDown} hideLabel />
       </section>
-      <details className="admin-filter-panel">
-        <summary><SlidersHorizontal size={18} aria-hidden="true" /><span>Advanced filters{activeFilterCount ? ` (${activeFilterCount})` : ''}</span><small>Make, model, year, specifications, price, and mileage</small><ChevronDown className="admin-filter-chevron" size={18} aria-hidden="true" /></summary>
-        <div className="admin-filter-grid">
-          <SelectField label="Make" ariaLabel="Filter by make" name="makeFilter" value={filters.make} onChange={(event) => updateFilter('make', event.target.value)} options={['all', ...options.makes]} optionLabels={{ all: 'All makes' }} leadingIcon={CarFront} searchable />
-          <SelectField label="Model" ariaLabel="Filter by model" name="modelFilter" value={filters.model} onChange={(event) => updateFilter('model', event.target.value)} options={['all', ...options.models]} optionLabels={{ all: 'All models' }} leadingIcon={Search} searchable />
-          <SelectField label="Year" ariaLabel="Filter by year" name="yearFilter" value={filters.year} onChange={(event) => updateFilter('year', event.target.value)} options={['all', ...options.years.map(String)]} optionLabels={{ all: 'All years' }} leadingIcon={CalendarDays} />
-          <SelectField label="Drivetrain" ariaLabel="Filter by drivetrain" name="drivetrainFilter" value={filters.drivetrain} onChange={(event) => updateFilter('drivetrain', event.target.value)} options={['all', ...options.drivetrains]} optionLabels={{ all: 'All drivetrains' }} leadingIconSrc={drivetrainIcon} />
-          <SelectField label="Transmission" ariaLabel="Filter by transmission" name="transmissionFilter" value={filters.transmission} onChange={(event) => updateFilter('transmission', event.target.value)} options={['all', ...options.transmissions]} optionLabels={{ all: 'All transmissions' }} leadingIconSrc={transmissionIcon} />
-          <SelectField label="Fuel type" ariaLabel="Filter by fuel type" name="fuelFilter" value={filters.fuel} onChange={(event) => updateFilter('fuel', event.target.value)} options={['all', ...options.fuels]} optionLabels={{ all: 'All fuel types' }} leadingIcon={Fuel} />
-          <SelectField label="Engine" ariaLabel="Filter by engine" name="engineFilter" value={filters.engine} onChange={(event) => updateFilter('engine', event.target.value)} options={['all', ...options.engines]} optionLabels={{ all: 'All engines' }} leadingIconSrc={engineIcon} leadingIconName="engine" />
-          <SelectField label="Exterior color" ariaLabel="Filter by exterior color" name="exteriorColorFilter" value={filters.exteriorColor} onChange={(event) => updateFilter('exteriorColor', event.target.value)} options={['all', ...options.exteriorColors]} optionLabels={{ all: 'All exterior colors' }} leadingIcon={Palette} />
-          <SelectField label="Interior color" ariaLabel="Filter by interior color" name="interiorColorFilter" value={filters.interiorColor} onChange={(event) => updateFilter('interiorColor', event.target.value)} options={['all', ...options.interiorColors]} optionLabels={{ all: 'All interior colors' }} leadingIcon={Palette} />
-          <label><span className="admin-filter-label"><CircleDollarSign size={16} aria-hidden="true" /> Minimum price</span><input aria-label="Minimum price" type="number" min="0" inputMode="numeric" value={filters.minPrice} onChange={(event) => updateFilter('minPrice', event.target.value)} placeholder="$0" /></label>
-          <label><span className="admin-filter-label"><CircleDollarSign size={16} aria-hidden="true" /> Maximum price</span><input aria-label="Maximum price" type="number" min="0" inputMode="numeric" value={filters.maxPrice} onChange={(event) => updateFilter('maxPrice', event.target.value)} placeholder="No maximum" /></label>
-          <label><span className="admin-filter-label"><img src={roadIcon} alt="" aria-hidden="true" data-icon="road" /> Maximum mileage</span><input aria-label="Maximum mileage" type="number" min="0" inputMode="numeric" value={filters.maxMileage} onChange={(event) => updateFilter('maxMileage', event.target.value)} placeholder="No maximum" /></label>
-          <label><span className="admin-filter-label"><Gauge size={16} aria-hidden="true" /> Minimum horsepower</span><input aria-label="Minimum horsepower" type="number" min="0" inputMode="numeric" value={filters.minHorsepower} onChange={(event) => updateFilter('minHorsepower', event.target.value)} placeholder="No minimum" /></label>
-          <label><span className="admin-filter-label"><Gauge size={16} aria-hidden="true" /> Maximum horsepower</span><input aria-label="Maximum horsepower" type="number" min="0" inputMode="numeric" value={filters.maxHorsepower} onChange={(event) => updateFilter('maxHorsepower', event.target.value)} placeholder="No maximum" /></label>
-        </div>
-        <div className="admin-filter-footer"><span>{filtered.length} matching vehicle{filtered.length === 1 ? '' : 's'}</span><button type="button" onClick={resetFilters} disabled={!search && !activeFilterCount}>Clear all filters</button></div>
-      </details>
       {!filtered.length ? <EmptyState onAction={cars.length ? resetFilters : () => onNavigate('add')} actionLabel={cars.length ? 'Clear all filters' : 'Add first vehicle'} /> : (
-        <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Vehicle</th><th>Year</th><th>Mileage</th><th>Price</th><th>Image storage</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{filtered.map((car) => { const storage = getImageStorage(car, measuredImageSizes); return <tr key={car.id}><td data-label="Vehicle"><div className="admin-vehicle-cell"><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.engine}</small></span></div></td><td data-label="Year">{car.year}</td><td data-label="Mileage">{car.mileage == null ? '—' : `${Number(car.mileage).toLocaleString()} km`}</td><td data-label="Price"><strong>{money(car.price)}</strong></td><td data-label="Images"><span className="admin-image-storage"><strong>{storage.size}</strong><small>{storage.count}</small></span></td><td data-label="Actions"><div className="admin-row-actions"><button aria-label={`View ${car.make} ${car.model}`} onClick={() => onNavigate('details', car)}><AdminIcon name="eye" /></button><button aria-label={`Edit ${car.make} ${car.model}`} onClick={() => onNavigate('edit', car)}><AdminIcon name="edit" /></button><button className="danger" aria-label={`Delete ${car.make} ${car.model}`} onClick={() => onDelete(car)}><AdminIcon name="trash" /></button></div></td></tr>; })}</tbody></table></div>
+        <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Vehicle</th><th>Year</th><th>Mileage</th><th>Image storage</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{filtered.map((car) => { const storage = getImageStorage(car, measuredImageSizes); return <tr key={car.id}><td data-label="Vehicle"><div className="admin-vehicle-cell"><VehicleImage src={car.images?.[0]} alt="" /><span><strong>{car.make} {car.model}</strong><small>{car.engine}</small></span></div></td><td data-label="Year">{car.year}</td><td data-label="Mileage">{formatMileage(car.mileage)}</td><td data-label="Images"><span className="admin-image-storage"><strong>{storage.size}</strong><small>{storage.count}</small></span></td><td data-label="Actions"><div className="admin-row-actions"><button aria-label={`View ${car.make} ${car.model}`} onClick={() => onNavigate('details', car)}><AdminIcon name="eye" /></button><button aria-label={`Edit ${car.make} ${car.model}`} onClick={() => onNavigate('edit', car)}><AdminIcon name="edit" /></button><button className="danger" aria-label={`Delete ${car.make} ${car.model}`} onClick={() => onDelete(car)}><AdminIcon name="trash" /></button></div></td></tr>; })}</tbody></table></div>
       )}
     </div>
   );
@@ -298,7 +223,6 @@ function validateCar(car) {
   ['make', 'model'].forEach((field) => { if (!String(car[field] ?? '').trim()) errors[field] = 'Required.'; });
   const currentYear = new Date().getFullYear();
   if (!Number.isInteger(Number(car.year)) || Number(car.year) < 1886 || Number(car.year) > currentYear + 1) errors.year = `Enter a year from 1886 to ${currentYear + 1}.`;
-  if (car.price === '' || Number(car.price) < 0 || !Number.isFinite(Number(car.price))) errors.price = 'Enter a valid non-negative number.';
   ['mileage', 'horsepower'].forEach((field) => { if (car[field] !== '' && (Number(car[field]) < 0 || !Number.isFinite(Number(car[field])))) errors[field] = 'Enter a valid non-negative number.'; });
   if (car.mileage !== '' && !Number.isInteger(Number(car.mileage))) errors.mileage = 'Mileage must be a whole number.';
   if (String(car.description).length > 5000) errors.description = 'Description must be 5,000 characters or fewer.';
@@ -472,8 +396,7 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
   const [errors, setErrors] = useState({});
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [mileageUnit, setMileageUnit] = useState('km');
-  const [mileageInput, setMileageInput] = useState(() => String(initialCar?.mileage ?? ''));
+  const [mileageInput, setMileageInput] = useState(() => initialCar?.mileage == null ? '' : String(Math.round(kilometersToMiles(initialCar.mileage))));
   const [internetModels, setInternetModels] = useState([]);
   const firstErrorRef = useRef(null);
   const selectedFilesRef = useRef([]);
@@ -506,14 +429,8 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
     const nextValue = event.target.value;
     if (nextValue === '' || /^\d+$/.test(nextValue)) {
       setMileageInput(nextValue);
-      setCar({ ...car, mileage: nextValue === '' ? '' : mileageUnit === 'mi' ? Math.round(milesToKilometers(nextValue)) : nextValue });
+      setCar({ ...car, mileage: nextValue === '' ? '' : Math.round(milesToKilometers(nextValue)) });
     }
-  }
-  function changeMileageUnit(nextUnit) {
-    if (nextUnit === mileageUnit) return;
-    setMileageUnit(nextUnit);
-    if (car.mileage === '') setMileageInput('');
-    else setMileageInput(String(Math.round(nextUnit === 'mi' ? kilometersToMiles(car.mileage) : Number(car.mileage))));
   }
   function preventInvalidMileageKey(event) {
     if (['-', '+', '.', ',', 'e', 'E'].includes(event.key)) event.preventDefault();
@@ -547,7 +464,7 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
     }
     setSaving(true);
     try {
-      await onSave({ ...car, images: car.images.filter((image) => !image.startsWith('blob:')), year: Number(car.year), price: Number(car.price), mileage: car.mileage === '' ? undefined : Number(car.mileage), horsepower: car.horsepower === '' ? undefined : Number(car.horsepower) }, selectedFiles.map((item) => item.file));
+      await onSave({ ...car, images: car.images.filter((image) => !image.startsWith('blob:')), year: Number(car.year), mileage: car.mileage === '' ? undefined : Number(car.mileage), horsepower: car.horsepower === '' ? undefined : Number(car.horsepower) }, selectedFiles.map((item) => item.file));
     } catch (error) {
       setErrors({ form: error?.message || 'The vehicle could not be saved. Check your connection and administrator access, then try again.' });
       setSaving(false);
@@ -555,16 +472,16 @@ function CarForm({ mode, initialCar, onCancel, onSave }) {
   }
 
   return <div className="admin-view"><div className="admin-page-heading"><div><button className="admin-back-button" onClick={onCancel}><ArrowLeft size={16} aria-hidden="true" /> Back to inventory</button><p className="admin-kicker">{mode === 'add' ? 'New listing' : 'Update listing'}</p><h1>{mode === 'add' ? 'Add vehicle' : `Edit ${initialCar.make} ${initialCar.model}`}</h1><p>Fields marked required are needed before this listing can be saved.</p></div></div><form className="admin-car-form" onSubmit={submit} noValidate ref={firstErrorRef}>{errors.form && <div className="admin-form-error" role="alert">{errors.form}</div>}
-<section className="admin-form-section admin-vehicle-detail-fields"><div className="admin-form-section-heading"><span>01</span><div><h2>Vehicle details</h2><p>Core listing information.</p></div></div><div className="admin-form-grid"><SelectField label="Brand *" name="make" value={car.make} error={errors.make} onChange={changeMake} options={vehicleMakes} placeholder="Select or search for a brand" inlineSearch allowCustom leadingIcon={CarFront} /><SelectField label="Model *" name="model" value={car.model} error={errors.model} onChange={changeModel} options={modelOptions} placeholder={car.make ? 'Select or search for a model' : 'Select a brand first'} disabled={!car.make} inlineSearch allowCustom leadingIcon={Tags} /><Field label="Year *" name="year" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} autoComplete="off" value={car.year} error={errors.year} onChange={changeYear} onPaste={preventInvalidYearPaste} placeholder="Enter year" leadingIcon={CalendarDays} /><Field label="Price (USD) *" name="price" type="number" value={car.price} error={errors.price} onChange={change} leadingIcon={CircleDollarSign} /><label className="admin-field admin-field-wide"><span>Description</span><div className="admin-textarea-with-icon"><FileText size={18} aria-hidden="true" /><textarea name="description" rows="5" value={car.description} onChange={change} aria-label="Description" aria-invalid={Boolean(errors.description)} /></div><small>{car.description.length}/5000</small>{errors.description && <small className="admin-field-error">{errors.description}</small>}</label></div></section>
-<section className="admin-form-section admin-specification-fields"><div className="admin-form-section-heading"><span>02</span><div><h2>Specifications</h2><p>Optional technical and appearance information.</p></div></div><div className="admin-form-grid"><Field label="Mileage (km)" name="mileage" type="number" inputMode="numeric" min="0" step="1" value={car.mileage} error={errors.mileage} onChange={changeMileage} onKeyDown={preventInvalidMileageKey} onPaste={preventInvalidMileagePaste} leadingIconSrc={roadIcon} leadingIconName="road" /><SelectField label="Engine" name="engine" value={car.engine} error={errors.engine} onChange={change} options={engineOptions} placeholder={car.model ? 'Select an engine' : 'Select a model first'} disabled={!car.model} inlineSearch leadingIconSrc={engineIcon} leadingIconName="engine" /><Field label="Horsepower" name="horsepower" type="number" value={car.horsepower} error={errors.horsepower} onChange={change} leadingIcon={Gauge} /><SelectField label="Transmission" name="transmission" value={car.transmission} error={errors.transmission} onChange={change} options={transmissionOptions} optionLabels={vehicleOptionLabels} inlineSearch leadingIconSrc={transmissionIcon} leadingIconName="transmission" /><SelectField label="Drivetrain" name="drivetrain" value={car.drivetrain} error={errors.drivetrain} onChange={change} options={drivetrainOptions} inlineSearch leadingIconSrc={drivetrainIcon} leadingIconName="drivetrain" /><SelectField label="Fuel type" name="fuel" value={car.fuel} error={errors.fuel} onChange={change} options={fuelOptions} optionLabels={vehicleOptionLabels} inlineSearch leadingIcon={Fuel} /><SelectField label="Exterior color" name="exteriorColor" value={car.exteriorColor} error={errors.exteriorColor} onChange={change} options={exteriorColorOptions} inlineSearch allowCustom leadingIcon={Palette} /><SelectField label="Interior color" name="interiorColor" value={car.interiorColor} error={errors.interiorColor} onChange={change} options={interiorColorOptions} inlineSearch allowCustom leadingIcon={Palette} /></div></section>
+<section className="admin-form-section admin-vehicle-detail-fields"><div className="admin-form-section-heading"><span>01</span><div><h2>Vehicle details</h2><p>Core listing information.</p></div></div><div className="admin-form-grid"><SelectField label="Brand *" name="make" value={car.make} error={errors.make} onChange={changeMake} options={vehicleMakes} placeholder="Select or search for a brand" inlineSearch allowCustom leadingIcon={CarFront} /><SelectField label="Model *" name="model" value={car.model} error={errors.model} onChange={changeModel} options={modelOptions} placeholder={car.make ? 'Select or search for a model' : 'Select a brand first'} disabled={!car.make} inlineSearch allowCustom leadingIcon={Tags} /><Field label="Year *" name="year" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} autoComplete="off" value={car.year} error={errors.year} onChange={changeYear} onPaste={preventInvalidYearPaste} placeholder="Enter year" leadingIcon={CalendarDays} /><label className="admin-field admin-field-wide"><span>Description</span><div className="admin-textarea-with-icon"><FileText size={18} aria-hidden="true" /><textarea name="description" rows="5" value={car.description} onChange={change} aria-label="Description" aria-invalid={Boolean(errors.description)} /></div><small>{car.description.length}/5000</small>{errors.description && <small className="admin-field-error">{errors.description}</small>}</label></div></section>
+<section className="admin-form-section admin-specification-fields"><div className="admin-form-section-heading"><span>02</span><div><h2>Specifications</h2><p>Optional technical information.</p></div></div><div className="admin-form-grid"><Field label="Mileage (mi)" name="mileage" type="number" inputMode="numeric" min="0" step="1" value={mileageInput} error={errors.mileage} onChange={changeMileage} onKeyDown={preventInvalidMileageKey} onPaste={preventInvalidMileagePaste} leadingIconSrc={roadIcon} leadingIconName="road" /><SelectField label="Engine" name="engine" value={car.engine} error={errors.engine} onChange={change} options={engineOptions} placeholder={car.model ? 'Select an engine' : 'Select a model first'} disabled={!car.model} inlineSearch leadingIconSrc={engineIcon} leadingIconName="engine" /><Field label="Horsepower" name="horsepower" type="number" value={car.horsepower} error={errors.horsepower} onChange={change} leadingIcon={Gauge} /><SelectField label="Transmission" name="transmission" value={car.transmission} error={errors.transmission} onChange={change} options={transmissionOptions} optionLabels={vehicleOptionLabels} inlineSearch leadingIconSrc={transmissionIcon} leadingIconName="transmission" /><SelectField label="Drivetrain" name="drivetrain" value={car.drivetrain} error={errors.drivetrain} onChange={change} options={drivetrainOptions} inlineSearch leadingIconSrc={drivetrainIcon} leadingIconName="drivetrain" /><SelectField label="Fuel type" name="fuel" value={car.fuel} error={errors.fuel} onChange={change} options={fuelOptions} optionLabels={vehicleOptionLabels} inlineSearch leadingIcon={Fuel} /></div></section>
     <section className="admin-form-section"><div className="admin-form-section-heading"><span>03</span><div><h2>Vehicle images</h2><p>Select images to upload securely through the AM MOTORS image service.</p></div></div><label className="admin-upload-zone"><AdminIcon name="upload" /><strong>Select images</strong><span>JPEG, PNG, or WebP · 320×180 to 8000×8000 · max 10 MB</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={selectFiles} /></label>{errors.images && <small className="admin-field-error admin-image-error">{errors.images}</small>}{car.images.length > 0 && <div className="admin-image-previews" aria-label="Selected image previews">{car.images.map((image, index) => <div key={`${image}-${index}`}><VehicleImage src={image} alt={`Vehicle preview ${index + 1}`} /><button type="button" aria-label={`Remove image ${index + 1}`} onClick={() => { const removed = car.images[index]; setCar({ ...car, images: car.images.filter((_, imageIndex) => imageIndex !== index) }); setSelectedFiles((current) => current.filter((item) => item.preview !== removed)); if (removed.startsWith('blob:')) URL.revokeObjectURL(removed); }}><X size={16} aria-hidden="true" /></button>{index === 0 && <span>Cover</span>}</div>)}</div>}</section>
     <div className="admin-form-actions"><button className="button button-outline" type="button" onClick={onCancel}>Cancel</button><button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : mode === 'add' ? 'Add vehicle' : 'Save changes'}</button></div>
   </form></div>;
 }
 
 function Details({ car, onBack, onEdit, onDelete }) {
-  const specs = [['Mileage', car.mileage == null ? null : `${Number(car.mileage).toLocaleString()} km`], ['Engine', car.engine], ['Horsepower', car.horsepower == null ? null : `${car.horsepower} hp`], ['Transmission', car.transmission], ['Drivetrain', car.drivetrain], ['Fuel', car.fuel], ['Exterior', car.exteriorColor], ['Interior', car.interiorColor]];
-  return <div className="admin-view"><button className="admin-back-button" onClick={onBack}>← Back to inventory</button><div className="admin-details-heading"><div><p>{car.year}</p><h1>{car.make} {car.model}</h1><strong>{money(car.price)}</strong></div><div><button className="button button-outline" onClick={onEdit}><AdminIcon name="edit" /> Edit</button><button className="button admin-danger-button" onClick={onDelete}><AdminIcon name="trash" /> Delete</button></div></div><div className="admin-details-layout"><section className="admin-detail-gallery"><VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model}`} />{car.images?.length > 1 && <div>{car.images.slice(1, 5).map((image, index) => <VehicleImage key={image} src={image} alt={`${car.make} ${car.model} view ${index + 2}`} />)}</div>}</section><aside className="admin-preview-card"><p className="admin-kicker">Customer preview</p><h2>{car.make} {car.model}</h2><p>{car.year}{car.mileage == null ? '' : ` · ${Number(car.mileage).toLocaleString()} km`}</p><strong>{money(car.price)}</strong><span>This mirrors the information customers receive through the public API.</span></aside></div><section className="admin-panel admin-detail-section"><div className="admin-panel-heading"><div><p className="admin-kicker">Vehicle overview</p><h2>Specifications</h2></div></div><dl className="admin-spec-grid">{specs.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || '—'}</dd></div>)}</dl></section><section className="admin-panel admin-detail-section"><p className="admin-kicker">Listing copy</p><h2>Description</h2><p>{car.description || 'No description provided.'}</p></section></div>;
+  const specs = [['Mileage', car.mileage == null ? null : formatMileage(car.mileage)], ['Engine', car.engine], ['Horsepower', car.horsepower == null ? null : `${car.horsepower} hp`], ['Transmission', car.transmission], ['Drivetrain', car.drivetrain], ['Fuel', car.fuel]];
+  return <div className="admin-view"><button className="admin-back-button" onClick={onBack}>← Back to inventory</button><div className="admin-details-heading"><div><p>{car.year}{car.mileage == null ? '' : ` | ${formatMileage(car.mileage)}`}</p><h1>{car.make} {car.model}</h1></div><div><button className="button button-outline" onClick={onEdit}><AdminIcon name="edit" /> Edit</button><button className="button admin-danger-button" onClick={onDelete}><AdminIcon name="trash" /> Delete</button></div></div><div className="admin-details-layout"><section className="admin-detail-gallery"><VehicleImage src={car.images?.[0]} alt={`${car.make} ${car.model}`} />{car.images?.length > 1 && <div>{car.images.slice(1, 5).map((image, index) => <VehicleImage key={image} src={image} alt={`${car.make} ${car.model} view ${index + 2}`} />)}</div>}</section><aside className="admin-preview-card"><p className="admin-kicker">Customer preview</p><h2>{car.make} {car.model}</h2><p>{car.year}{car.mileage == null ? '' : ` | ${formatMileage(car.mileage)}`}</p><span>This mirrors the information customers receive through the public API.</span></aside></div><section className="admin-panel admin-detail-section"><div className="admin-panel-heading"><div><p className="admin-kicker">Vehicle overview</p><h2>Specifications</h2></div></div><dl className="admin-spec-grid">{specs.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || '—'}</dd></div>)}</dl></section><section className="admin-panel admin-detail-section"><p className="admin-kicker">Listing copy</p><h2>Description</h2><p>{car.description || 'No description provided.'}</p></section></div>;
 }
 
 function DeleteDialog({ car, onCancel, onConfirm }) {

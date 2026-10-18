@@ -5,7 +5,7 @@ import Icon from '../components/Icon.jsx';
 import { getCars } from '../services/carsApi.js';
 import { usePageMetadata } from '../utils/usePageMetadata.js';
 
-const initialFilters = { search: '', make: '', model: '', price: '' };
+const initialFilters = { search: '', make: '', model: '' };
 const CARS_PER_PAGE = 6;
 
 function CarsPage() {
@@ -18,7 +18,7 @@ function CarsPage() {
 
   usePageMetadata({
     title: 'Available Cars | AM MOTORS',
-    description: 'Browse the latest vehicles available from AM MOTORS in Lebanon, including specifications, mileage, pricing, and photos.',
+    description: 'Browse the latest vehicles available from AM MOTORS in Lebanon, including specifications, mileage, and photos.',
     path: '/cars',
   });
 
@@ -35,11 +35,9 @@ function CarsPage() {
 
   const filteredCars = useMemo(() => cars.filter((car) => {
     const searchText = `${car.make} ${car.model} ${car.year}`.toLowerCase();
-    const [minimum = 0, maximum = Infinity] = filters.price ? filters.price.split('-').map(Number) : [];
     return (!filters.search || searchText.includes(filters.search.toLowerCase().trim()))
       && (!filters.make || car.make === filters.make)
-      && (!filters.model || car.model === filters.model)
-      && (!filters.price || (car.price >= minimum && car.price < maximum));
+      && (!filters.model || car.model === filters.model);
   }), [cars, filters]);
   const totalPages = Math.ceil(filteredCars.length / CARS_PER_PAGE);
   const visibleCars = filteredCars.slice((page - 1) * CARS_PER_PAGE, page * CARS_PER_PAGE);

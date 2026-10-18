@@ -18,7 +18,7 @@ function HomePage() {
 
   usePageMetadata({
     title: 'AM MOTORS | Premium Cars in Lebanon',
-    description: 'Explore carefully selected quality vehicles from AM MOTORS in Lebanon, with transparent specifications, pricing, and direct personal service.',
+    description: 'Explore carefully selected quality vehicles from AM MOTORS in Lebanon, with clear specifications and direct personal service.',
   });
 
   useEffect(() => {

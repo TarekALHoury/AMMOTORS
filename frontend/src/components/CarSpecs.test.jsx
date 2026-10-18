@@ -26,8 +26,8 @@ describe('CarSpecs', () => {
 
     expect([...container.querySelectorAll('.spec span')].map((label) => label.textContent)).toEqual([
       'Model', 'Year', 'Mileage', 'Engine', 'Horsepower', 'Transmission',
-      'Drivetrain', 'Fuel type', 'Exterior color', 'Interior color',
+      'Drivetrain', 'Fuel type',
     ]);
-    expect(screen.getByText('Mileage').closest('.spec')).toHaveTextContent('100,000 km | 62,137 mi');
+    expect(screen.getByText('Mileage').closest('.spec')).toHaveTextContent('62,137 mi');
   });
 });

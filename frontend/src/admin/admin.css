@@ -105,7 +105,7 @@
 .admin-page-heading p:last-child { margin-bottom: 0; }
 .admin-dashboard-view { perspective: 1200px; }
 .admin-dashboard-view .admin-page-heading { animation: admin-rise-in 520ms cubic-bezier(.2,.75,.25,1) both; }
-.admin-summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; perspective: 1200px; }
+.admin-summary-grid { display: grid; grid-template-columns: minmax(0, 1fr); max-width: 360px; gap: 16px; margin-bottom: 28px; perspective: 1200px; }
 .admin-summary-card { position: relative; isolation: isolate; padding: 24px; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(145deg, rgba(255,255,255,.035), transparent 52%), var(--panel); box-shadow: 0 14px 34px rgba(0,0,0,.16); transform-style: preserve-3d; animation: admin-card-in 600ms cubic-bezier(.2,.75,.25,1) both; transition: transform 160ms ease, border-color 220ms ease, box-shadow 220ms ease; }
 .admin-summary-card::before { position: absolute; z-index: 0; inset: 0; background: radial-gradient(circle at var(--glow-x,50%) var(--glow-y,50%),rgba(255,255,255,.13),transparent 34%); content: ''; opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
 .admin-summary-card.is-tilting::before { opacity: 1; }
@@ -191,7 +191,7 @@
 .admin-filter-footer button:hover:not(:disabled) { border-color: var(--line-strong); background: rgba(255,255,255,.05); }
 .admin-filter-footer button:disabled { cursor: not-allowed; opacity: .42; }
 .admin-table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); overscroll-behavior-inline: contain; -webkit-overflow-scrolling: touch; }
-.admin-table { width: 100%; min-width: 940px; border-collapse: collapse; }
+.admin-table { width: 100%; min-width: 760px; border-collapse: collapse; }
 .admin-table th, .admin-table td { padding: 15px 18px; border-bottom: 1px solid var(--line); text-align: left; }
 .admin-table th { color: #939ca1; font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; }
 .admin-table td { color: #dbe0e2; font-size: .78rem; }
@@ -278,7 +278,6 @@
 .admin-toast { position: fixed; z-index: 150; top: 22px; right: 24px; display: flex; max-width: min(420px, calc(100vw - 48px)); align-items: center; gap: 10px; padding: 13px 17px; border: 1px solid rgba(58,177,112,.35); border-radius: 6px; background: #13211a; color: #bde9cf; box-shadow: 0 14px 40px rgba(0,0,0,.3); font-size: .78rem; font-weight: 700; overflow-wrap: anywhere; }
 
 @media (max-width: 1100px) {
-  .admin-summary-grid { grid-template-columns: repeat(2,1fr); }
   .admin-image-previews { grid-template-columns: repeat(4,1fr); }
   .admin-spec-grid { grid-template-columns: repeat(2,1fr); }
   .admin-filter-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -341,7 +340,7 @@
   .admin-table td { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--line); }
   .admin-table td::before { color: var(--muted); content: attr(data-label); font-size: .63rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
   .admin-table td:first-child, .admin-table td:last-child { grid-column: 1/-1; }
-  .admin-table td[data-label="Price"], .admin-table td[data-label="Images"] { border-bottom: 0; }
+  .admin-table td[data-label="Images"] { border-bottom: 0; }
   .admin-table td:first-child { padding: 14px; background: linear-gradient(120deg,rgba(255,255,255,.035),transparent); }
   .admin-table td:first-child::before, .admin-table td:last-child::before { display: none; }
   .admin-table td:last-child { padding: 9px; border-bottom: 0; border-top: 1px solid var(--line); }
@@ -388,7 +387,6 @@
   .admin-dialog { width: calc(100% - 20px); padding: 26px 18px; }
   .admin-table tr { grid-template-columns: 1fr; }
   .admin-table td, .admin-table td:first-child, .admin-table td:last-child { grid-column: 1; }
-  .admin-table td[data-label="Price"] { border-bottom: 1px solid var(--line); }
 }
 @media (max-height: 560px) and (max-width: 800px) {
   .admin-sidebar-logo { height: 78px; }
